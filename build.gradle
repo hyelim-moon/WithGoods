@@ -1,0 +1,73 @@
+plugins {
+	id 'java'
+	id 'org.springframework.boot' version '3.4.4'
+	id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.WG'
+version = '0.0.1-SNAPSHOT'
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(17)
+	}
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+	useJUnitPlatform()
+}
+
+def frontendDir = "$projectDir/src/main/frontend"
+
+sourceSets {
+	main {
+		resources {
+			srcDirs = ["$projectDir/src/main/resources"]
+		}
+	}
+}
+
+processResources {
+	dependsOn "copyReactBuildFiles"
+}
+
+tasks.register("installReact", Exec) {
+	workingDir = file(frontendDir)
+	inputs.dir(frontendDir)
+	group = BasePlugin.BUILD_GROUP
+
+	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+		commandLine "cmd", "/c", "npm install"
+	} else {
+		commandLine "sh", "-c", "npm install"
+	}
+}
+
+tasks.register("buildReact", Exec) {
+	dependsOn("installReact")
+	workingDir = file(frontendDir)
+	inputs.dir(frontendDir)
+	group = BasePlugin.BUILD_GROUP
+
+	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
+		commandLine "cmd", "/c", "npm run build"
+	} else {
+		commandLine "sh", "-c", "npm run build"
+	}
+}
+
+tasks.register("copyReactBuildFiles", Copy) {
+	dependsOn("buildReact")
+	from("$frontendDir/build")
+	into("$projectDir/src/main/resources/static")
+}
