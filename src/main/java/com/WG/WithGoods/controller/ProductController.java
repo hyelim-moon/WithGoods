@@ -1,6 +1,6 @@
 package com.WG.WithGoods.controller;
 
-import com.WG.WithGoods.Service.ProductService;
+import com.WG.WithGoods.service.ProductService;
 import com.WG.WithGoods.dto.ProductDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

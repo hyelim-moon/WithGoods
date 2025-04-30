@@ -1,4 +1,4 @@
-package com.WG.WithGoods.Service;
+package com.WG.WithGoods.service;
 
 import com.WG.WithGoods.dto.ProductDto;
 import com.WG.WithGoods.entity.Product;
