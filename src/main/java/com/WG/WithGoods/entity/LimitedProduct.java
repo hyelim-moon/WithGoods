@@ -16,12 +16,12 @@ public class LimitedProduct {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "limited_product_id")
-    private Integer limitedProductId; // 한정판상품번호 (PK)
+    private Integer limitedProductId;
 
-    @ManyToOne
-    @JoinColumn(name = "product_id", nullable = false) // 상품번호 (FK)
-    private Product product; // 연관된 상품
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", nullable = false)
+    private Product product; // 연관 상품
+
 
     @Column(name = "start_date", nullable = false)
     private LocalDateTime startDate; // 판매시작날짜
