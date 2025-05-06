@@ -22,7 +22,7 @@ public class LimitedProductController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<LimitedProductDto> get(@PathVariable Long id) {
+    public ResponseEntity<LimitedProductDto> get(@PathVariable Integer id) {
         return ResponseEntity.ok(limitedProductService.get(id));
     }
 
@@ -32,12 +32,12 @@ public class LimitedProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<LimitedProductDto> update(@PathVariable Long id, @RequestBody LimitedProductDto dto) {
+    public ResponseEntity<LimitedProductDto> update(@PathVariable Integer id, @RequestBody LimitedProductDto dto) {
         return ResponseEntity.ok(limitedProductService.update(id, dto));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Integer id) {
         limitedProductService.delete(id);
         return ResponseEntity.noContent().build();
     }

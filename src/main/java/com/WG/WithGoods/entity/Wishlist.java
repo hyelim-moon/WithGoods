@@ -3,6 +3,8 @@ package com.WG.WithGoods.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Table(name = "wishlist")
 @Getter
@@ -14,14 +16,16 @@ public class Wishlist {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "wishlist_id")
-    private Integer wishlistId; // 찜번호 (PK)
+    private Long id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "member_id", nullable = false)
-    private Member member; // 찜한 회원 (FK)
+    private Member member;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    private Product product; // 찜한 상품 (FK)
+    private Product product;
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
 }
