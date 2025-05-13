@@ -33,6 +33,5 @@ public class Review {
     @Column(name = "image_url")
     private String imageUrl; // 리뷰사진
 
-    @Column(name = "review_date")
-    private LocalDateTime reviewDate; // 리뷰날짜
+    private LocalDateTime createdAt; // 리뷰날짜
 }
