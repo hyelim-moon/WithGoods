@@ -7,12 +7,14 @@ function Best() {
     const [isPanelOpen, setIsPanelOpen] = useState(false);
 
     const bestGoods = [
-        { id: 1, name: '상품 A', category: '한정판' },
-        { id: 2, name: '상품 B', category: '기념일' },
-        { id: 3, name: '상품 C', category: '기념일' },
-        { id: 4, name: '상품 D', category: '커스텀굿즈' },
-        { id: 5, name: '상품 E', category: '한정판' },
-        { id: 6, name: '상품 F', category: '커스텀굿즈' },
+        { id: 1, name: '상품 A', category: '한정판', price: '₩50,000' },
+        { id: 2, name: '상품 B', category: '기념일', price: '₩30,000' },
+        { id: 3, name: '상품 C', category: '기념일', price: '₩45,000' },
+        { id: 4, name: '상품 D', category: '커스텀굿즈', price: '₩70,000' },
+        { id: 5, name: '상품 E', category: '한정판', price: '₩60,000' },
+        { id: 6, name: '상품 F', category: '커스텀굿즈', price: '₩80,000' },
+        { id: 7, name: '상품 G', category: '한정판', price: '₩12,000' },
+        { id: 8, name: '상품 H', category: '기념일', price: '₩5,000' },
     ];
 
     const handleCategoryChange = (e) => {
@@ -63,9 +65,16 @@ function Best() {
             <div className={styles.productList}>
                 {filteredGoods.length > 0 ? (
                     filteredGoods.map((product) => (
-                        <div key={product.id} className={styles.productItem}>
-                            <h4>{product.name}</h4>
-                            <p>{product.category}</p>
+                        <div key={product.id} className={styles.productContainer}>
+                            <div className={styles.productItem}>
+                                <div className={styles.productContent}>
+                                    {/* 이미지, 아이콘 등 컨텐츠 */}
+                                </div>
+                            </div>
+                            <div className={styles.productDetails}>
+                                <h4 className={styles.productTitle}>{product.name}</h4>
+                                <p className={styles.productPrice}>{product.price}</p>
+                            </div>
                         </div>
                     ))
                 ) : (

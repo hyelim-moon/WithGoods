@@ -6,24 +6,24 @@
     display: flex;
     align-items: center;
     margin-bottom: 20px;
-    gap: 20px;  /* 'BEST' 제목과 상품 유형 사이에 여백 추가 */
+    gap: 20px;
 }
 
 .pageTitle {
-    font-size: 2rem;  /* 제목 크기 작게 */
+    font-size: 2rem;
     color: #000;
     margin: 0;
 }
 
 .categoryToggle {
-    padding: 4px 8px;  /* 버튼을 작게 */
-    font-size: 0.9rem;  /* 폰트 크기 줄임 */
+    padding: 4px 8px;
+    font-size: 0.9rem;
     cursor: pointer;
     border: 1px solid #ccc;
     background-color: #fff;
     border-radius: 5px;
     z-index: 2;
-    height: 28px;  /* 버튼 높이를 조금 줄여서 더 작게 */
+    height: 28px;
 }
 
 .sidePanel {
@@ -37,7 +37,7 @@
 
 .checkboxItem {
     opacity: 0;
-    transform: translateX(20px);  /* 시작 위치: 오른쪽 */
+    transform: translateX(20px);
     transition: opacity 0.4s ease, transform 0.4s ease;
     margin-bottom: 10px;
     white-space: nowrap;
@@ -45,40 +45,74 @@
 
 .checkboxItem.visible {
     opacity: 1;
-    transform: translateX(20px);  /* 열릴 때: 왼쪽으로 */
+    transform: translateX(20px);
 }
 
 .checkboxItem.hidden {
     opacity: 0;
-    transform: translateX(0);  /* 닫힐 때: 오른쪽으로 */
+    transform: translateX(0);
 }
 
 .productList {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);  /* 한 줄에 4개의 상품 표시 */
-    gap: 16px;  /* 상품들 간의 여백을 줄여서 크기 조정 */
-    margin-top: 20px;
+    grid-template-columns: repeat(4, 1fr); /* 한 줄에 4개의 상자가 오도록 설정 */
+    gap: 30px 230px; /* 수평 간격 50px, 수직 간격 30px */
+    justify-content: center;               /* 그리드 전체를 가운데로 */
+    max-width: 1400px;                     /* 최대 너비 설정 */
+    margin: 0 auto;                        /* 가로 중앙 정렬 */
+    margin-top: 40px;
 }
 
 .productItem {
-    aspect-ratio: 1;  /* 정사각형 유지 */
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    width: 400px;
+    height: 400px;
     background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    border-radius: 8px;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    box-sizing: border-box;
+    padding: 20px; /* padding을 줄여서 위아래 간격 */
+    box-sizing: border-box; /* padding 포함한 너비로 설정 */
     overflow: hidden;
-    padding: 10px;  /* 내부 여백을 줄여서 크기 감소 */
-    font-size: 1rem;  /* 텍스트 크기 줄임 */
-    height: 300px; /*상품 사진 크기*/
+    transition: transform 0.2s;
+    margin-bottom: 10px;
 }
 
-.productItem h4, .productItem p {
-    margin: 0;
-    text-align: center;
-    overflow: hidden;
-    text-overflow: ellipsis;  /* 텍스트가 넘칠 경우 '...'으로 표시 */
-    white-space: nowrap;  /* 텍스트가 길어지지 않도록 처리 */
+.productItem:hover {
+    transform: translateY(-7px); /* 호버 시 약간 뜨게 */
+}
+
+.productContent {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+}
+
+.productDetails {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start; /* 왼쪽 정렬 */
+    gap: 2px;
+    margin-top: -5px; /* 상품명과 가격 사이의 간격 */
+    text-align: left; /* 텍스트 왼쪽 정렬 */
+    position: relative; /* 상대적인 위치로 조정 */
+    bottom: -10px; /* 회색 상자와 가격 간의 겹침 방지 */
+}
+
+.productTitle {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.productPrice {
+    font-size: 1.5rem;
+    color: #333;
+    font-weight: bold;
+    margin-top: -35px; /* 가격과 상품명 간의 간격 줄임 */
+    margin-bottom: 80px;
 }
