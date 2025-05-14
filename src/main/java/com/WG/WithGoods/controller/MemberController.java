@@ -11,7 +11,6 @@ import jakarta.servlet.http.HttpSession;
 
 
 @RestController
-@RequestMapping("/api/members")
 @RequiredArgsConstructor
 public class MemberController {
 
@@ -19,6 +18,7 @@ public class MemberController {
 
     @PostMapping("/signup")
     public ResponseEntity<Member> register(@RequestBody MemberDTO dto) {
+        dto.setCouponId(null);
         Member newMember = memberService.registerMember(dto);
         return ResponseEntity.ok(newMember);
     }

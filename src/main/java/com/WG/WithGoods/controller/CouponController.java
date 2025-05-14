@@ -12,7 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/coupons")
 @RequiredArgsConstructor
-public class CouponController {
+public class   CouponController {
 
     private final CouponService couponService;
 
