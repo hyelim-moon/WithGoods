@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-public class DraftService {
+public class DraftService{
 
     private final DraftRepository draftRepository;
 

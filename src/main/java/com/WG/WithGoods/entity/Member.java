@@ -46,4 +46,12 @@ public class Member {
     private LocalDateTime birthDate;
 
     private String address;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Role role;
+
+    public enum Role {
+        USER, ADMIN
+    }
 }
