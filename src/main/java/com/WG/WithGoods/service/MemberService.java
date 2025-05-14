@@ -34,6 +34,7 @@ public class MemberService {
                 .birthDate(request.getBirthDate())
                 .address(request.getAddress())
                 .coupon(null)
+                .role(Member.Role.USER)
                 .build();
 
         return memberRepository.save(member);
