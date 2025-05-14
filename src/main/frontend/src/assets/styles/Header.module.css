@@ -2,6 +2,10 @@
     width: 100%;
     padding: 0.8rem 1.5rem 0.8rem 0.5rem;
     box-sizing: border-box;
+    background-color: white;
+    background-image:
+            repeating-linear-gradient(0deg, #ccc 0px, #ccc 1px, transparent 1px, transparent 20px),
+            repeating-linear-gradient(90deg, #ccc 0px, #ccc 1px, transparent 1px, transparent 20px);
 }
 
 /* 로고 + 로그인/검색 묶음 */
