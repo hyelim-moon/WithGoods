@@ -33,6 +33,7 @@ function Best() {
         <div className={styles.bestGoodsContainer}>
             <div className={styles.titleRow}>
                 <h2 className={styles.pageTitle}>⭐BEST⭐</h2>
+
                 <button
                     className={styles.categoryToggle}
                     onClick={() => setIsPanelOpen((prev) => !prev)}
@@ -61,6 +62,13 @@ function Best() {
                         );
                     })}
                 </div>
+                 <div className={styles.sortOptions}>
+                    <span className={styles.sortOption}>낮은가격순</span>
+                    <span className={styles.sortOption}>높은가격순</span>
+                    <span className={styles.sortOption}>리뷰많은순</span>
+                    <span className={styles.sortOption}>누적판매순</span>
+                    <span className={styles.sortOption}>평점높은순</span>
+                 </div>
             </div>
             <div className={styles.productList}>
                 {filteredGoods.length > 0 ? (

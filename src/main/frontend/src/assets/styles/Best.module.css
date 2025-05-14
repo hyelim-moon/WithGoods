@@ -6,8 +6,10 @@
     display: flex;
     align-items: center;
     margin-bottom: 20px;
+    flex-wrap: wrap;
     gap: 20px;
 }
+
 
 .pageTitle {
     font-size: 2rem;
@@ -113,6 +115,27 @@
     font-size: 1.5rem;
     color: #333;
     font-weight: bold;
-    margin-top: -35px; /* 가격과 상품명 간의 간격 줄임 */
+    margin-top: -35px; /* 가격과 상품명 간의 간격*/
     margin-bottom: 80px;
+}
+
+/* 정렬 옵션 스타일 */
+.sortOptions {
+    display: flex;
+    gap: 16px;
+    font-size: 0.95rem;
+    color: #555;
+    white-space: nowrap;
+    margin-left: auto;
+    margin-right: 30px;
+}
+
+.sortOption {
+    cursor: pointer;
+    font-weight: normal;
+    transition: color 0.3s ease;
+}
+
+.sortOption:hover {
+    color: #9e4b25;
 }
