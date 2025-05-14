@@ -10,7 +10,6 @@
     gap: 20px;
 }
 
-
 .pageTitle {
     font-size: 2rem;
     color: #000;
@@ -57,11 +56,11 @@
 
 .productList {
     display: grid;
-    grid-template-columns: repeat(4, 1fr); /* 한 줄에 4개의 상자가 오도록 설정 */
-    gap: 30px 230px; /* 수평 간격 50px, 수직 간격 30px */
-    justify-content: center;               /* 그리드 전체를 가운데로 */
-    max-width: 1400px;                     /* 최대 너비 설정 */
-    margin: 0 auto;                        /* 가로 중앙 정렬 */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 30px 230px;
+    justify-content: center;
+    max-width: 1400px;
+    margin: 0 auto;
     margin-top: 40px;
 }
 
@@ -72,18 +71,17 @@
     border: 1px solid #ccc;
     border-radius: 8px;
     display: flex;
-    flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 20px; /* padding을 줄여서 위아래 간격 */
-    box-sizing: border-box; /* padding 포함한 너비로 설정 */
+    padding: 20px;
+    box-sizing: border-box;
     overflow: hidden;
     transition: transform 0.2s;
     margin-bottom: 10px;
 }
 
 .productItem:hover {
-    transform: translateY(-7px); /* 호버 시 약간 뜨게 */
+    transform: translateY(-7px);
 }
 
 .productContent {
@@ -97,29 +95,43 @@
 .productDetails {
     display: flex;
     flex-direction: column;
-    align-items: flex-start; /* 왼쪽 정렬 */
+    align-items: flex-start;
     gap: 2px;
-    margin-top: -5px; /* 상품명과 가격 사이의 간격 */
-    text-align: left; /* 텍스트 왼쪽 정렬 */
-    position: relative; /* 상대적인 위치로 조정 */
-    bottom: -10px; /* 회색 상자와 가격 간의 겹침 방지 */
+    margin-top: -5px;
+    text-align: left;
+    position: relative;
+    bottom: -10px;
 }
+
+.productRating {
+    font-size: 1rem;
+    color: #f1a825;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.ratingNumber {
+    font-size: 0.85rem;
+    color: #555;
+}
+
 
 .productTitle {
     font-size: 2rem;
     font-weight: bold;
-    margin-top: 5px;
+    margin-top: 2px;
 }
 
 .productPrice {
     font-size: 1.5rem;
     color: #333;
     font-weight: bold;
-    margin-top: -35px; /* 가격과 상품명 간의 간격*/
+    margin-top: -35px;
     margin-bottom: 80px;
 }
 
-/* 정렬 옵션 스타일 */
 .sortOptions {
     display: flex;
     gap: 16px;
