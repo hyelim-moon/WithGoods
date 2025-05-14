@@ -31,11 +31,15 @@ function App() {
           <div className="App">
               <Header/>
               <Navbar/>
-              <Banner/>
               <Routes>
+                  <Route path="/" element={
+                      <>
+                          <Banner/>
+                          <MainContent/>
+                      </>
+                  }/>
                   <Route path="/best" element={<Best />} />
               </Routes>
-              <MainContent/>
               백엔드에서 받은 데이터: {hello}
               {error && <p>Error: {error}</p>}
           </div>
