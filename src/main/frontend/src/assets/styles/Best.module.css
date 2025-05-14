@@ -1,0 +1,84 @@
+.bestGoodsContainer {
+    padding: 20px;
+}
+
+.titleRow {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 20px;  /* 'BEST' 제목과 상품 유형 사이에 여백 추가 */
+}
+
+.pageTitle {
+    font-size: 2rem;  /* 제목 크기 작게 */
+    color: #000;
+    margin: 0;
+}
+
+.categoryToggle {
+    padding: 4px 8px;  /* 버튼을 작게 */
+    font-size: 0.9rem;  /* 폰트 크기 줄임 */
+    cursor: pointer;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    border-radius: 5px;
+    z-index: 2;
+    height: 28px;  /* 버튼 높이를 조금 줄여서 더 작게 */
+}
+
+.sidePanel {
+    margin-left: 5px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-width: 200px;
+    width: max-content;
+}
+
+.checkboxItem {
+    opacity: 0;
+    transform: translateX(20px);  /* 시작 위치: 오른쪽 */
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    margin-bottom: 10px;
+    white-space: nowrap;
+}
+
+.checkboxItem.visible {
+    opacity: 1;
+    transform: translateX(20px);  /* 열릴 때: 왼쪽으로 */
+}
+
+.checkboxItem.hidden {
+    opacity: 0;
+    transform: translateX(0);  /* 닫힐 때: 오른쪽으로 */
+}
+
+.productList {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);  /* 한 줄에 4개의 상품 표시 */
+    gap: 16px;  /* 상품들 간의 여백을 줄여서 크기 조정 */
+    margin-top: 20px;
+}
+
+.productItem {
+    aspect-ratio: 1;  /* 정사각형 유지 */
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #f9f9f9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    overflow: hidden;
+    padding: 10px;  /* 내부 여백을 줄여서 크기 감소 */
+    font-size: 1rem;  /* 텍스트 크기 줄임 */
+    height: 300px; /*상품 사진 크기*/
+}
+
+.productItem h4, .productItem p {
+    margin: 0;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;  /* 텍스트가 넘칠 경우 '...'으로 표시 */
+    white-space: nowrap;  /* 텍스트가 길어지지 않도록 처리 */
+}

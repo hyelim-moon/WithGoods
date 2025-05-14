@@ -5,7 +5,13 @@ import Header from './components/Header';
 import Navbar from './components/Navbar';
 import Banner from './components/Banner';
 import MainContent from './components/MainContent';
-import {BrowserRouter} from "react-router-dom";
+import Best from './components/Best';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+
+function Record() {
+    return null;
+}
 
 function App() {
   const [hello, setHello] = useState('');
@@ -26,6 +32,9 @@ function App() {
               <Header/>
               <Navbar/>
               <Banner/>
+              <Routes>
+                  <Route path="/best" element={<Best />} />
+              </Routes>
               <MainContent/>
               백엔드에서 받은 데이터: {hello}
               {error && <p>Error: {error}</p>}
