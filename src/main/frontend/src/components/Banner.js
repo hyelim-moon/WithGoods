@@ -5,7 +5,7 @@ import styles from '../assets/styles/Banner.module.css';
 function Banner() {
     return (
         <section className={styles.banner}>
-            <h2>HAPPINESS WITH PIT A PET</h2>
+            <h2></h2>
         </section>
     );
 }
