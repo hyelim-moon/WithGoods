@@ -6,6 +6,7 @@ import Navbar from './components/Navbar';
 import Banner from './components/Banner';
 import MainContent from './components/MainContent';
 import Best from './components/Best';
+import Login from './components/Login';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 
@@ -39,6 +40,7 @@ function App() {
                       </>
                   }/>
                   <Route path="/best" element={<Best />} />
+                  <Route path="/login" element={<Login />} />
               </Routes>
               백엔드에서 받은 데이터: {hello}
               {error && <p>Error: {error}</p>}
