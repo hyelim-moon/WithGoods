@@ -9,6 +9,10 @@ import Best from './components/Best';
 import Login from './components/Login';
 import SignUp from './components/SignUp';
 import Forgot from './components/Forgot';
+import All from './components/All';
+import Anniversary from './components/Anniversary';
+import Customization from './components/Customization';
+import Limited_Edition from './components/Limited_Edition';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 
@@ -45,6 +49,10 @@ function App() {
                   <Route path="/login" element={<Login />} />
                   <Route path="/signup" element={<SignUp />} />
                   <Route path="/forgot" element={<Forgot />} />
+                  <Route path="/all" element={<All />} />
+                  <Route path="/anniversary" element={<Anniversary />} />
+                  <Route path="/customization" element={<Customization />} />
+                  <Route path="/limited_edition" element={<Limited_Edition />} />
               </Routes>
               백엔드에서 받은 데이터: {hello}
               {error && <p>Error: {error}</p>}

@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import styles from '../assets/styles/All.module.css';
+import styles from '../assets/styles/Customization.module.css';
 
-function All() {
+function Customization() {
     const categories = ['인형', '문구', '패션', '키링'];
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -48,7 +48,7 @@ function All() {
     return (
         <div className={styles.bestGoodsContainer}>
             <div className={styles.titleRow}>
-                <h2 className={styles.pageTitle}>전체 상품</h2>
+                <h2 className={styles.pageTitle}>커스텀 굿즈</h2>
 
                 <button
                     className={styles.categoryToggle}
@@ -116,4 +116,4 @@ function All() {
     );
 }
 
-export default All;
+export default Customization;
