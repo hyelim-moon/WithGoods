@@ -11,13 +11,14 @@
     box-sizing: border-box;
 }
 
-.signupBox {
+
+.box {
     background-color: #fff;
     padding: 2.5rem;
     border-radius: 0.5rem;
     box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
     width: 100%;
-    max-width: 750px;
+    max-width: 480px;
     box-sizing: border-box;
 }
 
@@ -48,15 +49,6 @@
     outline: none;
 }
 
-.checkbox {
-    display: flex;
-    align-items: center;
-    font-size: 0.9rem;
-    color: #555;
-    gap: 0.5rem;
-    margin-top: -0.5rem;
-}
-
 .button {
     background-color: #9e4b25;
     color: #fff;
@@ -80,36 +72,11 @@
     color: #666;
 }
 
-.footer a {
-    margin-left: 0.5rem;
+.link {
     color: #9e4b25;
     text-decoration: none;
 }
 
-.footer a:hover {
+.link:hover {
     text-decoration: underline;
 }
-
-/* 기존 .container, .signupBox, .form 등은 동일하게 유지 */
-
-.genderRow {
-    display: flex;
-    gap: 1rem;
-    font-size: 0.95rem;
-    color: #555;
-}
-
-.genderLabel {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-}
-
-.checkbox {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.9rem;
-    color: #555;
-}
-

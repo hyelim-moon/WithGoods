@@ -23,7 +23,7 @@ function Login() {
                             <input type="checkbox" />
                             자동 로그인
                         </label>
-                        <a href="/forgot" className={styles.link}>비밀번호 찾기</a>
+                        <a href="/Forgot" className={styles.link}>비밀번호 찾기</a>
                     </div>
 
                     <button type="submit" className={styles.button}>

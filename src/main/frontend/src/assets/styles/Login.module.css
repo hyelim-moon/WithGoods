@@ -3,11 +3,10 @@
     justify-content: center;
     align-items: flex-start;
     height: auto;
-    background-color: #f8f8f8;
+    background-color: #fff2e8;
     padding-top: 80px;  /* 상단 여백 */
     padding-bottom: 80px;   /* 하단 여백 */
     box-sizing: border-box;
-    background: linear-gradient(135deg, #fef9f4, #fff);
     background-repeat: no-repeat;
     background-size: cover;
 }
