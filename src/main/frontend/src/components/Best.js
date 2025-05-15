@@ -2,19 +2,19 @@ import { useState } from 'react';
 import styles from '../assets/styles/Best.module.css';
 
 function Best() {
-    const categories = ['한정판', '기념일', '커스텀굿즈'];
+    const categories = ['인형', '문구', '패션', '키링'];
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
 
     const bestGoods = [
-        { id: 1, name: '상품 A', category: '한정판', price: '₩50,000', rating: 4.5 },
-        { id: 2, name: '상품 B', category: '기념일', price: '₩30,000', rating: 4.0 },
-        { id: 3, name: '상품 C', category: '기념일', price: '₩45,000', rating: 3.8 },
-        { id: 4, name: '상품 D', category: '커스텀굿즈', price: '₩70,000', rating: 4.9 },
-        { id: 5, name: '상품 E', category: '한정판', price: '₩60,000', rating: 4.2 },
-        { id: 6, name: '상품 F', category: '커스텀굿즈', price: '₩80,000', rating: 4.7 },
-        { id: 7, name: '상품 G', category: '한정판', price: '₩12,000', rating: 3.5 },
-        { id: 8, name: '상품 H', category: '기념일', price: '₩5,000', rating: 3.9 },
+        { id: 1, name: '상품 A', category: '인형', price: '₩50,000', rating: 4.5 },
+        { id: 2, name: '상품 B', category: '인형', price: '₩30,000', rating: 4.0 },
+        { id: 3, name: '상품 C', category: '키링', price: '₩45,000', rating: 3.8 },
+        { id: 4, name: '상품 D', category: '문구', price: '₩70,000', rating: 4.9 },
+        { id: 5, name: '상품 E', category: '문구', price: '₩60,000', rating: 4.2 },
+        { id: 6, name: '상품 F', category: '키링', price: '₩80,000', rating: 4.7 },
+        { id: 7, name: '상품 G', category: '패션', price: '₩12,000', rating: 3.5 },
+        { id: 8, name: '상품 H', category: '패션', price: '₩5,000', rating: 3.9 },
     ];
 
     const handleCategoryChange = (e) => {
@@ -37,7 +37,7 @@ function Best() {
             stars.push(<span key={`full-${i}`}>★</span>);
         }
         if (halfStar) {
-            stars.push(<span key="half">☆</span>); // 실제 반 별은 ★ 반쪽 SVG를 써야 정확함
+            stars.push(<span key="half">☆</span>);
         }
         while (stars.length < 5) {
             stars.push(<span key={`empty-${stars.length}`}>☆</span>);
