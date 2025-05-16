@@ -46,12 +46,27 @@
     text-align: right;
     margin-bottom: auto;
     padding-top: 0.2rem;
-    color: #000000;
+    color: #white;
 }
 .login a {
     color: inherit;
     text-decoration: none;
 }
+
+/* 로그인 텍스트에 배경색 추가 */
+.login span,
+.login a {
+    background-color: #9e4b25; /* 배경색 */
+    color: #ffffff;            /* 글씨 흰색 */
+    padding: 0.3rem 0.6rem;
+    border-radius: 50px;    /* 모서리 둥글게 */
+    transition: background-color 0.3s;
+}
+
+.login a:hover {
+    cursor: pointer;
+}
+
 
 /* 검색창 (아래쪽) */
 .searchBox {
