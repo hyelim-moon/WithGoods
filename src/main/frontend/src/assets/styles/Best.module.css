@@ -1,13 +1,13 @@
 .bestGoodsContainer {
-    padding: 1.25rem; /* 20px */
+    padding: 1.25rem;
 }
 
 .titleRow {
     display: flex;
     align-items: center;
-    margin-bottom: 1.25rem; /* 20px */
+    margin-bottom: 1.25rem;
     flex-wrap: wrap;
-    gap: 1.25rem; /* 20px */
+    gap: 1.25rem;
 }
 
 .pageTitle {
@@ -17,14 +17,13 @@
 }
 
 .categoryToggle {
-    padding: 0.25rem 0.5rem; /* 4px 8px */
     font-size: 0.9rem;
     cursor: pointer;
-    border: 0.0625rem solid #ccc; /* 1px */
+    border: 0.0625rem solid #ccc;
     background-color: #fff;
-    border-radius: 0.3125rem; /* 5px */
+    border-radius: 0.3125rem;
     z-index: 2;
-    height: 1.75rem; /* 28px */
+    height: 1.75rem;
 }
 
 .sidePanel {
@@ -48,8 +47,8 @@
     opacity: 0;
     transform: translateX(-1.25rem); /* 왼쪽에서 오른쪽으로 슬라이드 */
     transition: opacity 0.4s ease, transform 0.4s ease;
-    margin-right: 0.625rem; /* 10px */
-    margin-bottom: 0.625rem; /* 10px */
+    margin-right: 0.625rem;
+    margin-bottom: 0.625rem;
 }
 
 .checkboxItem.visible {
@@ -81,18 +80,18 @@
 }
 
 .productItem:hover {
-    transform: translateY(-0.4375rem); /* -7px */
+    transform: translateY(-0.4375rem);
 }
 
 .productDetails {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.125rem; /* 2px */
-    margin-top: -0.3125rem; /* -5px */
+    gap: 0.125rem;
+    margin-top: -0.3125rem;
     text-align: left;
     position: relative;
-    bottom: -0.625rem; /* -10px */
+    bottom: -0.625rem;
 }
 
 .productRating {
@@ -101,7 +100,7 @@
     font-weight: bold;
     display: flex;
     align-items: center;
-    gap: 0.25rem; /* 4px */
+    gap: 0.25rem;
 }
 
 .ratingNumber {
@@ -112,25 +111,25 @@
 .productTitle {
     font-size: 2rem;
     font-weight: bold;
-    margin-top: 0.125rem; /* 2px */
+    margin-top: 0.125rem;
 }
 
 .productPrice {
     font-size: 1.5rem;
     color: #333;
     font-weight: bold;
-    margin-top: -2.1875rem; /* -35px */
-    margin-bottom: 5rem; /* 80px */
+    margin-top: -2.1875rem;
+    margin-bottom: 5rem;
 }
 
 .sortOptions {
     display: flex;
-    gap: 1rem; /* 16px */
+    gap: 1rem;
     font-size: 0.95rem;
     color: #555;
     white-space: nowrap;
     margin-left: auto;
-    margin-right: 1.875rem; /* 30px */
+    margin-right: 1.875rem;
 }
 
 .sortOption {
