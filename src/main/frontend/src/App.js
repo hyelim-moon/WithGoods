@@ -14,6 +14,7 @@ import Anniversary from './components/Anniversary';
 import Customization from './components/Customization';
 import Limited_Edition from './components/Limited_Edition';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import MyPage from './components/MyPage';
 
 
 function Record() {
@@ -53,6 +54,7 @@ function App() {
                   <Route path="/anniversary" element={<Anniversary />} />
                   <Route path="/customization" element={<Customization />} />
                   <Route path="/limited_edition" element={<Limited_Edition />} />
+                  <Route path="/mypage" element={<MyPage />} />
               </Routes>
               백엔드에서 받은 데이터: {hello}
               {error && <p>Error: {error}</p>}

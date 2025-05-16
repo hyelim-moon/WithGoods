@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import logoImg from '../assets/images/logo.png';
 import styles from '../assets/styles/Header.module.css';
 import { Link } from 'react-router-dom';
+import userpage from '../assets/images/userpage.png';
 
 function Header() {
     // 로그인 상태와 사용자 닉네임 상태
@@ -39,21 +40,29 @@ function Header() {
                     </Link>
                 </div>
 
+
                 <div className={styles.rightGroup}>
                     <div className={styles.login}>
                         {isLoggedIn ? (
                             // 로그인된 상태일 때: 닉네임과 장바구니 표시
                             <span>
                                 <span>{nickname}님</span> |
-                                <Link to="/cart" style={{ marginLeft: '10px' }}>
+                                <Link to="/cart" style={{marginLeft: '10px'}}>
                                     장바구니
+                                </Link>
+                                <Link to="/mypage" className={styles.mypageIcon}>
+                                    <img src={userpage} alt="My Page"/>
                                 </Link>
                             </span>
                         ) : (
                             // 로그인되지 않은 상태일 때: 로그인 링크 표시
                             <Link to="/login">로그인</Link>
                         )}
+                        <Link to="/mypage" className={styles.mypageIcon}>
+                            <img src={userpage} alt="My Page"/>
+                        </Link>
                     </div>
+
                     <div className={styles.searchBox}>
                         <input type="text" placeholder="검색어 입력..."/>
                         <button>검색</button>
