@@ -16,6 +16,7 @@
     margin-left: 1rem;
 }
 
+/*상품 유형*/
 .categoryToggle {
     font-size: 0.9rem;
     cursor: pointer;
@@ -26,6 +27,7 @@
     height: 1.75rem;
 }
 
+/*상품 유형 체크박스*/
 .sidePanel {
     display: flex;
     flex-direction: row; /* 슬라이드 방향을 가로로 설정 */
@@ -56,15 +58,17 @@
     transform: translateX(0); /* 카테고리가 나타날 때 원래 위치로 */
 }
 
+
 .productList {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, 1fr); /* 상품 이미지 5개를 가로 1줄로*/
     gap: 2vw;
     max-width: 100%;
     padding: 1rem;
     box-sizing: border-box;
 }
 
+/*상품 이미지*/
 .productItem {
     width: 100%;
     aspect-ratio: 1 / 1; /* 정사각형 유지 */
@@ -80,9 +84,10 @@
 }
 
 .productItem:hover {
-    transform: translateY(-0.4375rem);
+    transform: translateY(-0.4375rem); /*상품 이미지 위로 올리기*/
 }
 
+/*상품 별점, 상품명, 가격 스타일*/
 .productDetails {
     display: flex;
     flex-direction: column;
@@ -94,6 +99,7 @@
     bottom: -0.625rem;
 }
 
+/*별점*/
 .productRating {
     font-size: 1rem;
     color: #f1a825;
@@ -108,12 +114,14 @@
     color: #555;
 }
 
+/*상품명*/
 .productTitle {
     font-size: 2rem;
     font-weight: bold;
     margin-top: 0.125rem;
 }
 
+/*상품 가격*/
 .productPrice {
     font-size: 1.5rem;
     color: #333;
@@ -122,6 +130,7 @@
     margin-bottom: 5rem;
 }
 
+/*순서 옵션*/
 .sortOptions {
     display: flex;
     gap: 1rem;
