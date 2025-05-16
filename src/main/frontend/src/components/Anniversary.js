@@ -82,7 +82,7 @@ function Best() {
            stars.push(<span key={`full-${i}`}>★</span>);
        }
 
-       // 빈 별 추가 (실제로는 반 별이 아닌 빈 별로 표시됨)
+       // 빈 별 추가
        if (halfStar) {
            stars.push(<span key="half">☆</span>);
        }
