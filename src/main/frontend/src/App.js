@@ -13,6 +13,7 @@ import All from './components/All';
 import Anniversary from './components/Anniversary';
 import Customization from './components/Customization';
 import Limited_Edition from './components/Limited_Edition';
+import Cart from './components/Cart';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MyPage from './components/MyPage';
 
@@ -55,6 +56,7 @@ function App() {
                   <Route path="/customization" element={<Customization />} />
                   <Route path="/limited_edition" element={<Limited_Edition />} />
                   <Route path="/mypage" element={<MyPage />} />
+                  <Route path="/cart" element={<Cart />} />
               </Routes>
               백엔드에서 받은 데이터: {hello}
               {error && <p>Error: {error}</p>}
