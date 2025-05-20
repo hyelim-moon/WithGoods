@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import styles from '../assets/styles/Best.module.css';
 
-function Best() {
+function Anniversary() {
     // 카테고리 목록
     const categories = ['인형', '문구', '패션', '키링', '가전'];
 
@@ -199,4 +199,4 @@ function Best() {
     );
 }
 
-export default Best;
+export default Anniversary;
