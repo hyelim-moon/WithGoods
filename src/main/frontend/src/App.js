@@ -58,8 +58,6 @@ function App() {
                   <Route path="/mypage" element={<MyPage />} />
                   <Route path="/cart" element={<Cart />} />
               </Routes>
-              백엔드에서 받은 데이터: {hello}
-              {error && <p>Error: {error}</p>}
           </div>
       </BrowserRouter>
   );

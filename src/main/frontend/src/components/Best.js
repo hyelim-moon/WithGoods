@@ -1,6 +1,43 @@
 import { useState } from 'react';
 import styles from '../assets/styles/Best.module.css';
 
+export const bestGoods = [
+    { id: 1, name: '상품 A', category: '인형', price: '₩50,000', rating: 4.5 },
+    { id: 2, name: '상품 B', category: '인형', price: '₩30,000', rating: 4.0 },
+    { id: 3, name: '상품 C', category: '키링', price: '₩45,000', rating: 3.8 },
+    { id: 4, name: '상품 D', category: '문구', price: '₩70,000', rating: 4.9 },
+    { id: 5, name: '상품 E', category: '문구', price: '₩60,000', rating: 4.2 },
+    { id: 6, name: '상품 F', category: '키링', price: '₩80,000', rating: 4.7 },
+    { id: 7, name: '상품 G', category: '패션', price: '₩12,000', rating: 3.5 },
+    { id: 8, name: '상품 H', category: '가전', price: '₩5,000', rating: 3.9 },
+    { id: 9, name: '상품 I', category: '패션', price: '₩5,000', rating: 0.5 },
+    { id: 10, name: '상품 J', category: '패션', price: '₩130,000', rating: 1.0 },
+    { id: 11, name: '상품 K', category: '가전', price: '₩9,000', rating: 5.0 },
+    { id: 12, name: '상품 L', category: '가전', price: '₩5550,000', rating: 2.7 },
+];
+
+// 별점 렌더링 함수 export
+export const renderStars = (rating) => {
+    const stars = [];
+
+    const fullStars = Math.floor(rating); // 꽉 찬 별 수
+    const halfStar = rating - fullStars >= 0.5; // 반쪽 별 여부
+
+    for (let i = 0; i < fullStars; i++) {
+        stars.push(<span key={`full-${i}`}>★</span>);
+    }
+
+    if (halfStar) {
+        stars.push(<span key="half">☆</span>);
+    }
+
+    while (stars.length < 5) {
+        stars.push(<span key={`empty-${stars.length}`}>☆</span>);
+    }
+
+    return stars;
+};
+
 function Best() {
     // 카테고리 목록
     const categories = ['인형', '문구', '패션', '키링', '가전'];
@@ -11,22 +48,6 @@ function Best() {
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     // 정렬 기준 상태 (낮은 가격순, 높은 가격순, 평점 높은 순)
     const [sortOrder, setSortOrder] = useState(null);
-
-    // 임시 상품 데이터
-    const bestGoods = [
-        { id: 1, name: '상품 A', category: '인형', price: '₩50,000', rating: 4.5 },
-        { id: 2, name: '상품 B', category: '인형', price: '₩30,000', rating: 4.0 },
-        { id: 3, name: '상품 C', category: '키링', price: '₩45,000', rating: 3.8 },
-        { id: 4, name: '상품 D', category: '문구', price: '₩70,000', rating: 4.9 },
-        { id: 5, name: '상품 E', category: '문구', price: '₩60,000', rating: 4.2 },
-        { id: 6, name: '상품 F', category: '키링', price: '₩80,000', rating: 4.7 },
-        { id: 7, name: '상품 G', category: '패션', price: '₩12,000', rating: 3.5 },
-        { id: 8, name: '상품 H', category: '가전', price: '₩5,000', rating: 3.9 },
-        { id: 9, name: '상품 I', category: '패션', price: '₩5,000', rating: 0.5 },
-        { id: 10, name: '상품 J', category: '패션', price: '₩130,000', rating: 1.0 },
-        { id: 11, name: '상품 K', category: '가전', price: '₩9,000', rating: 5.0 },
-        { id: 12, name: '상품 L', category: '가전', price: '₩5550,000', rating: 2.7 },
-    ];
 
     // 체크박스 상태 변경 시 실행되는 함수
     const handleCategoryChange = (e) => {
@@ -68,31 +89,6 @@ function Best() {
                 break;
         }
         return sorted;
-    };
-
-    // 평점을 별 아이콘으로 렌더링하는 함수
-    const renderStars = (rating) => {
-        const stars = []; // 별 아이콘들을 담을 배열
-
-        const fullStars = Math.floor(rating); // 평점에서 정수 부분만큼은 꽉 찬 별로 표시
-        const halfStar = rating - fullStars >= 0.5; // 평점이 .5 이상이면 반쪽 별을 하나 추가
-
-        // 꽉 찬 별 추가
-        for (let i = 0; i < fullStars; i++) {
-            stars.push(<span key={`full-${i}`}>★</span>);
-        }
-
-        // 빈 별 추가
-        if (halfStar) {
-            stars.push(<span key="half">☆</span>);
-        }
-
-        // 총 별 개수가 5개가 되도록 나머지는 빈 별로 채움
-        while (stars.length < 5) {
-            stars.push(<span key={`empty-${stars.length}`}>☆</span>);
-        }
-
-        return stars;
     };
 
     return (
