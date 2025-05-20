@@ -14,7 +14,7 @@
 /* 카드 전체 영역 래퍼 (전체보기 포함) */
 .cardWrapper {
     position: relative;
-    padding: 1rem;
+    padding: 2rem;
     box-sizing: border-box;
 }
 
