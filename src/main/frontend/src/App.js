@@ -1,22 +1,66 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import LoginPage from './components/LoginPage';
-import SignupPage from './components/SignupPage';
-// import MePage from './MePage'; // (선택) 만든 경우만 import
-// import HomePage from './HomePage'; // (선택) 홈 화면 있는 경우
+import {useEffect, useState} from "react";
+import axios from "axios";
+
+import Header from './components/Header';
+import Navbar from './components/Navbar';
+import Banner from './components/Banner';
+import MainContent from './components/MainContent';
+import Best from './components/Best';
+import Login from './components/Login';
+import SignUp from './components/SignUp';
+import Forgot from './components/Forgot';
+import All from './components/All';
+import Anniversary from './components/Anniversary';
+import Customization from './components/Customization';
+import Limited_Edition from './components/Limited_Edition';
+import Cart from './components/Cart';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import MyPage from './components/MyPage';
+
+
+function Record() {
+    return null;
+}
 
 function App() {
-    return (
-        <Router>
-            <Routes>
-                <Route path="/" element={<div>홈 화면입니다</div>} />
-                <Route path="/login" element={<LoginPage />} />
-                <Route path="/signup" element={<SignupPage />} />
-                {/* <Route path="/me" element={<MePage />} /> */}
-                <Route path="*" element={<Navigate to="/" />} />
-            </Routes>
-        </Router>
-    );
+  const [hello, setHello] = useState('');
+  const [error, setError] = useState('');
+  useEffect(() => {
+    axios.get('http://localhost:8080/api/test')
+        .then((res) => {
+          setHello(res.data);
+        })
+        .catch((err) => {
+          setError(err.message);
+        });
+  }, []);
+
+  return (
+      <BrowserRouter>
+          <div className="App">
+              <Header/>
+              <Navbar/>
+              <Routes>
+                  <Route path="/" element={
+                      <>
+                          <Banner/>
+                          <MainContent/>
+                      </>
+                  }/>
+                  <Route path="/best" element={<Best />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<SignUp />} />
+                  <Route path="/forgot" element={<Forgot />} />
+                  <Route path="/all" element={<All />} />
+                  <Route path="/anniversary" element={<Anniversary />} />
+                  <Route path="/customization" element={<Customization />} />
+                  <Route path="/limited_edition" element={<Limited_Edition />} />
+                  <Route path="/mypage" element={<MyPage />} />
+                  <Route path="/cart" element={<Cart />} />
+              </Routes>
+          </div>
+      </BrowserRouter>
+  );
 }
 
 export default App;
