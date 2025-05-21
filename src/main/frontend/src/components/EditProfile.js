@@ -12,7 +12,9 @@ function EditProfile() {
         month: '',
         day: '',
         calendarType: 'solar',
-        phone: '',
+        phone1: '010',  // 전화번호 앞자리 (select)
+        phone2: '',     // 중간 번호
+        phone3: '',     // 끝 번호
         zipcode: '',
         address: '',
         detailAddress: '',
@@ -33,20 +35,38 @@ function EditProfile() {
     };
 
     const handleSave = () => {
+        // 전화번호 합쳐서 처리 가능
+        const fullPhone = `${form.phone1}-${form.phone2}-${form.phone3}`;
         localStorage.setItem('nickname', form.nickname);
-        alert('정보가 저장되었습니다.');
+        alert(`정보가 저장되었습니다.\n전화번호: ${fullPhone}`);
         navigate('/mypage');
     };
 
     const handleSearchZipcode = () => {
-        const fakeZipcode = '06236';
-        const fakeAddress = '서울특별시 강남구 테헤란로 123';
+        new window.daum.Postcode({
+            oncomplete: function (data) {
+                let fullAddress = data.address;
+                let extraAddress = '';
 
-        setForm((prev) => ({
-            ...prev,
-            zipcode: fakeZipcode,
-            address: fakeAddress,
-        }));
+                if (data.addressType === 'R') {
+                    if (data.bname !== '') {
+                        extraAddress += data.bname;
+                    }
+                    if (data.buildingName !== '') {
+                        extraAddress += extraAddress !== '' ? `, ${data.buildingName}` : data.buildingName;
+                    }
+                    if (extraAddress !== '') {
+                        fullAddress += ` (${extraAddress})`;
+                    }
+                }
+
+                setForm((prev) => ({
+                    ...prev,
+                    zipcode: data.zonecode,
+                    address: fullAddress,
+                }));
+            },
+        }).open();
     };
 
     // 연도 select options 생성
@@ -127,14 +147,49 @@ function EditProfile() {
 
                 <div className={styles.formGroup}>
                     <label className={styles.label}>전화번호</label>
-                    <input type="tel" name="phone" value={form.phone} onChange={handleChange} className={styles.input} placeholder="010-0000-0000" />
+                    <div className={styles.phoneGroup}>
+                        <select name="phone1" value={form.phone1} onChange={handleChange} className={styles.phoneSelect}>
+                            <option value="02">02</option>
+                            <option value="031">031</option>
+                            <option value="010">010</option>
+                            <option value="070">070</option>
+                            <option value="050">050</option>
+                        </select>
+                        <input
+                            type="text"
+                            name="phone2"
+                            value={form.phone2}
+                            onChange={handleChange}
+                            maxLength={4}
+                            className={styles.phoneInput}
+                            inputMode="numeric"
+                        />
+                        <input
+                            type="text"
+                            name="phone3"
+                            value={form.phone3}
+                            onChange={handleChange}
+                            maxLength={4}
+                            className={styles.phoneInput}
+                            inputMode="numeric"
+                        />
+                    </div>
                 </div>
 
                 <div className={styles.formGroup}>
                     <label className={styles.label}>우편번호</label>
                     <div className={styles.addressGroup}>
-                        <input type="text" name="zipcode" value={form.zipcode} readOnly className={styles.zipcodeInput} placeholder="우편번호" />
-                        <button className={styles.zipcodeButton} onClick={handleSearchZipcode}>우편번호 찾기</button>
+                        <input
+                            type="text"
+                            name="zipcode"
+                            value={form.zipcode}
+                            readOnly
+                            className={styles.zipcodeInput}
+                            placeholder="우편번호"
+                        />
+                        <button className={styles.zipcodeButton} onClick={handleSearchZipcode}>
+                            우편번호 찾기
+                        </button>
                     </div>
                 </div>
 
@@ -160,7 +215,6 @@ function EditProfile() {
                     />
                 </div>
 
-
                 <div className={styles.formGroup}>
                     <label className={styles.label}>닉네임</label>
                     <input type="text" name="nickname" value={form.nickname} onChange={handleChange} className={styles.input} />
@@ -168,7 +222,14 @@ function EditProfile() {
 
                 <div className={styles.formGroup}>
                     <label className={styles.label}>이메일</label>
-                    <input type="email" name="email" value={form.email} onChange={handleChange} className={styles.input} placeholder="example@email.com" />
+                    <input
+                        type="email"
+                        name="email"
+                        value={form.email}
+                        onChange={handleChange}
+                        className={styles.input}
+                        placeholder="example@email.com"
+                    />
                 </div>
 
                 <div className={styles.buttonGroup}>

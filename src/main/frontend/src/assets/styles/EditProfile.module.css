@@ -98,3 +98,28 @@
 .saveButton:hover {
     background-color: #8c421f;
 }
+
+/* 전화번호 입력 그룹 스타일 */
+.phoneGroup {
+    display: flex;
+    gap: 8px;
+}
+
+.phoneSelect {
+    width: 90px;
+    padding: 13px 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.phoneInput {
+    width: 100px;
+    padding: 13px 16px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    text-align: center;
+}
