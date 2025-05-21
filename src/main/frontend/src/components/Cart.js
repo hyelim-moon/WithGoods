@@ -32,6 +32,7 @@ function Cart() {
 
     const [selectedItems, setSelectedItems] = useState({});
 
+    // 선택된 아이템 토글
     const toggleSelect = (id) => {
         setSelectedItems((prev) => ({
             ...prev,
@@ -39,24 +40,25 @@ function Cart() {
         }));
     };
 
+    // 전체 선택/해제
     const toggleSelectAll = () => {
         const isAllSelected = cartItems.every((item) => selectedItems[item.id]);
         if (isAllSelected) {
-            // 전체 선택 해제
-            setSelectedItems({});
+            setSelectedItems({}); // 전체 선택 해제
         } else {
-            // 전체 선택
             const newSelectedItems = {};
             cartItems.forEach((item) => {
-                newSelectedItems[item.id] = true;
+                newSelectedItems[item.id] = true; // 전체 선택
             });
             setSelectedItems(newSelectedItems);
         }
     };
 
+    // 가격 문자열 파싱
     const parsePrice = (priceStr) =>
         Number(priceStr.replace('₩', '').replace(/,/g, ''));
 
+    // 수량 증가
     const increaseQuantity = (id) => {
         setCartItems((prev) =>
             prev.map((item) =>
@@ -65,6 +67,7 @@ function Cart() {
         );
     };
 
+    // 수량 감소
     const decreaseQuantity = (id) => {
         setCartItems((prev) =>
             prev.map((item) =>
@@ -74,10 +77,12 @@ function Cart() {
         );
     };
 
+    // 아이템 삭제
     const removeItem = (id) => {
         setCartItems((prev) => prev.filter((item) => item.id !== id));
     };
 
+    // 총 결제 금액 계산
     const getTotalPrice = () => {
         return cartItems.reduce((sum, item) => {
             if (selectedItems[item.id]) {
@@ -90,6 +95,7 @@ function Cart() {
     const discount = 5000; // 예시: 5,000원 할인
     const shippingFee = 0; // 예시: 배송비가 없으면 0으로 설정
 
+    // 총 결제 예정 금액 계산
     const getTotalAmount = () => {
         const totalPrice = getTotalPrice();
         return totalPrice - discount + shippingFee;
@@ -97,7 +103,21 @@ function Cart() {
 
     return (
         <div className={styles.cartContainer}>
-            <h2 className={styles.pageTitle}>🛒 장바구니</h2>
+            <div className={styles.pageTitleRow}>
+                {/* 장바구니 제목 */}
+                <h2 className={styles.pageTitle}>🛒 장바구니</h2>
+
+                {/* 전체 선택 체크박스 */}
+                <div className={styles.selectAllInline}>
+                    <input
+                        type="checkbox"
+                        checked={cartItems.every((item) => selectedItems[item.id])}
+                        onChange={toggleSelectAll}
+                        className={styles.checkbox}
+                    />
+                    <span>전체 선택</span>
+                </div>
+            </div>
 
             {cartItems.length === 0 ? (
                 <p className={styles.emptyMessage}>장바구니가 비어 있습니다.</p>
@@ -105,20 +125,9 @@ function Cart() {
                 <div className={styles.cartContentWrapper}>
                     {/* 왼쪽: 상품 목록 */}
                     <div className={styles.cartList}>
-                        <div className={styles.selectAllContainer}>
-                            {/* 전체 선택 버튼 */}
-                            <input
-                                type="checkbox"
-                                checked={cartItems.every((item) => selectedItems[item.id])}
-                                onChange={toggleSelectAll}
-                                className={styles.checkbox}
-                            />
-                            <span>전체 선택</span>
-                        </div>
-
                         {cartItems.map((item) => (
                             <div key={item.id} className={styles.cartItem}>
-                                {/* ✅ 체크박스 */}
+                                {/* 체크박스 */}
                                 <input
                                     type="checkbox"
                                     checked={!!selectedItems[item.id]}
@@ -169,11 +178,11 @@ function Cart() {
                             <span>₩{getTotalPrice().toLocaleString()}</span>
                         </div>
 
-                        {/* 할인 금액 */}
-                        <div className={styles.summaryLine}>
-                            <span>할인 금액</span>
-                            <span>-₩{discount.toLocaleString()}</span>
-                        </div>
+                       {/* 할인 금액 */}
+                       <div className={`${styles.summaryLine} ${styles.discount}`}>
+                           <span>할인 금액</span>
+                           <span>-₩{discount.toLocaleString()}</span>
+                       </div>
 
                         {/* 배송비 */}
                         <div className={styles.summaryLine}>
