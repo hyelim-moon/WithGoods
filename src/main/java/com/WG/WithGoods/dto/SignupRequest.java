@@ -3,7 +3,7 @@ package com.WG.WithGoods.dto;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -15,6 +15,6 @@ public class SignupRequest { //
     private String email;
     private String phoneNumber;
     private String gender;
-    private LocalDateTime birthDate;
+    private LocalDate birthDate;
     private String address;
 }

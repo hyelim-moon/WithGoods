@@ -19,11 +19,13 @@ public class Cart {
     @Column(name = "장바구니번호")
     private Integer cartId;
 
-    @Column(name = "회원번호", nullable = false)
-    private Integer memberId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "회원번호", nullable = false)
+    private Member member;
 
-    @Column(name = "상품번호", nullable = false)
-    private Integer productId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "상품번호", nullable = false)
+    private Product product;
 
     @Column(name = "상품수량", nullable = false)
     private Integer productQuantity;
