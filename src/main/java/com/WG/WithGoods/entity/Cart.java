@@ -16,23 +16,23 @@ public class Cart {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "장바구니번호")
+    @Column(name = "cart_Id")
     private Integer cartId;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "회원번호", nullable = false)
+    @JoinColumn(name = "member", nullable = false)
     private Member member;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "상품번호", nullable = false)
+    @JoinColumn(name = "product", nullable = false)
     private Product product;
 
-    @Column(name = "상품수량", nullable = false)
+    @Column(name = "product_Quantity", nullable = false)
     private Integer productQuantity;
 
-    @Column(name = "추가날짜")
+    @Column(name = "added_Date")
     private LocalDateTime addedDate;
 
-    @Column(name = "상품총가격")
+    @Column(name = "total_Price")
     private Integer totalPrice;
 }

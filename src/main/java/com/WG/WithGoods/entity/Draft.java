@@ -14,24 +14,24 @@ public class Draft {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "시안번호")
+    @Column(name = "draft_Id")
     private Integer draftId;
 
-    @Column(name = "회원번호", nullable = false)
+    @Column(name = "member_Id", nullable = false)
     private Integer memberId;
 
-    @Column(name = "시안제목", nullable = false)
+    @Column(name = "title", nullable = false)
     private String title;
 
-    @Column(name = "시안글", columnDefinition = "TEXT")
+    @Column(name = "draft_content", columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "시안사진")
+    @Column(name = "draft_image")
     private String image;
 
-    @Column(name = "시안댓글", columnDefinition = "TEXT")
+    @Column(name = "draft_comment", columnDefinition = "TEXT")
     private String comment;
 
-    @Column(name = "시안가격")
+    @Column(name = "draft_price")
     private Integer price;
 }
