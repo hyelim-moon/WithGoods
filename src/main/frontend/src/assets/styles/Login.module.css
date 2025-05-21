@@ -2,9 +2,8 @@
     display: flex;
     justify-content: center; /* 수평 중앙 정렬 */
     align-items: center; /* 수직 중앙 정렬 */
-    height: 50vh; /* 화면 높이에 맞추기 */
-    margin: 0; /* 상하 여백을 없앰 */
-    padding: 0; /* 여백 제거 */
+    margin: 0;
+    padding: 0;
     box-sizing: border-box;
 }
 
@@ -80,10 +79,10 @@
     font-size: 1.1rem;
     font-weight: bold;
     border: none;
-    border-radius: 0.75rem;  /* 더 둥근 모서리 */
+    border-radius: 0.75rem;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
-    margin-top: 1.5rem;  /* 버튼과 폼 간격을 넓힘 */
+    margin-top: 1.5rem;
 }
 
 .button:hover {
