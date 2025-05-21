@@ -1,6 +1,27 @@
 import {useEffect, useState} from "react";
 import axios from "axios";
 
+import Header from './components/Header';
+import Navbar from './components/Navbar';
+import Banner from './components/Banner';
+import MainContent from './components/MainContent';
+import Best from './components/Best';
+import Login from './components/Login';
+import SignUp from './components/SignUp';
+import Forgot from './components/Forgot';
+import All from './components/All';
+import Anniversary from './components/Anniversary';
+import Customization from './components/Customization';
+import Limited_Edition from './components/Limited_Edition';
+import Cart from './components/Cart';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import MyPage from './components/MyPage';
+
+
+function Record() {
+    return null;
+}
+
 function App() {
   const [hello, setHello] = useState('');
   const [error, setError] = useState('');
@@ -15,10 +36,30 @@ function App() {
   }, []);
 
   return (
-      <div className="App">
-        백엔드에서 받은 데이터: {hello}
-        {error && <p>Error: {error}</p>}
-      </div>
+      <BrowserRouter>
+          <div className="App">
+              <Header/>
+              <Navbar/>
+              <Routes>
+                  <Route path="/" element={
+                      <>
+                          <Banner/>
+                          <MainContent/>
+                      </>
+                  }/>
+                  <Route path="/best" element={<Best />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/signup" element={<SignUp />} />
+                  <Route path="/forgot" element={<Forgot />} />
+                  <Route path="/all" element={<All />} />
+                  <Route path="/anniversary" element={<Anniversary />} />
+                  <Route path="/customization" element={<Customization />} />
+                  <Route path="/limited_edition" element={<Limited_Edition />} />
+                  <Route path="/mypage" element={<MyPage />} />
+                  <Route path="/cart" element={<Cart />} />
+              </Routes>
+          </div>
+      </BrowserRouter>
   );
 }
 

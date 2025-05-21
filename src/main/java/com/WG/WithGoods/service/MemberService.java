@@ -1,11 +1,13 @@
 package com.WG.WithGoods.service;
 
 import com.WG.WithGoods.dto.MemberDTO;
+import com.WG.WithGoods.dto.SignupRequest;
 import com.WG.WithGoods.entity.Coupon;
 import com.WG.WithGoods.entity.Member;
 import com.WG.WithGoods.repository.CouponRepository;
 import com.WG.WithGoods.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -14,33 +16,25 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final CouponRepository couponRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public Member registerMember(MemberDTO dto) {
-        // 중복 체크 예시
-        if (memberRepository.existsByUsername(dto.getUsername())) {
-            throw new RuntimeException("이미 존재하는 사용자명입니다.");
-        }
-        if (memberRepository.existsByEmail(dto.getEmail())) {
-            throw new RuntimeException("이미 존재하는 이메일입니다.");
-        }
-
-        Coupon coupon = null;
-        if (dto.getCouponId() != null) {
-            coupon = couponRepository.findById(dto.getCouponId())
-                    .orElseThrow(() -> new RuntimeException("해당 쿠폰이 존재하지 않습니다."));
+    public Member registerMember(SignupRequest request) {
+        if (memberRepository.findByUsername(request.getUsername()).isPresent()) {
+            throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
         }
 
         Member member = Member.builder()
-                .username(dto.getUsername())
-                .password(dto.getPassword()) // 실서비스에서는 암호화 필요
-                .nickname(dto.getNickname())
-                .name(dto.getName())
-                .email(dto.getEmail())
-                .phoneNumber(dto.getPhoneNumber())
-                .gender(dto.getGender())
-                .birthDate(dto.getBirthDate())
-                .address(dto.getAddress())
-                .coupon(coupon)
+                .username(request.getUsername())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .nickname(request.getNickname())
+                .name(request.getName())
+                .email(request.getEmail())
+                .phoneNumber(request.getPhoneNumber())
+                .gender(request.getGender())
+                .birthDate(request.getBirthDate())
+                .address(request.getAddress())
+                .coupon(null)
+                .role(Member.Role.USER)
                 .build();
 
         return memberRepository.save(member);

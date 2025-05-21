@@ -1,0 +1,115 @@
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    height: auto;
+    background-color: #fff2e8;
+    background-repeat: no-repeat;
+    background-size: cover;
+    padding-top: 80px;
+    padding-bottom: 80px;
+    box-sizing: border-box;
+}
+
+.signupBox {
+    background-color: #fff;
+    padding: 2.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.08);
+    width: 100%;
+    max-width: 750px;
+    box-sizing: border-box;
+}
+
+.logo {
+    font-size: 1.75rem;
+    font-weight: bold;
+    color: #222;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.input {
+    padding: 0.75rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 0.375rem;
+    font-size: 1rem;
+    transition: border 0.2s ease;
+}
+
+.input:focus {
+    border-color: #9e4b25;
+    outline: none;
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+    color: #555;
+    gap: 0.5rem;
+    margin-top: -0.5rem;
+}
+
+.button {
+    background-color: #9e4b25;
+    color: #fff;
+    padding: 0.75rem;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button:hover {
+    background-color: #803e1f;
+}
+
+.footer {
+    margin-top: 1.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.footer a {
+    margin-left: 0.5rem;
+    color: #9e4b25;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+/* 기존 .container, .signupBox, .form 등은 동일하게 유지 */
+
+.genderRow {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.genderLabel {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    color: #555;
+}
+
