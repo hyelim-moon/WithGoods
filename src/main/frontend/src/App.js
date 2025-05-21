@@ -16,6 +16,7 @@ import Limited_Edition from './components/Limited_Edition';
 import Cart from './components/Cart';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MyPage from './components/MyPage';
+import EditProfile from "./components/EditProfile";
 
 
 function Record() {
@@ -57,6 +58,7 @@ function App() {
                   <Route path="/limited_edition" element={<Limited_Edition />} />
                   <Route path="/mypage" element={<MyPage />} />
                   <Route path="/cart" element={<Cart />} />
+                  <Route path="/edit-profile" element={<EditProfile />} />
               </Routes>
           </div>
       </BrowserRouter>
