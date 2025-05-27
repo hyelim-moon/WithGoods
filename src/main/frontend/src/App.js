@@ -16,6 +16,7 @@ import Customization from './components/Customization';
 import Limited_Edition from './components/Limited_Edition';
 import InquiryPage from "./components/InquiryPage";
 import InquiryForm from "./components/InquiryForm";
+import EstimateInquiryForm from './components/EstimateInquiryForm';
 import Cart from './components/Cart';
 import ProductDetail from './components/ProductDetail';
 import MyPage from './components/MyPage';
@@ -61,6 +62,7 @@ function App() {
                     <Route path="/limited_edition" element={<Limited_Edition />} />
                     <Route path="/inquiry" element={<InquiryPage />} />
                     <Route path="/inquiry/write" element={<InquiryForm />} />
+                    <Route path="/inquiry/estimate" element={<EstimateInquiryForm />} />
                     <Route path="/mypage" element={<MyPage />} />
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/product/:id" element={<ProductDetail />} />

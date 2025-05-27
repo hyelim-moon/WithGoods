@@ -1,11 +1,26 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from '../assets/styles/InquiryPage.module.css';
-import { FaShoppingCart } from 'react-icons/fa';
 
 const InquiryPage = () => {
     const [selectedTab, setSelectedTab] = useState("기타");
     const navigate = useNavigate();
+
+    const renderContent = () => {
+        if (selectedTab === "기타") {
+            return <p className={styles.noInquiry}>기타 문의가 없습니다</p>;
+        } else if (selectedTab === "견적 문의") {
+            return <p className={styles.noInquiry}>견적 문의가 없습니다</p>;
+        }
+    };
+
+    const handleWriteClick = () => {
+        if (selectedTab === "기타") {
+            navigate("/inquiry/write", { state: { type: "기타" } });
+        } else {
+            navigate("/inquiry/estimate", { state: { type: "견적 문의" } });
+        }
+    };
 
     return (
         <div className={styles.container}>
@@ -30,10 +45,10 @@ const InquiryPage = () => {
             <hr className={styles.line} />
 
             <div className={styles.content}>
-                <p className={styles.noInquiry}>문의가 없습니다</p>
+                {renderContent()}
                 <button
-                    onClick={() => navigate("/inquiry/write")}
                     className={styles.inquiryButton}
+                    onClick={handleWriteClick}
                 >
                     문의하기
                 </button>
