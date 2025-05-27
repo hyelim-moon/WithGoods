@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import styles from '../assets/styles/InquiryForm.module.css';
 
 const InquiryForm = () => {
@@ -7,12 +8,11 @@ const InquiryForm = () => {
         title: '',
         type: '',
         content: '',
-        secret: '공개글', // default
+        secret: '공개글',
         password: '',
     });
 
     const [charCount, setCharCount] = useState(0);
-
     const navigate = useNavigate();
 
     const handleChange = (e) => {
@@ -22,7 +22,42 @@ const InquiryForm = () => {
     };
 
     const handleBack = () => {
-        navigate('/inquiry'); // 문의 목록으로 이동
+        navigate('/inquiry');
+    };
+
+    const handleSubmit = async () => {
+        try {
+            const payload = {
+                title: form.title,
+                type: convertType(form.type),
+                content: form.content,
+                password: form.password,
+                secret: form.secret === '비밀글'
+            };
+
+            await axios.post('http://localhost:8080/inquiries', payload, {
+                withCredentials: true
+            });
+
+            alert('문의가 등록되었습니다.');
+            navigate('/inquiry');
+        } catch (error) {
+            alert('문의 등록 실패: ' + error.response?.data?.message);
+        }
+    };
+
+    const convertType = (label) => {
+        switch (label) {
+            case '배송 문의': return 'DELIVERY';
+            case '상품 정보 문의': return 'PRODUCT';
+            case '주문/결제 문의': return 'PAYMENT';
+            case '취소/환불 문의': return 'CANCEL';
+            case '불량/오배송 문의': return 'DEFECT';
+            case '회원 정보 문의': return 'MEMBER';
+            case '이벤트/쿠폰 문의': return 'EVENT';
+            case '1:1 개인 문의': return 'PRIVATE';
+            default: return '';
+        }
     };
 
     return (
@@ -30,7 +65,6 @@ const InquiryForm = () => {
             <div className={styles.heading}>문의 작성</div>
             <hr className={styles.line} />
 
-            {/* 제목 */}
             <div className={styles.formGroup}>
                 <label className={styles.label}>제목</label>
                 <input
@@ -41,7 +75,6 @@ const InquiryForm = () => {
                 />
             </div>
 
-            {/* 문의 유형 */}
             <div className={styles.formGroup}>
                 <label className={styles.label}>문의 유형</label>
                 <select
@@ -50,7 +83,7 @@ const InquiryForm = () => {
                     value={form.type}
                     onChange={handleChange}
                 >
-                    <option value="" >문의 유형을 선택하세요</option>
+                    <option value="">문의 유형을 선택하세요</option>
                     <option value="배송 문의">배송 문의</option>
                     <option value="상품 정보 문의">상품 정보 문의</option>
                     <option value="주문/결제 문의">주문/결제 문의</option>
@@ -62,7 +95,6 @@ const InquiryForm = () => {
                 </select>
             </div>
 
-            {/* 본문 */}
             <div className={styles.formGroup}>
                 <label className={styles.label}>본문</label>
                 <textarea
@@ -75,7 +107,6 @@ const InquiryForm = () => {
                 <div className={styles.charCount}>{charCount} / 1000자</div>
             </div>
 
-            {/* 비밀번호 */}
             <div className={styles.formGroup}>
                 <label className={styles.label}>비밀번호</label>
                 <input
@@ -87,7 +118,6 @@ const InquiryForm = () => {
                 />
             </div>
 
-            {/* 공개/비밀 선택 */}
             <div className={styles.formGroup}>
                 <label className={styles.label}>비밀글 설정</label>
                 <div className={styles.radioGroup}>
@@ -112,10 +142,9 @@ const InquiryForm = () => {
                 </div>
             </div>
 
-            {/* 등록 버튼 */}
             <div className={styles.buttonWrapper}>
                 <button className={styles.backButton} onClick={handleBack}>목록</button>
-                <button className={styles.submitButton}>등록</button>
+                <button className={styles.submitButton} onClick={handleSubmit}>등록</button>
             </div>
         </div>
     );

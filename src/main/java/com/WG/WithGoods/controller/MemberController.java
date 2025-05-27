@@ -66,11 +66,14 @@ public class MemberController {
                 //  nickname 세션 저장
                 session.setAttribute("nickname", member.getNickname());
                 session.setAttribute("username", member.getUsername());
+                session.setAttribute("role", member.getRole().name());
 
                 //  nickname 응답에도 보내기
                 Map<String, String> response = new HashMap<>();
                 response.put("message", "로그인 성공");
                 response.put("nickname", member.getNickname());
+                response.put("role", member.getRole().name());
+                response.put("username", member.getUsername());
                 return ResponseEntity.ok(response);
             } else {
                 Map<String, String> errorResponse = new HashMap<>();
@@ -95,4 +98,20 @@ public class MemberController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/current-user")
+    public ResponseEntity<?> getCurrentUser(HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        String nickname = (String) session.getAttribute("nickname");
+        String role = (String) session.getAttribute("role");
+
+        if (username == null) {
+            return ResponseEntity.status(401).body("로그인이 필요합니다.");
+        }
+
+        return ResponseEntity.ok(Map.of(
+                "username", username,
+                "nickname", nickname,
+                "role", role
+        ));
+    }
 }

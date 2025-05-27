@@ -45,17 +45,13 @@ public class MemberService {
         memberRepository.save(member);
     }
 
-    @Transactional(readOnly = true)
     public boolean login(String username, String password) {
-        Member member = memberRepository.findByUsername(username);
-        if (member == null) {
-            return false;
-        }
-
-        return passwordEncoder.matches(password, member.getPassword());
+        return memberRepository.findByUsername(username)
+                .map(m -> passwordEncoder.matches(password, m.getPassword()))
+                .orElse(false);
     }
 
     public Optional<Member> findByUsername(String username) {
-        return Optional.ofNullable(memberRepository.findByUsername(username));
+        return memberRepository.findByUsername(username);
     }
 }

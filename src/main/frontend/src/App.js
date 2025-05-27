@@ -20,6 +20,8 @@ import Cart from './components/Cart';
 import ProductDetail from './components/ProductDetail';
 import MyPage from './components/MyPage';
 import EditProfile from "./components/EditProfile";
+import InquiryDetailPage from './components/InquiryDetail';
+import InquiryEdit from './components/InquiryEdit';
 
 function Record() {
     return null;
@@ -61,10 +63,12 @@ function App() {
                     <Route path="/limited_edition" element={<Limited_Edition />} />
                     <Route path="/inquiry" element={<InquiryPage />} />
                     <Route path="/inquiry/write" element={<InquiryForm />} />
+                    <Route path="/inquiry/:id" element={<InquiryDetailPage />} />
                     <Route path="/mypage" element={<MyPage />} />
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
                     <Route path="/edit-profile" element={<EditProfile />} />
+                    <Route path="/inquiry/edit/:id" element={<InquiryEdit />} />
                 </Routes>
             </div>
         </BrowserRouter>

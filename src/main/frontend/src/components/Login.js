@@ -30,6 +30,13 @@ function Login() {
             // ✅ 로컬 스토리지 저장
             localStorage.setItem('isLoggedIn', 'true');
             localStorage.setItem('nickname', response.data.nickname);
+            localStorage.setItem('role', response.data.role);
+            localStorage.setItem('username', response.data.username);
+
+            // ✅ 세션 스토리지 저장
+            sessionStorage.setItem("nickname", response.data.nickname);
+            sessionStorage.setItem("role", response.data.role);
+            sessionStorage.setItem("username", response.data.username);
 
             alert(response.data.message);
             window.location.href = '/';
