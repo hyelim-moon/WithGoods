@@ -26,9 +26,11 @@
 
 .tab {
     font-size: 1.3rem;
+    font-weight: bold;
     padding: 0.5rem 1.7rem;
     border: 1px solid #333;
     background-color: white;
+    border-radius: 6px;
     color: black;
     cursor: pointer;
 }
@@ -60,13 +62,21 @@
 }
 
 .inquiryButton {
+    background-color: #ffffff;
+    color: #333;
+    font-weight: bold;
     position: absolute;
     bottom: 1rem;
     right: 1rem;
     padding: 1rem 1.3rem;
-    border: 1px solid #fff;
-    background-color: #944c21;
+    border: 1px solid #ccc;
+    border-radius: 6px;
     cursor: pointer;
-    color: #ffffff;
     font-size: 1rem;
+    transition: background 0.3s ease;
+}
+
+.inquiryButton:hover {
+    color: #fff;
+    background-color: #944c21;
 }
