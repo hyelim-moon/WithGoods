@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 import styles from '../assets/styles/Login.module.css';
 
 function Login() {
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
+    const navigate = useNavigate();
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -14,20 +16,25 @@ function Login() {
             const response = await axios.post(
                 'http://localhost:8080/login',
                 {
-                    username: email,
+                    username: username,
                     password: password
                 },
                 {
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    withCredentials: true // ✅ 세션 쿠키를 브라우저에 저장
+                    withCredentials: true
                 }
             );
-            setMessage(response.data);
-            // 필요 시 페이지 이동: navigate('/dashboard');
+
+            // ✅ 로컬 스토리지 저장
+            localStorage.setItem('isLoggedIn', 'true');
+            localStorage.setItem('nickname', response.data.nickname);
+
+            alert(response.data.message);
+            window.location.href = '/';
         } catch (error) {
-            setMessage(error.response?.data || '로그인 실패');
+            setMessage(error.response?.data?.message || '로그인 실패');
         }
     };
 
@@ -40,8 +47,8 @@ function Login() {
                     <input
                         type="text"
                         placeholder="아이디"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         className={styles.input}
                         required
                     />
@@ -56,8 +63,7 @@ function Login() {
 
                     <div className={styles.options}>
                         <label className={styles.checkbox}>
-                            <input type="checkbox" />
-                            자동 로그인
+                            <input type="checkbox" /> 자동 로그인
                         </label>
                         <a href="/Forgot" className={styles.link}>비밀번호 찾기</a>
                     </div>
@@ -65,7 +71,7 @@ function Login() {
                     <button type="submit" className={styles.button}>로그인</button>
                 </form>
 
-                {message && <p>{message}</p>}
+                {message && <p className={styles.message}>{message}</p>}
 
                 <div className={styles.footer}>
                     <span>계정이 없으신가요?</span>

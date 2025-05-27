@@ -22,10 +22,7 @@ function SignUp() {
 
     const handleChange = (e) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = async (e) => {
@@ -39,18 +36,12 @@ function SignUp() {
                 withCredentials: true
             });
 
-            setMessage(response.data);
-
-            // ✅ 팝업 띄우기
-            alert("회원가입이 완료되었습니다!");
-
-            // ✅ 로그인 페이지로 이동
+            alert(response.data.message);
             navigate('/login');
         } catch (error) {
-            setMessage(error.response?.data || '회원가입 실패');
+            setMessage(error.response?.data?.message || '회원가입 실패');
         }
     };
-
 
     return (
         <div className={styles.container}>
@@ -67,12 +58,10 @@ function SignUp() {
 
                     <div className={styles.genderRow}>
                         <label className={styles.genderLabel}>
-                            <input type="radio" name="gender" value="남" checked={formData.gender === "남"} onChange={handleChange} />
-                            남성
+                            <input type="radio" name="gender" value="남" checked={formData.gender === "남"} onChange={handleChange} /> 남성
                         </label>
                         <label className={styles.genderLabel}>
-                            <input type="radio" name="gender" value="여" checked={formData.gender === "여"} onChange={handleChange} />
-                            여성
+                            <input type="radio" name="gender" value="여" checked={formData.gender === "여"} onChange={handleChange} /> 여성
                         </label>
                     </div>
 
@@ -80,14 +69,13 @@ function SignUp() {
                     <input type="text" name="address" placeholder="집주소" className={styles.input} value={formData.address} onChange={handleChange} required />
 
                     <label className={styles.checkbox}>
-                        <input type="checkbox" required />
-                        이용약관 및 개인정보 수집에 동의합니다
+                        <input type="checkbox" required /> 이용약관 및 개인정보 수집에 동의합니다
                     </label>
 
                     <button type="submit" className={styles.button}>회원가입</button>
                 </form>
 
-                {message && <p>{message}</p>}
+                {message && <p className={styles.message}>{message}</p>}
 
                 <div className={styles.footer}>
                     이미 계정이 있으신가요?
