@@ -32,6 +32,8 @@ function ProductDetail() {
       { id: 1, text: '정말 귀엽고 부드럽네요!', userId: 'user1', date: '2023-05-20', rating: 5 },
       { id: 2, text: '너무 예쁘고 퀄리티가 좋아요!', userId: 'user2', date: '2023-05-18', rating: 4.3 },
       { id: 3, text: '아이들이 너무 좋아해요!', userId: 'user3', date: '2023-05-17', rating: 5 },
+      { id: 4, text: '더미 데이터가 너무 없어서 넣는 더미 데이터1', userId: 'ㄷㅇ', date: '2023-05-27', rating: 1 },
+      { id: 5, text: '더미 데이터가 너무 없어서 넣는 더미 데이터2', userId: 'ㄷㅇ2', date: '2023-05-27', rating: 5 },
     ],
     qna: [
       { id: 1, question: '세탁은 어떻게 하나요?', answer: '손세탁을 권장드립니다.', userId: 'qnaUser1', date: '2023-04-01' },
@@ -203,7 +205,7 @@ function ProductDetail() {
               .map((review) => (
                 <div key={review.id} className={styles.reviewItem}>
                   <div className={styles.reviewHeader}>
-                    <span>{review.userId}</span>
+                    <span style={{ marginRight: '10px' }}>{review.userId}</span>
                     <span>{review.date}</span>
                     {/* 신고하기 라벨 - 모달 열기 */}
                     <span

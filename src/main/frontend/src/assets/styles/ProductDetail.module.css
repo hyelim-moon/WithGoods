@@ -347,6 +347,10 @@
     background-color: #9e4b25;
 }
 
+.userId {
+    marginRight: 20px;
+}
+
 .activeTab {
     font-weight: bold;
     color: #9e4b25;
