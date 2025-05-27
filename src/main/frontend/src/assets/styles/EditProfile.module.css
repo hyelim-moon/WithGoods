@@ -1,0 +1,125 @@
+.mainContent {
+    flex: 1;
+    padding: 40px;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.title {
+    font-size: 26px;
+    font-weight: bold;
+    margin-bottom: 28px;
+    text-align: center;
+}
+
+.formGroup {
+    margin-bottom: 14px;
+}
+
+.label {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 6px;
+}
+
+.input {
+    width: 100%;
+    padding: 13px 16px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.birthGroup {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.birthSelect {
+    flex: 1;
+    padding: 13px 16px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+}
+
+.radioGroup {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+}
+
+.addressGroup {
+    display: flex;
+    gap: 8px;
+}
+
+.zipcodeInput {
+    width: 140px;
+    padding: 13px 16px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.zipcodeButton {
+    padding: 13px 18px;
+    font-size: 14px;
+    border: 1px solid #9e4b25;
+    background-color: #9e4b25;
+    color: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.zipcodeButton:hover {
+    background-color: #8c421f;
+}
+
+.buttonGroup {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 25px;
+}
+
+.saveButton {
+    background-color: #9e4b25;
+    color: white;
+    padding: 15px 0;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    width: 150px;
+    cursor: pointer;
+}
+
+.saveButton:hover {
+    background-color: #8c421f;
+}
+
+/* 전화번호 입력 그룹 스타일 */
+.phoneGroup {
+    display: flex;
+    gap: 8px;
+}
+
+.phoneSelect {
+    width: 90px;
+    padding: 13px 10px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: white;
+    cursor: pointer;
+}
+
+.phoneInput {
+    width: 100px;
+    padding: 13px 16px;
+    font-size: 14px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    text-align: center;
+}
