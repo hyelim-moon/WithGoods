@@ -1,0 +1,76 @@
+.container {
+    padding: 1rem;
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.heading {
+    font-size: 2rem;
+    font-weight: bold;
+    margin: 0.5rem 0rem 1rem 0rem;
+}
+
+.line {
+    border: none;
+    border-top: 3px solid #944c21;
+    margin: 0.5rem 0;
+}
+
+.row {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.inputGroup {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+label {
+    margin: 0.5rem 0rem 0.7rem 0rem;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.required {
+    color: red;
+}
+
+input,
+textarea {
+    padding: 0.8rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    resize: none;
+}
+
+input:focus,
+textarea:focus {
+    outline: none;
+    border: 2px solid #944c21;
+}
+
+textarea {
+    height: 200px;
+}
+
+.charCount {
+    text-align: right;
+    font-size: 0.9rem;
+    color: #666;
+    margin-top: 0.3rem;
+}
+
+.submitButton {
+    margin-top: 1rem;
+    margin-left: auto; /* 오른쪽 정렬 핵심 */
+    padding: 0.8rem 2rem;
+    background-color: #944c21;
+    color: white;
+    border: none;
+    font-weight: bold;
+    cursor: pointer;
+    display: block; /* inline이면 margin-left 적용 안 될 수 있음 */
+}

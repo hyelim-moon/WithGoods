@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import axios from "axios";
 
 import Header from './components/Header';
@@ -13,9 +14,10 @@ import All from './components/All';
 import Anniversary from './components/Anniversary';
 import Customization from './components/Customization';
 import Limited_Edition from './components/Limited_Edition';
+import InquiryPage from "./components/InquiryPage";
+import InquiryForm from "./components/InquiryForm";
 import Cart from './components/Cart';
 import ProductDetail from './components/ProductDetail';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MyPage from './components/MyPage';
 import EditProfile from "./components/EditProfile";
 
@@ -57,6 +59,8 @@ function App() {
                     <Route path="/anniversary" element={<Anniversary />} />
                     <Route path="/customization" element={<Customization />} />
                     <Route path="/limited_edition" element={<Limited_Edition />} />
+                    <Route path="/inquiry" element={<InquiryPage />} />
+                    <Route path="/inquiry/write" element={<InquiryForm />} />
                     <Route path="/mypage" element={<MyPage />} />
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
