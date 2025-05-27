@@ -44,12 +44,22 @@ const InquiryForm = () => {
             {/* 문의 유형 */}
             <div className={styles.formGroup}>
                 <label className={styles.label}>문의 유형</label>
-                <input
+                <select
                     className={styles.input}
                     name="type"
                     value={form.type}
                     onChange={handleChange}
-                />
+                >
+                    <option value="" >문의 유형을 선택하세요</option>
+                    <option value="배송 문의">배송 문의</option>
+                    <option value="상품 정보 문의">상품 정보 문의</option>
+                    <option value="주문/결제 문의">주문/결제 문의</option>
+                    <option value="취소/환불 문의">취소/환불 문의</option>
+                    <option value="불량/오배송 문의">불량/오배송 문의</option>
+                    <option value="회원 정보 문의">회원 정보 문의</option>
+                    <option value="이벤트/쿠폰 문의">이벤트/쿠폰 문의</option>
+                    <option value="1:1 개인 문의">1:1 개인 문의</option>
+                </select>
             </div>
 
             {/* 본문 */}

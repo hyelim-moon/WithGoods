@@ -56,6 +56,12 @@
     resize: none;
 }
 
+select.input {
+    appearance: auto;
+    background-color: #fafafa;
+    cursor: pointer;
+}
+
 .charCount {
     text-align: right;
     font-size: 0.85rem;
