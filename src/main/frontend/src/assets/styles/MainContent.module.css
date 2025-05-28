@@ -1,6 +1,6 @@
 .mainContent {
     text-align: center;
-    padding: 1.25rem;
+    padding: 1.25rem 13rem 0rem 13rem;
 }
 
 /* 타이틀은 가운데 정렬 */
@@ -64,6 +64,8 @@
     align-items: flex-start;
     width: 100%;
     text-align: left;
+    text-decoration: none; /* 밑줄 제거 */
+    color: inherit; /* 기본 텍스트 색상 유지 */
 }
 
 .productImage {

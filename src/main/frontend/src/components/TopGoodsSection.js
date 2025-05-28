@@ -12,7 +12,7 @@ function TopGoodsSection({ titleIcon, title, route, goods, emoji }) {
 
             <div className={styles.popularList}>
                 {goods.map((item) => (
-                    <div key={item.id} className={styles.popularItem}>
+                    <Link to={`/product/${item.id}`} key={item.id} className={styles.popularItem}>
                         <div className={styles.productImage}>
                             <span style={{ fontSize: '2rem' }}>{emoji}</span>
                         </div>
@@ -24,7 +24,7 @@ function TopGoodsSection({ titleIcon, title, route, goods, emoji }) {
                             <div className={styles.productName}>{item.name}</div>
                             <div className={styles.productPrice}>{item.price}</div>
                         </div>
-                    </div>
+                    </Link>
                 ))}
             </div>
         </div>
