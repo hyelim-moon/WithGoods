@@ -1,6 +1,6 @@
 .mainContent {
     text-align: center;
-    padding: 1.25rem 13rem 0rem 13rem;
+    padding: 1rem 13rem 0rem 13rem;
 }
 
 /* 타이틀은 가운데 정렬 */
@@ -8,13 +8,13 @@
     font-size: 2rem;
     font-weight: bold;
     color: #000;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem 0rem;
 }
 
 /* 카드 전체 영역 래퍼 (전체보기 포함) */
 .cardWrapper {
     position: relative;
-    padding: 2rem;
+    padding: 1rem;
     box-sizing: border-box;
 }
 
