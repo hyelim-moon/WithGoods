@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from '../assets/styles/Limited_Edition.module.css';
 
-function All() {
+function Limited_Edition() {
     const navigate = useNavigate();
 
     // 카테고리 목록
@@ -188,4 +188,4 @@ function All() {
     );
 }
 
-export default All;
+export default Limited_Edition;

@@ -21,6 +21,7 @@ import Cart from './components/Cart';
 import ProductDetail from './components/ProductDetail';
 import MyPage from './components/MyPage';
 import EditProfile from "./components/EditProfile";
+import Registration from "./components/Registration";
 
 function Record() {
     return null;
@@ -67,6 +68,7 @@ function App() {
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
                     <Route path="/edit-profile" element={<EditProfile />} />
+                    <Route path="/registration" element={<Registration />} />
                 </Routes>
             </div>
         </BrowserRouter>
