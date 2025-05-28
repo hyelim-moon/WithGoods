@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styles from '../assets/styles/Best.module.css';
+import styles from '../assets/styles/Limited_Edition.module.css';
 
 function All() {
     const navigate = useNavigate();
@@ -92,7 +92,7 @@ function All() {
     };
 
     return (
-        <div className={styles.bestGoodsContainer}>
+        <div className={styles.limitedGoodsContainer}>
             {/* 상단 타이틀 및 필터 영역 */}
             <div className={styles.titleRow}>
                 <h2 className={styles.pageTitle}>한정판 굿즈</h2>
