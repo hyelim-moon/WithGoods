@@ -23,6 +23,7 @@ import MyPage from './components/MyPage';
 import EditProfile from "./components/EditProfile";
 import Registration from "./components/Registration";
 import MyProductList from "./components/MyProductList";
+import WishList from "./components/WishList";
 
 function Record() {
     return null;
@@ -67,6 +68,7 @@ function App() {
                     <Route path="/inquiry/estimate" element={<EstimateInquiryForm />} />
                     <Route path="/mypage" element={<MyPage />} />
                     <Route path="/myproductlist" element={<MyProductList />} />
+                    <Route path="/wishlist" element={<WishList />} />
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
                     <Route path="/edit-profile" element={<EditProfile />} />
