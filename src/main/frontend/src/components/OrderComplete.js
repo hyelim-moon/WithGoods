@@ -2,13 +2,28 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import styles from '../assets/styles/OrderComplete.module.css';
 
-const SHIPPING_FEE = 3000;  // 여기서 직접 정의하거나, props로 받으세요
+const SHIPPING_FEE = 3000;
+
+const dummyOrderInfo = {
+  orderNumber: '202505280001',
+  orderer: { name: '홍길동' },
+  cartItems: [
+    { id: 1, name: '굿즈 A', quantity: 2, price: 50000, discount: 5000 },
+    { id: 2, name: '굿즈 B', quantity: 1, price: 70000, discount: 0 },
+  ],
+  subtotal: 170000,
+  discountTotal: 5000,
+  totalPrice: 170000 - 5000 + SHIPPING_FEE,
+  shipping: { address: '서울특별시 강남구 역삼동 123-45' },
+  paymentMethod: 'card',
+};
 
 function OrderComplete() {
   const { state } = useLocation();
   const navigate = useNavigate();
 
-  const { orderInfo } = state || {};
+  // state가 없으면 dummyOrderInfo 사용 (개발/테스트용)
+  const orderInfo = state?.orderInfo || dummyOrderInfo;
 
   if (!orderInfo) return <p>주문 정보가 없습니다.</p>;
 
