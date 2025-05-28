@@ -82,7 +82,7 @@ function App() {
                     <Route path="/edit-profile" element={<EditProfile />} />
                     <Route path="/registration" element={<Registration />} />
                     <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/order-complete" element={<OrderComplete />} />
+                    <Route path="/ordercomplete" element={<OrderComplete />} />
                 </Routes>
             </div>
         </BrowserRouter>

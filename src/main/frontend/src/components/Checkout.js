@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import styles from '../assets/styles/Checkout.module.css';
+import { useNavigate } from 'react-router-dom';
 
 const availableCoupons = [
   { code: 'SAVE10', name: '10% 할인', type: 'percent', amount: 10 },
@@ -9,12 +10,13 @@ const availableCoupons = [
 const SHIPPING_FEE = 3000;
 
 function Checkout() {
+  const navigate = useNavigate();
+
   const [orderer, setOrderer] = useState({ name: '', phone: '', email: '' });
   const [paymentMethod, setPaymentMethod] = useState('');
   const [cardInfo, setCardInfo] = useState({ cardNumber: '', expiry: '', cvc: '' });
   const [accountInfo, setAccountInfo] = useState({ bankName: '', accountNumber: '' });
   const [shipping, setShipping] = useState({ address: '' });
-
   const [errors, setErrors] = useState({});
 
   const [cartItems, setCartItems] = useState([
@@ -22,32 +24,38 @@ function Checkout() {
     { id: 2, name: '굿즈 B', quantity: 1, price: 70000, discount: 0, appliedCoupon: null },
   ]);
 
+  // 주문자 정보 변경 핸들러
   const handleOrdererChange = (e) => {
     const { name, value } = e.target;
     setOrderer(prev => ({ ...prev, [name]: value }));
   };
 
+  // 결제 수단 선택 시 초기화
   const handlePaymentMethodChange = (e) => {
     setPaymentMethod(e.target.value);
     setCardInfo({ cardNumber: '', expiry: '', cvc: '' });
     setAccountInfo({ bankName: '', accountNumber: '' });
   };
 
+  // 카드 정보 변경
   const handleCardInfoChange = (e) => {
     const { name, value } = e.target;
     setCardInfo(prev => ({ ...prev, [name]: value }));
   };
 
+  // 계좌 정보 변경
   const handleAccountInfoChange = (e) => {
     const { name, value } = e.target;
     setAccountInfo(prev => ({ ...prev, [name]: value }));
   };
 
+  // 배송 정보 변경
   const handleShippingChange = (e) => {
     const { name, value } = e.target;
     setShipping(prev => ({ ...prev, [name]: value }));
   };
 
+  // 쿠폰 적용 함수
   const applyCoupon = (itemId, couponCode) => {
     const coupon = availableCoupons.find(c => c.code === couponCode);
     if (!coupon) {
@@ -62,13 +70,14 @@ function Checkout() {
         if (coupon.type === 'percent') {
           discount = Math.floor(item.price * item.quantity * (coupon.amount / 100));
         } else if (coupon.type === 'amount') {
-          discount = Math.min(coupon.amount, item.price * item.quantity); // 할인액이 총 가격보다 크지 않도록 제한
+          discount = Math.min(coupon.amount, item.price * item.quantity);
         }
         return { ...item, discount, appliedCoupon: coupon.code };
       })
     );
   };
 
+  // 쿠폰 제거 함수
   const removeCoupon = (itemId) => {
     setCartItems(items =>
       items.map(item =>
@@ -77,15 +86,16 @@ function Checkout() {
     );
   };
 
+  // 가격 계산
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountTotal = cartItems.reduce((sum, item) => sum + item.discount, 0);
   const totalPrice = subtotal - discountTotal + SHIPPING_FEE;
 
-  // 간단한 유효성 검사 함수들
+  // 유효성 검사
   const validateEmail = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  const validatePhone = (phone) => /^[0-9]{9,12}$/.test(phone.replace(/[-\s]/g, '')); // 숫자 9~12자리, 하이픈/공백 허용
+  const validatePhone = (phone) => /^[0-9]{9,12}$/.test(phone.replace(/[-\s]/g, ''));
   const validateCardNumber = (num) => /^[0-9]{13,19}$/.test(num.replace(/\s+/g, ''));
-  const validateExpiry = (exp) => /^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(exp); // MM/YY 형식
+  const validateExpiry = (exp) => /^(0[1-9]|1[0-2])\/?([0-9]{2})$/.test(exp);
   const validateCVC = (cvc) => /^[0-9]{3,4}$/.test(cvc);
 
   const handleSubmit = (e) => {
@@ -117,8 +127,7 @@ function Checkout() {
     setErrors(newErrors);
 
     if (Object.keys(newErrors).length === 0) {
-      alert('주문이 완료되었습니다!');
-      // 실제 주문 처리 로직 필요
+       navigate('/ordercomplete');  // 라우터 쓰면 활성화
     }
   };
 
@@ -163,17 +172,34 @@ function Checkout() {
             <>
               <label>
                 카드 번호
-                <input name="cardNumber" value={cardInfo.cardNumber} onChange={handleCardInfoChange} maxLength={19} placeholder="숫자만 입력" />
+                <input
+                  name="cardNumber"
+                  value={cardInfo.cardNumber}
+                  onChange={handleCardInfoChange}
+                  maxLength={19}
+                  placeholder="숫자만 입력"
+                />
                 {errors.cardNumber && <small style={{ color: 'red' }}>{errors.cardNumber}</small>}
               </label>
               <label>
                 유효 기간 (MM/YY)
-                <input name="expiry" value={cardInfo.expiry} onChange={handleCardInfoChange} placeholder="예: 12/24" maxLength={5} />
+                <input
+                  name="expiry"
+                  value={cardInfo.expiry}
+                  onChange={handleCardInfoChange}
+                  placeholder="예: 12/24"
+                  maxLength={5}
+                />
                 {errors.expiry && <small style={{ color: 'red' }}>{errors.expiry}</small>}
               </label>
               <label>
                 CVC
-                <input name="cvc" value={cardInfo.cvc} onChange={handleCardInfoChange} maxLength={4} />
+                <input
+                  name="cvc"
+                  value={cardInfo.cvc}
+                  onChange={handleCardInfoChange}
+                  maxLength={4}
+                />
                 {errors.cvc && <small style={{ color: 'red' }}>{errors.cvc}</small>}
               </label>
             </>
@@ -210,22 +236,32 @@ function Checkout() {
           <legend>상품 정보 및 쿠폰</legend>
           {cartItems.map(item => (
             <div key={item.id} className={styles.cartItem}>
-              <p><strong>{item.name}</strong> x {item.quantity} = ₩{(item.price * item.quantity).toLocaleString()}</p>
-              {item.discount > 0 && <p className={styles.discount}>할인: ₩{item.discount.toLocaleString()}</p>}
+              <p>
+                <strong>{item.name}</strong> x {item.quantity} = ₩{(item.price * item.quantity).toLocaleString()}
+              </p>
+              {item.discount > 0 && (
+                <p className={styles.discount}>할인: ₩{item.discount.toLocaleString()}</p>
+              )}
               <div>
                 {item.appliedCoupon ? (
                   <>
-                    <span>쿠폰: {item.appliedCoupon}</span>
-                    <button type="button" onClick={() => removeCoupon(item.id)}>삭제</button>
+                    <span>쿠폰: {item.appliedCoupon}</span>{' '}
+                    <button type="button" onClick={() => removeCoupon(item.id)}>
+                      삭제
+                    </button>
                   </>
                 ) : (
                   <select
                     onChange={e => applyCoupon(item.id, e.target.value)}
-                    value={item.appliedCoupon || ""}
+                    value={item.appliedCoupon || ''}
                   >
-                    <option value="" disabled>쿠폰 선택</option>
+                    <option value="" disabled>
+                      쿠폰 선택
+                    </option>
                     {availableCoupons.map(coupon => (
-                      <option key={coupon.code} value={coupon.code}>{coupon.name}</option>
+                      <option key={coupon.code} value={coupon.code}>
+                        {coupon.name}
+                      </option>
                     ))}
                   </select>
                 )}
@@ -240,7 +276,9 @@ function Checkout() {
           <p>할인 총액: -₩{discountTotal.toLocaleString()}</p>
           <p>배송비: ₩{SHIPPING_FEE.toLocaleString()}</p>
           <h3>총 결제 금액: ₩{totalPrice.toLocaleString()}</h3>
-          <button type="submit" className={styles.submitBtn}>구매하기</button>
+          <button type="submit" className={styles.submitBtn}>
+            구매하기
+          </button>
         </div>
       </form>
     </div>
