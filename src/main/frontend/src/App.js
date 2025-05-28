@@ -27,6 +27,8 @@ import WishList from "./components/WishList";
 import Recent from "./components/Recent";
 import EstimateList from "./components/EstimateList";
 import ProductStats from "./components/ProductStats";
+import Checkout from "./components/Checkout";
+import OrderComplete from "./components/OrderComplete";
 
 function Record() {
     return null;
@@ -79,6 +81,8 @@ function App() {
                     <Route path="/product/:id/stats" element={<ProductStats />} />
                     <Route path="/edit-profile" element={<EditProfile />} />
                     <Route path="/registration" element={<Registration />} />
+                    <Route path="/checkout" element={<Checkout />} />
+                    <Route path="/order-complete" element={<OrderComplete />} />
                 </Routes>
             </div>
         </BrowserRouter>

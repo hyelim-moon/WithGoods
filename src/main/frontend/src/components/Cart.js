@@ -214,7 +214,7 @@ function Cart() {
                         </div>
 
                         <Link to="/checkout">
-                            <button className={styles.checkoutBtn}>주문하기</button>
+                            <button className={styles.checkoutBtn}>구매하기</button>
                         </Link>
                     </div>
                 </div>
