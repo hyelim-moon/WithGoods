@@ -25,6 +25,7 @@ import Registration from "./components/Registration";
 import MyProductList from "./components/MyProductList";
 import WishList from "./components/WishList";
 import Recent from "./components/Recent";
+import EstimateList from "./components/EstimateList";
 
 function Record() {
     return null;
@@ -72,6 +73,7 @@ function App() {
                     <Route path="/wishlist" element={<WishList />} />
                     <Route path="/cart" element={<Cart />} />
                     <Route path="/recent" element={<Recent />} />
+                    <Route path="/estimatelist" element={<EstimateList />} />
                     <Route path="/product/:id" element={<ProductDetail />} />
                     <Route path="/edit-profile" element={<EditProfile />} />
                     <Route path="/registration" element={<Registration />} />

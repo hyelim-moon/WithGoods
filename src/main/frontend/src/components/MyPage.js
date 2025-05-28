@@ -20,7 +20,7 @@ function MyPage() {
                     <li><a href="/cart">장바구니</a></li>
                     <li><a href="/wishlist">찜한 상품</a></li>
                     <li><a href="/recent">최근 본 상품</a></li>
-                    <li><a href="/quotes">내 견적 문의</a></li>
+                    <li><a href="/estimatelist">내 견적 문의</a></li>
                 </ul>
             </aside>
 
