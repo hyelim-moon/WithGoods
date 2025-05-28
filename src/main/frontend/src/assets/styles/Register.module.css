@@ -1,157 +1,143 @@
 .registerForm {
     max-width: 1000px;
-    margin: 0 auto;
-    padding: 30px 20px;
-    font-family: Arial, sans-serif;
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 0 10px #ddd;
+    margin: 40px auto;
+    padding: 40px 30px;
+    background-color: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    border: 4px solid #9e4b25;
 }
 
+/* 타이틀 */
 .registerForm h2,
 .registerForm h3,
 .registerForm h4 {
     color: #9e4b25;
-    margin-bottom: 15px;
+    margin-bottom: 20px;
+    font-weight: 700;
 }
 
-/* 기본 라벨 세로 정렬 */
+/* 입력 그룹 */
 .registerForm label {
     display: flex;
     flex-direction: column;
-    max-width: 400px;
-    margin-bottom: 30px;
+    margin-bottom: 25px;
     font-weight: 600;
     color: #333;
 }
 
-/* 체크박스 라벨 가로 정렬 */
+/* 체크박스 라벨 */
 .registerForm label.checkboxLabel {
     flex-direction: row;
     align-items: center;
-    max-width: 400px;
+    gap: 10px;
 }
 
-.registerForm label > input[type="checkbox"] {
-    width: auto;
-    max-width: none;
-    margin-top: 0;
-    margin-right: 8px;
-    transform: scale(1.2);
-    vertical-align: middle;
-}
-
-/* ✅ 라벨 내부 input/select/textarea와 텍스트 사이 간격 추가 */
+/* 레이블과 폼 요소 간격 */
 .registerForm label:not(.checkboxLabel) > input,
 .registerForm label:not(.checkboxLabel) > select,
 .registerForm label:not(.checkboxLabel) > textarea {
-    margin-top: 6px;
+    margin-top: 8px;
 }
 
+/* 기본 입력 스타일 */
 .registerForm input[type="text"],
 .registerForm input[type="number"],
 .registerForm input[type="file"],
 .registerForm select,
 .registerForm textarea {
-    width: 100%;
-    padding: 8px 12px;
-    border: 1.5px solid #ccc;
-    border-radius: 6px;
+    padding: 10px 14px;
     font-size: 14px;
+    border: 1.8px solid #ccc;
+    border-radius: 8px;
+    transition: border-color 0.3s;
     box-sizing: border-box;
-    transition: border-color 0.3s ease;
 }
 
-/* 숫자 입력 필드 너비 제한 */
-.registerForm input[type="number"] {
-    max-width: 160px;
+/* 포커스 스타일 */
+.registerForm input:focus,
+.registerForm select:focus,
+.registerForm textarea:focus {
+    border-color: #3673B0;
+    outline: none;
 }
 
-/* 파일 입력 필드 너비 제한 */
-.registerForm input[type="file"] {
-    max-width: 300px;
-    margin-top: 10px;
-}
-
-/* 옵션 구성 방식 select 너비 제한 */
+/* 파일, 셀렉트 등 크기 조절 */
+.registerForm input[type="number"],
 .registerForm select[name="optionType"] {
     max-width: 200px;
 }
 
-/* 옵션 목록 인풋 너비 제한 */
-.optionList input {
-    max-width: 180px;
-    margin-top: 10px;
+.registerForm input[type="file"] {
+    max-width: 320px;
 }
 
-/* 인풋 및 셀렉트 포커스 스타일 */
-.registerForm input[type="text"]:focus,
-.registerForm input[type="number"]:focus,
-.registerForm select:focus,
-.registerForm textarea:focus {
-    border-color: #9e4b25;
-    outline: none;
+/* 옵션 리스트 */
+.optionList {
+    margin-top: 10px;
 }
 
 .optionList > div {
     display: flex;
     gap: 10px;
     margin-bottom: 10px;
+    flex-wrap: wrap;
 }
 
 .optionList input {
     flex: 1;
-    max-width: 180px;
+    min-width: 150px;
 }
 
 .optionList button {
     background-color: #9e4b25;
-    border: 1.5px solid #9e4b25;
+    border: none;
     color: white;
-    cursor: pointer;
-    border-radius: 6px;
+    border-radius: 8px;
     padding: 6px 12px;
+    cursor: pointer;
     font-weight: 600;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.3s;
 }
 
 .optionList button:hover {
     background-color: #75361b;
-    color: white;
 }
 
+/* 제출 버튼 */
 .registerForm > button[type="submit"] {
     background-color: #9e4b25;
     color: white;
     border: none;
-    padding: 12px 25px;
+    padding: 14px 30px;
     font-size: 18px;
     font-weight: bold;
     border-radius: 30px;
     cursor: pointer;
-    margin-top: 20px;
-    transition: background-color 0.3s ease;
     width: 100%;
+    margin-top: 30px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    transition: background-color 0.3s ease;
 }
 
 .registerForm > button[type="submit"]:hover {
-    background-color: #884120;
+    background-color: #75361b;
 }
 
-/* 모바일 대응: 작은 화면에선 입력 너비 100% */
+/* 반응형 */
 @media (max-width: 600px) {
     .registerForm {
-        padding: 20px 10px;
+        padding: 20px 15px;
     }
 
     .registerForm label {
         max-width: 100%;
     }
 
-    .registerForm input[type="number"],
+    .optionList input,
     .registerForm input[type="file"],
-    .registerForm select[name="optionType"],
-    .optionList input {
+    .registerForm input[type="number"],
+    .registerForm select {
         max-width: 100%;
     }
 }

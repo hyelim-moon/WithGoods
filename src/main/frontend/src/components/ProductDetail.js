@@ -21,7 +21,7 @@ function ProductDetail() {
 
   const product = {
     id: 1,
-    name: '곰인형',
+    name: '상품명',
     price: 25000,
     images: ['/images/bear1.jpg', '/images/bear2.jpg', '/images/bear3.jpg'],
     description:
