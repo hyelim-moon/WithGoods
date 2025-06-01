@@ -12,6 +12,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/products")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
 public class ProductController {
 
     private final ProductService productService;
@@ -23,7 +24,8 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<List<ProductDto>> getAll() {
-        return ResponseEntity.ok(productService.getAllProducts());
+        List<ProductDto> products = productService.getAllProducts();
+        return ResponseEntity.ok(products);
     }
 
     @GetMapping("/{id}")
