@@ -1,6 +1,9 @@
 package com.WG.WithGoods.dto;
 
+import com.WG.WithGoods.entity.ProductRole;
 import lombok.*;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -15,4 +18,9 @@ public class ProductDto {
     private Integer price;
     private String category;
     private String options;
+    private ProductRole role;
+    private LocalDateTime startDate;
+    private LocalDateTime endDate;
+    private Integer stock;
+    private Double rating;
 }

@@ -1,9 +1,11 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import styles from '../assets/styles/ProductDetail.module.css';
 import { FaHeart, FaCartPlus, FaShoppingCart } from 'react-icons/fa'; // 아이콘 가져오기
 
 function ProductDetail() {
+    const { id } = useParams(); // URL에서 id 파라미터 가져오기
     const navigate = useNavigate();
 
     // 상태 변수들 정의
@@ -13,22 +15,33 @@ function ProductDetail() {
     const [isFavorited, setIsFavorited] = useState(false); // 즐겨찾기 여부
     const [showAllReviews, setShowAllReviews] = useState(false); // 전체 리뷰 보기 여부
     const [activeTab, setActiveTab] = useState('detail'); // 현재 활성화된 탭
+    const [product, setProduct] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-    // 상품 데이터 (샘플 데이터 하드코딩)
-    const product = {
-        id: 1,
-        name: '곰인형',
-        price: 25000,
-        images: ['/images/bear1.jpg', '/images/bear2.jpg', '/images/bear3.jpg'],
-        description: '귀엽고 부드러운 곰인형입니다. 곰 인형은 봉제 장난감의 한 종류로, 사람이나 동물의 모습을 한 장난감 중 곰 모양을 한 것을 말합니다. 특히 \'테디 베어\'는 곰 인형의 대표적인 형태로, 어린이들에게 사랑받는 인형으로 널리 알려져 있습니다. 곰 인형은 선물이나 애착 인형으로도 많이 사용되며, 다양한 크기, 디자인, 소재로 만들어집니다. ',
-        options: ['색상: 브라운', '사이즈: M'],
-        rating: 4.5,
-        reviews: [
-            { id: 1, text: '정말 귀엽고 부드럽네요!', userId: 'user1', date: '2023-05-20', rating: 5 },
-            { id: 2, text: '너무 예쁘고 퀄리티가 좋아요!', userId: 'user2', date: '2023-05-18', rating: 4.3 },
-            { id: 3, text: '아이들이 너무 좋아해요!', userId: 'user3', date: '2023-05-17', rating: 5 },
-        ],
-    };
+    // 상품 데이터 불러오기
+    useEffect(() => {
+        const fetchProduct = async () => {
+            try {
+                setLoading(true);
+                const response = await axios.get(`http://localhost:8080/products/${id}`, {
+                    withCredentials: true
+                });
+                console.log('Fetched product:', response.data); // 디버깅용 로그
+                setProduct(response.data);
+                setError(null);
+            } catch (err) {
+                console.error('Error fetching product:', err); // 디버깅용 로그
+                setError('상품 정보를 불러오는데 실패했습니다.');
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        if (id) {
+            fetchProduct();
+        }
+    }, [id]);
 
     // 장바구니에 추가
     const handleAddToCart = () => {
@@ -45,17 +58,33 @@ function ProductDetail() {
         setIsFavorited(!isFavorited);
     };
 
-    // 평균 평점 계산
-    const averageRating = product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length;
+    if (loading) {
+        return <div className={styles.loading}>상품 정보를 불러오는 중...</div>;
+    }
+
+    if (error) {
+        return <div className={styles.error}>{error}</div>;
+    }
+
+    if (!product) {
+        return <div className={styles.error}>상품을 찾을 수 없습니다.</div>;
+    }
+
+    // 상품 이미지 배열 생성 (임시로 같은 이미지 반복)
+    const productImages = product.imageUrl ? [product.imageUrl, product.imageUrl, product.imageUrl] : [];
 
     return (
         <div className={styles.detailContainer}>
             <div className={styles.productWrapper}>
                 {/* 이미지 영역 */}
                 <div className={styles.imageSection}>
-                    <img src={product.images[selectedImage]} alt="상품 이미지" className={styles.productImage} />
+                    <img 
+                        src={productImages[selectedImage]} 
+                        alt="상품 이미지" 
+                        className={styles.productImage} 
+                    />
                     <div className={styles.thumbnailSection}>
-                        {product.images.map((img, i) => (
+                        {productImages.map((img, i) => (
                             <img
                                 key={i}
                                 src={img}
@@ -70,10 +99,22 @@ function ProductDetail() {
                 {/* 상품 정보 영역 */}
                 <div className={styles.infoSection}>
                     <h2 className={styles.productName}>{product.name}</h2>
-                    <p className={styles.productPrice}>₩{product.price.toLocaleString()}</p>
-                    <ul className={styles.productOptions}>
-                        {product.options.map((opt, i) => <li key={i}>{opt}</li>)}
-                    </ul>
+                    <p className={styles.productPrice}>₩{product.price?.toLocaleString()}</p>
+                    {product.options && (
+                        <ul className={styles.productOptions}>
+                            {product.options.split(',').map((opt, i) => (
+                                <li key={i}>{opt.trim()}</li>
+                            ))}
+                        </ul>
+                    )}
+
+                    {/* 한정판 상품 정보 */}
+                    {product.role === 'LIMITED' && (
+                        <div className={styles.limitedInfo}>
+                            <p>판매 기간: {new Date(product.startDate).toLocaleDateString()} ~ {new Date(product.endDate).toLocaleDateString()}</p>
+                            <p>남은 수량: {product.stock}개</p>
+                        </div>
+                    )}
 
                     {/* 수량 조절 UI */}
                     <div className={styles.quantityRow}>
@@ -86,7 +127,9 @@ function ProductDetail() {
                     </div>
 
                     {/* 총 상품 금액 표시 */}
-                    <p className={styles.totalPrice}>총 상품 금액: ₩{(product.price * quantity).toLocaleString()}</p>
+                    <p className={styles.totalPrice}>
+                        총 상품 금액: ₩{(product.price * quantity).toLocaleString()}
+                    </p>
 
                     {/* 장바구니/구매/즐겨찾기 버튼 */}
                     <div className={styles.buttonRow}>
@@ -140,10 +183,13 @@ function ProductDetail() {
                         dangerouslySetInnerHTML={{
                             __html: showMoreInfo
                                 ? product.description
-                                : product.description.slice(0, 99) + '...',
+                                : product.description?.slice(0, 99) + '...',
                         }}
                     />
-                    <button className={styles.showMoreBtn} onClick={() => setShowMoreInfo(!showMoreInfo)}>
+                    <button 
+                        className={styles.showMoreBtn} 
+                        onClick={() => setShowMoreInfo(!showMoreInfo)}
+                    >
                         {showMoreInfo ? '간략히 보기' : '상품 더보기'}
                     </button>
                 </div>
@@ -152,49 +198,24 @@ function ProductDetail() {
             {/* 리뷰 탭 */}
             {activeTab === 'reviews' && (
                 <div className={styles.reviewsSection}>
-                    <h3>전체 리뷰 ({product.reviews.length})</h3>
-                    <div className={styles.ratingSection}>
-                        <div className={styles.stars}>
-                            {[...Array(5)].map((_, i) => (
-                                <span key={i} className={i < averageRating ? styles.filledStar : styles.emptyStar}>★</span>
-                            ))}
-                        </div>
-                        <span className={styles.ratingText}>
-                            평점: {averageRating.toFixed(1)} ({product.reviews.length}명)
-                        </span>
-                    </div>
-
-                    {/* 리뷰 목록 */}
-                    <div className={styles.reviewsList}>
-                        {product.reviews
-                            .slice(0, showAllReviews ? product.reviews.length : 3)
-                            .map((review) => (
-                                <div key={review.id} className={styles.reviewItem}>
-                                    <div className={styles.reviewHeader}>
-                                        <span>{review.userId}</span>
-                                        <span>{review.date}</span>
-                                    </div>
-                                    <div className={styles.reviewText}>
-                                        {[...Array(5)].map((_, i) => (
-                                            <span key={i} className={i < review.rating ? styles.filledStar : styles.emptyStar}>
-                                                ★
-                                            </span>
-                                        ))}
-                                        <span className={styles.ratingScore}>({review.rating}점)</span>
-                                        <p>{review.text}</p>
-                                    </div>
-                                </div>
-                            ))}
-                    </div>
-
-                    {/* 리뷰 더보기/접기 버튼 */}
-                    <button className={styles.showMoreBtn} onClick={() => setShowAllReviews(!showAllReviews)}>
-                        {showAllReviews ? '리뷰 간략히 보기' : '리뷰 더보기'}
-                    </button>
+                    <h3>아직 리뷰가 없습니다.</h3>
                 </div>
             )}
 
-            {/* Q&A, 반품/교환정보 탭 콘텐츠는 아직 미구현 상태 */}
+            {/* Q&A 탭 */}
+            {activeTab === 'qa' && (
+                <div className={styles.qaSection}>
+                    <h3>아직 Q&A가 없습니다.</h3>
+                </div>
+            )}
+
+            {/* 반품/교환정보 탭 */}
+            {activeTab === 'return' && (
+                <div className={styles.returnSection}>
+                    <h3>반품/교환 정책</h3>
+                    <p>구체적인 반품/교환 정책은 준비 중입니다.</p>
+                </div>
+            )}
         </div>
     );
 }

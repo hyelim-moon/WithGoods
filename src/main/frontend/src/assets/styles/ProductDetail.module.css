@@ -343,3 +343,38 @@
 .toggleReviewsBtn:hover {
     background-color: #9e4b25;
 }
+
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+.error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    font-size: 1.2rem;
+    color: #dc3545;
+    text-align: center;
+    padding: 20px;
+}
+
+.limitedInfo {
+    margin: 15px 0;
+    padding: 15px;
+    background-color: #fff3f8;
+    border: 1px solid #ff4081;
+    border-radius: 8px;
+    color: #ff4081;
+}
+
+.limitedInfo p {
+    margin: 5px 0;
+    font-size: 0.9rem;
+    font-weight: bold;
+}

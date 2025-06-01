@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from '../assets/styles/Best.module.css';
 
 function All() {
+    const navigate = useNavigate();
     // 카테고리 목록
     const categories = ['인형', '문구', '패션', '키링', '가전'];
 
@@ -109,6 +111,12 @@ function All() {
         return stars;
     };
 
+    // 상품 클릭 핸들러
+    const handleProductClick = (productId) => {
+        navigate(`/product/${productId}`);
+        console.log('Navigating to product:', productId); // 디버깅용 로그
+    };
+
     if (isLoading) {
         return <div className={styles.loading}>상품을 불러오는 중...</div>;
     }
@@ -190,7 +198,12 @@ function All() {
             {/* 상품 리스트 영역 */}
             <div className={styles.productList}>
                 {getSortedGoods().map((product) => (
-                    <div key={product.productId} className={styles.productContainer}>
+                    <div 
+                        key={product.productId} 
+                        className={styles.productContainer}
+                        onClick={() => handleProductClick(product.productId)}
+                        style={{ cursor: 'pointer' }}
+                    >
                         <div className={styles.productItem}>
                             <div className={styles.productContent}>
                                 {product.imageUrl && (

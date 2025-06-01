@@ -2,6 +2,7 @@ package com.WG.WithGoods.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "product")
@@ -34,4 +35,17 @@ public class Product {
 
     @Column(name = "options")
     private String options; // 상품옵션
+
+    @Column(name = "role", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ProductRole role = ProductRole.NORMAL; // 상품 역할 (일반/한정판)
+
+    @Column(name = "start_date")
+    private LocalDateTime startDate; // 한정판 판매 시작일
+
+    @Column(name = "end_date")
+    private LocalDateTime endDate; // 한정판 판매 종료일
+
+    @Column(name = "stock")
+    private Integer stock; // 한정판 재고
 }

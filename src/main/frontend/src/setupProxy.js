@@ -8,6 +8,7 @@ module.exports = function(app) {
 
     app.use('/api', createProxyMiddleware(proxyConfig));
     app.use('/products', createProxyMiddleware(proxyConfig));
+    app.use('/product', createProxyMiddleware(proxyConfig));
     app.use('/inquiries', createProxyMiddleware(proxyConfig));
     app.use('/login', createProxyMiddleware(proxyConfig));
     app.use('/logout', createProxyMiddleware(proxyConfig));
