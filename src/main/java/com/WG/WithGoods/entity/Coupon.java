@@ -26,7 +26,7 @@ public class Coupon {
     private String event; // 발급이벤트
 
     @Column(name = "expiry_date")
-    private LocalDateTime expiryDate; // 쿠폰사용기한
+    private LocalDateTime expiryDate; // 쿠폰사용기 s한
 
     @Column(name = "discount_amount")
     private Integer discountAmount; // 할인금액
