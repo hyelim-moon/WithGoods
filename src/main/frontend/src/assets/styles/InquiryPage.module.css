@@ -1,7 +1,11 @@
+/* InquiryPage.module.css */
+
 .container {
-    padding: 1rem;
-    font-family: 'Noto Sans KR', sans-serif;
+    display: flex;
+    flex-direction: column;
     height: 80vh;
+    padding: 1.5rem 4rem;
+    font-family: 'Noto Sans KR', sans-serif;
 }
 
 .header {
@@ -16,7 +20,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    margin: 0.7rem 0rem 1rem 1.3rem;
+    margin: 0.7rem 0 1rem 1.3rem;
 }
 
 .tabContainer {
@@ -33,6 +37,11 @@
     border-radius: 6px;
     color: black;
     cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tab:hover {
+    background-color: #f4f4f4;
 }
 
 .active {
@@ -48,19 +57,23 @@
 }
 
 .content {
-    height: 70%;
+    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     position: relative;
+    padding-top: 0.5rem;
 }
 
 .noInquiry {
     font-size: 1.5rem;
     font-weight: bold;
+    color: #777;
+    margin-top: 2rem;
 }
 
+/* “문의하기” 버튼 */
 .inquiryButton {
     background-color: #ffffff;
     color: #333;
@@ -69,11 +82,11 @@
     bottom: 1rem;
     right: 1rem;
     padding: 1rem 1.3rem;
-    border: 1px solid #ccc;
+    border: 1px solid #000;
     border-radius: 6px;
     cursor: pointer;
     font-size: 1rem;
-    transition: background 0.3s ease;
+    transition: background 0.3s ease, color 0.3s ease;
 }
 
 .inquiryButton:hover {
@@ -81,3 +94,117 @@
     background-color: #944c21;
 }
 
+/* ======================================
+   테이블 기본 스타일
+   ====================================== */
+.inquiryTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+}
+
+.inquiryTable th {
+    padding: 0.75rem 0.5rem;
+    font-size: 1rem;
+    text-align: center;
+    color: #444;
+    border-bottom: 2px solid #ddd;
+}
+
+.inquiryTable td {
+    padding: 0.85rem 0.5rem;
+    font-size: 0.95rem;
+    color: #333;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+
+.inquiryTable tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+/* ────────────────────────────────────
+   개별 컬럼 너비 및 정렬
+──────────────────────────────────── */
+.headerNumber {
+    width: 8%;
+}
+
+.headerProduct {
+    width: 20%;
+    text-align: center;  /* 상품정보 열 전체를 가운데 정렬 */
+}
+
+.headerTitle {
+    width: 40%;
+    text-align: left;    /* 제목은 왼쪽 정렬 유지 */
+}
+
+.headerAuthor {
+    width: 12%;
+}
+
+.headerDate {
+    width: 12%;
+}
+
+.headerViews {
+    width: 8%;
+}
+
+/* 행 호버 효과 */
+.inquiryTable tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* ======================================
+   “상품정보” 열: 오직 “문의 유형”만 가운데 정렬
+   ====================================== */
+.inquiryTypeOnly {
+    font-size: 0.95rem;
+    color: #555;
+    /* 가운데 정렬을 위해 텍스트 정렬과 flex 속성 사용 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+/* ======================================
+   제목 옆 자물쇠 아이콘
+   ====================================== */
+.iconLock {
+    margin-right: 0.3rem;
+    color: #555;
+}
+
+/* ======================================
+   제목 안에 들어가는 NEW 뱃지
+   ====================================== */
+.badgeNew {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.1rem 0.3rem;
+    background-color: #007bff;
+    color: white;
+    font-size: 0.7rem;
+    border-radius: 3px;
+}
+
+/* 반응형: 화면 좁아질 때 */
+@media (max-width: 600px) {
+    .container {
+        padding: 1rem 2rem;
+    }
+    .inquiryTable th,
+    .inquiryTable td {
+        font-size: 0.85rem;
+        padding: 0.6rem 0.3rem;
+    }
+    .inquiryButton {
+        bottom: 0.5rem;
+        right: 0.5rem;
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+    }
+}
