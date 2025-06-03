@@ -1,0 +1,169 @@
+.container {
+    padding: 2rem 13rem;
+    min-height: 100vh;
+}
+
+.title {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #9e4b25;
+    margin-bottom: 1rem;
+}
+
+.totalCount {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 2rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1.5rem;
+}
+
+.card {
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.productImage {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
+    border-bottom: 1px solid #eee;
+}
+
+.info {
+    padding: 0.75rem 1rem;
+}
+
+.productName {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #9e4b25;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.4;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.priceSection {
+    font-size: 0.95rem;
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+}
+
+.originalPrice {
+    color: #7a5a3a;
+    text-decoration: line-through;
+}
+
+.arrow {
+    color: #9e4b25;
+    font-weight: bold;
+}
+
+.discountedPrice {
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+.normalPrice {
+    color: #000;
+    font-weight: bold;
+}
+
+.discountRate {
+    font-size: 0.85rem;
+    color: #d32f2f;
+    margin-top: 0.3rem;
+}
+
+/* 찜 해제 버튼 */
+.unlikeBtn {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background-color: #d32f2f;
+    color: white;
+    font-size: 0.75rem;
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.unlikeBtn:hover {
+    background-color: #9b2121;
+}
+
+/* 모달 */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    text-align: center;
+    max-width: 320px;
+    width: 90%;
+}
+
+.modalMessage {
+    font-weight: 600;
+    color: #9e4b25;
+    margin-bottom: 1.5rem;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+}
+
+.modalDelete {
+    background-color: #d32f2f;
+    color: white;
+    padding: 0.5rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.modalCancel {
+    background-color: white;
+    border: 1px solid #9e4b25;
+    color: #9e4b25;
+    padding: 0.5rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}

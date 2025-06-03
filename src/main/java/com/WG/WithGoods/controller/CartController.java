@@ -1,7 +1,9 @@
 package com.WG.WithGoods.controller;
 
-import com.WG.WithGoods.dto.CartDTO;
+import com.WG.WithGoods.dto.CartItemRequestDto;
+import com.WG.WithGoods.dto.CartItemResponseDto;
 import com.WG.WithGoods.service.CartService;
+import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -9,36 +11,60 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/carts")
+@RequestMapping("/api/cart")
 @RequiredArgsConstructor
 public class CartController {
 
     private final CartService cartService;
 
-    @GetMapping
-    public ResponseEntity<List<CartDTO>> getAllCarts() {
-        return ResponseEntity.ok(cartService.getAllCarts());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<CartDTO> getCart(@PathVariable Integer id) {
-        CartDTO cart = cartService.getCartById(id);
-        return cart != null ? ResponseEntity.ok(cart) : ResponseEntity.notFound().build();
-    }
-
     @PostMapping
-    public ResponseEntity<CartDTO> createCart(@RequestBody CartDTO dto) {
-        return ResponseEntity.ok(cartService.createCart(dto));
+    public ResponseEntity<CartItemResponseDto> addToCart(
+            @RequestBody CartItemRequestDto requestDto,
+            HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
+            return ResponseEntity.status(401).build();
+        }
+        
+        CartItemResponseDto responseDto = cartService.addToCart(username, requestDto);
+        return ResponseEntity.ok(responseDto);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<CartDTO> updateCart(@PathVariable Integer id, @RequestBody CartDTO dto) {
-        return ResponseEntity.ok(cartService.updateCart(id, dto));
+    @GetMapping
+    public ResponseEntity<List<CartItemResponseDto>> getCartItems(HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        List<CartItemResponseDto> cartItems = cartService.getCartItems(username);
+        return ResponseEntity.ok(cartItems);
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCart(@PathVariable Integer id) {
-        cartService.deleteCart(id);
-        return ResponseEntity.noContent().build();
+    @DeleteMapping("/{cartItemId}")
+    public ResponseEntity<Void> removeFromCart(
+            @PathVariable Integer cartItemId,
+            HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        cartService.removeFromCart(username, cartItemId);
+        return ResponseEntity.ok().build();
+    }
+
+    @PutMapping("/{cartItemId}")
+    public ResponseEntity<CartItemResponseDto> updateCartItemQuantity(
+            @PathVariable Integer cartItemId,
+            @RequestParam Integer quantity,
+            HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
+            return ResponseEntity.status(401).build();
+        }
+
+        CartItemResponseDto responseDto = cartService.updateCartItemQuantity(username, cartItemId, quantity);
+        return ResponseEntity.ok(responseDto);
     }
 }

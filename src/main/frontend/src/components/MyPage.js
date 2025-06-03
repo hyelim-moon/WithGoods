@@ -16,11 +16,12 @@ function MyPage() {
                 <div className={styles.sidebarTitle}>MY</div>
                 <ul className={styles.sidebarMenu}>
                     <li><a href="/edit-profile">내 정보 수정</a></li>
-                    <li><a href="/my-products">내 등록 상품</a></li>
+                    <li><a href="/myproductlist">내 등록 상품</a></li>
                     <li><a href="/cart">장바구니</a></li>
+                    <li><a href="/orders">결제내역</a></li>
                     <li><a href="/wishlist">찜한 상품</a></li>
                     <li><a href="/recent">최근 본 상품</a></li>
-                    <li><a href="/quotes">내 견적 문의</a></li>
+                    <li><a href="/estimatelist">내 견적 문의</a></li>
                 </ul>
             </aside>
 

@@ -67,6 +67,7 @@ public class MemberController {
                 session.setAttribute("nickname", member.getNickname());
                 session.setAttribute("username", member.getUsername());
                 session.setAttribute("role", member.getRole().name());
+                session.setAttribute("memberId", member.getMemberId());
 
                 //  nickname 응답에도 보내기
                 Map<String, String> response = new HashMap<>();

@@ -6,7 +6,6 @@
     border: 1px solid #944c21;
     border-radius: 12px;
     background-color: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .heading {
@@ -29,15 +28,7 @@
     flex-direction: column;
 }
 
-.label {
-    margin: 0.3rem 0rem 0.6rem 0rem;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: #2f2f2f;
-}
-
-.input,
-.textarea {
+.input {
     padding: 0.9rem 1rem;
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -45,15 +36,9 @@
     background-color: #fafafa;
 }
 
-.input:focus,
-.textarea:focus {
+.input:focus {
     outline: none;
     border: 2px solid #944c21;
-}
-
-.textarea {
-    height: 180px;
-    resize: none;
 }
 
 select.input {
@@ -62,38 +47,12 @@ select.input {
     cursor: pointer;
 }
 
-.charCount {
-    text-align: right;
-    font-size: 0.85rem;
-    color: #666;
-    margin-top: 0.4rem;
-}
-
-.radioGroup {
-    display: flex;
-    gap: 2rem;
-    margin-top: 0.5rem;
-    font-weight: 500;
-}
-
 .buttonWrapper {
     text-align: right;
     margin-top: 2rem;
 }
 
-.submitButton {
-    background-color: #f2f2f2;
-    color: #333;
-    font-weight: bold;
-    font-size: 1rem;
-    padding: 0.75rem 2rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    cursor: pointer;
-    margin-right: 0.8rem;
-    transition: background 0.3s ease;
-}
-
+.submitButton,
 .backButton {
     background-color: #f2f2f2;
     color: #333;
@@ -103,7 +62,7 @@ select.input {
     border: 1px solid #ccc;
     border-radius: 6px;
     cursor: pointer;
-    margin-right: 0.8rem;
+    margin-left: 0.8rem;
     transition: background 0.3s ease;
 }
 
