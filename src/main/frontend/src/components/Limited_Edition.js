@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from '../assets/styles/Best.module.css';
 
 function Limited_Edition() {
+    const navigate = useNavigate();
     // 카테고리 목록
     const categories = ['인형', '문구', '패션', '키링', '가전'];
 
@@ -24,20 +26,18 @@ function Limited_Edition() {
         const fetchProducts = async () => {
             try {
                 setIsLoading(true);
-                const response = await axios.get('http://localhost:8080/products', {
+                const response = await axios.get('http://localhost:8080/products/limited/active', {
                     withCredentials: true
                 });
-                // API 응답 데이터에서 한정판 상품만 필터링
-                const productsData = Array.isArray(response.data) 
-                    ? response.data.filter(product => product.role === 'LIMITED')
-                    : [];
-                console.log('Fetched limited products:', productsData);
+                // API 응답 데이터 구조 확인 및 처리
+                const productsData = Array.isArray(response.data) ? response.data : [];
+                console.log('Fetched limited products:', productsData); // 디버깅용 로그
                 setProducts(productsData);
                 setError(null);
             } catch (err) {
                 setError('한정판 상품을 불러오는데 실패했습니다.');
                 console.error('상품 로딩 에러:', err);
-                setProducts([]);
+                setProducts([]); // 에러 시 빈 배열로 초기화
             } finally {
                 setIsLoading(false);
             }
@@ -80,7 +80,7 @@ function Limited_Edition() {
                 break;
             case 'rating':
                 // 평점 높은순
-            sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
                 break;
             default:
                 break;
@@ -92,20 +92,20 @@ function Limited_Edition() {
     const renderStars = (rating) => {
         const stars = [];
         const fullStars = Math.floor(rating || 0);
-        const halfStar = (rating || 0) - fullStars >= 0.5;
+        const hasHalfStar = (rating || 0) - fullStars >= 0.5;
 
-        for (let i = 0; i < fullStars; i++) {
-            stars.push(<span key={`full-${i}`}>★</span>);
-        }
-
-        // 별점이 0.5점 이상일 경우 반점 추가
-        if (halfStar) {
-            stars.push(<span key="half">☆</span>);
-        }
-
-        // 별점이 5개 미만일 경우 빈 별점 추가
-        while (stars.length < 5) {
-            stars.push(<span key={`empty-${stars.length}`}>☆</span>);
+        // 5개의 별을 모두 생성
+        for (let i = 0; i < 5; i++) {
+            if (i < fullStars) {
+                // 꽉 찬 별
+                stars.push(<span key={`star-${i}`} style={{ color: '#FFD700' }}>★</span>);
+            } else if (i === fullStars && hasHalfStar) {
+                // 반 별
+                stars.push(<span key={`star-${i}`} style={{ color: '#FFD700' }}>☆</span>);
+            } else {
+                // 빈 별
+                stars.push(<span key={`star-${i}`} style={{ color: '#D3D3D3' }}>☆</span>);
+            }
         }
 
         return stars;
@@ -126,6 +126,12 @@ function Limited_Edition() {
         const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
 
         return `${days}일 ${hours}시간 ${minutes}분 남음`;
+    };
+
+    // 상품 클릭 핸들러
+    const handleProductClick = (productId) => {
+        navigate(`/product/${productId}`);
+        console.log('Navigating to product:', productId); // 디버깅용 로그
     };
 
     if (isLoading) {
@@ -209,7 +215,12 @@ function Limited_Edition() {
             <div className={styles.productList}>
                 {/* 필터된 상품 목록을 JSX로 렌더링 */}
                 {getSortedGoods().map((product) => (
-                    <div key={product.productId} className={styles.productContainer}>
+                    <div 
+                        key={product.productId} 
+                        className={styles.productContainer}
+                        onClick={() => handleProductClick(product.productId)}
+                        style={{ cursor: 'pointer' }}
+                    >
                         <div className={styles.productItem}>
                             <div className={styles.productContent}>
                                 {product.imageUrl && (

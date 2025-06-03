@@ -36,7 +36,7 @@ public class Product {
     @Column(name = "options")
     private String options; // 상품옵션
 
-    @Column(name = "role", nullable = false)
+    @Column(name = "role", nullable = false, columnDefinition = "VARCHAR(255) DEFAULT 'NORMAL'")
     @Enumerated(EnumType.STRING)
     private ProductRole role = ProductRole.NORMAL; // 상품 역할 (일반/한정판)
 
@@ -48,4 +48,7 @@ public class Product {
 
     @Column(name = "stock")
     private Integer stock; // 한정판 재고
+
+    @Column(name = "rating")
+    private Double rating = 0.0; // 상품 평점
 }

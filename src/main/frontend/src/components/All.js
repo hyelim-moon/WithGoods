@@ -26,12 +26,12 @@ function All() {
         const fetchProducts = async () => {
             try {
                 setIsLoading(true);
-                const response = await axios.get('http://localhost:8080/products', {
+                const response = await axios.get('http://localhost:8080/products/normal', {
                     withCredentials: true
                 });
                 // API 응답 데이터 구조 확인 및 처리
                 const productsData = Array.isArray(response.data) ? response.data : [];
-                console.log('Fetched products:', productsData); // 디버깅용 로그
+                console.log('Fetched normal products:', productsData); // 디버깅용 로그
                 setProducts(productsData);
                 setError(null);
             } catch (err) {
@@ -92,21 +92,21 @@ function All() {
     const renderStars = (rating) => {
         const stars = [];
         const fullStars = Math.floor(rating || 0);
-        const halfStar = (rating || 0) - fullStars >= 0.5;
+        const hasHalfStar = (rating || 0) - fullStars >= 0.5;
 
-        for (let i = 0; i < fullStars; i++) {
-            stars.push(<span key={`full-${i}`}>★</span>);
+        // 5개의 별을 모두 생성
+        for (let i = 0; i < 5; i++) {
+            if (i < fullStars) {
+                // 꽉 찬 별
+                stars.push(<span key={`star-${i}`} style={{ color: '#FFD700' }}>★</span>);
+            } else if (i === fullStars && hasHalfStar) {
+                // 반 별
+                stars.push(<span key={`star-${i}`} style={{ color: '#FFD700' }}>★</span>);
+            } else {
+                // 빈 별
+                stars.push(<span key={`star-${i}`} style={{ color: '#D3D3D3' }}>★</span>);
+            }
         }
-
-       // 빈 별 추가
-       if (halfStar) {
-           stars.push(<span key="half">☆</span>);
-       }
-
-       // 총 별 개수가 5개가 되도록 나머지는 빈 별로 채움
-       while (stars.length < 5) {
-           stars.push(<span key={`empty-${stars.length}`}>☆</span>);
-       }
 
         return stars;
     };
