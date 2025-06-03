@@ -6,6 +6,7 @@
     border: 1px solid #944c21;
     border-radius: 12px;
     background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .heading {
@@ -22,34 +23,67 @@
     margin: 0.5rem 0;
 }
 
-.formGroup {
+.rowDouble {
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
     margin-bottom: 1.3rem;
+    align-items: flex-start;
+}
+
+.col {
+    flex: 1;
     display: flex;
     flex-direction: column;
 }
 
-.input {
+.row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.3rem;
+}
+
+input,
+textarea,
+select {
     padding: 0.9rem 1rem;
     border: 1px solid #ccc;
     border-radius: 8px;
     font-size: 1rem;
     background-color: #fafafa;
+    box-sizing: border-box;
 }
 
-.input:focus {
+input[type="file"] {
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fafafa;
+    font-family: inherit;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+input[type="file"]:focus {
     outline: none;
     border: 2px solid #944c21;
 }
 
-select.input {
-    appearance: auto;
-    background-color: #fafafa;
-    cursor: pointer;
+label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0.3rem 0rem 0.6rem 0rem;
+    color: #333;
 }
 
-.buttonWrapper {
+.buttonRow {
     text-align: right;
     margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
 }
 
 .submitButton,
@@ -62,7 +96,6 @@ select.input {
     border: 1px solid #ccc;
     border-radius: 6px;
     cursor: pointer;
-    margin-left: 0.8rem;
     transition: background 0.3s ease;
 }
 

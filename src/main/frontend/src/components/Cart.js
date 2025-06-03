@@ -126,46 +126,59 @@ function Cart() {
                     {/* 왼쪽: 상품 목록 */}
                     <div className={styles.cartList}>
                         {cartItems.map((item) => (
-                            <div key={item.id} className={styles.cartItem}>
-                                {/* 체크박스 */}
-                                <input
-                                    type="checkbox"
-                                    checked={!!selectedItems[item.id]}
-                                    onChange={() => toggleSelect(item.id)}
-                                    className={styles.checkbox}
+                          <Link
+                            key={item.id}
+                            to={`/product/${item.id}`}
+                            className={styles.cartItemLink}  // 새로 추가하는 스타일 클래스
+                            style={{ textDecoration: 'none', color: 'inherit' }} // 기본 스타일 유지용
+                          >
+                            <div className={styles.cartItem}>
+                              {/* 체크박스 */}
+                              <input
+                                type="checkbox"
+                                checked={!!selectedItems[item.id]}
+                                onChange={(e) => {
+                                  e.preventDefault(); // 체크박스 클릭 시 Link 이동 막기
+                                  toggleSelect(item.id);
+                                }}
+                                className={styles.checkbox}
+                              />
+
+                              {/* 상품 이미지 */}
+                              <div className={styles.productItem}>
+                                <img
+                                  src={item.image || 'https://via.placeholder.com/150'}
+                                  alt={item.name}
+                                  className={styles.productImage}
                                 />
+                              </div>
 
-                                {/* 상품 이미지 */}
-                                <div className={styles.productItem}>
-                                    <img
-                                        src={item.image || 'https://via.placeholder.com/150'}
-                                        alt={item.name}
-                                        className={styles.productImage}
-                                    />
-                                </div>
+                              {/* 상품 정보 */}
+                              <div className={styles.productDetails}>
+                                <h4 className={styles.productTitle}>{item.name}</h4>
+                                {item.option && (
+                                  <p className={styles.productOption}>{item.option}</p>
+                                )}
+                                <p className={styles.productPrice}>{item.price}</p>
+                              </div>
 
-                                {/* 상품 정보 */}
-                                <div className={styles.productDetails}>
-                                    <h4 className={styles.productTitle}>{item.name}</h4>
-                                    {item.option && (
-                                        <p className={styles.productOption}>{item.option}</p>
-                                    )}
-                                    <p className={styles.productPrice}>{item.price}</p>
-                                </div>
-
-                                {/* 수량/삭제 */}
-                                <div className={styles.itemControls}>
-                                    <button onClick={() => decreaseQuantity(item.id)}>-</button>
-                                    <span>{item.quantity}</span>
-                                    <button onClick={() => increaseQuantity(item.id)}>+</button>
-                                    <button
-                                        onClick={() => removeItem(item.id)}
-                                        className={styles.deleteBtn}
-                                    >
-                                        삭제
-                                    </button>
-                                </div>
+                              {/* 수량/삭제 */}
+                              <div
+                                className={styles.itemControls}
+                                onClick={(e) => e.stopPropagation()} // 클릭 버블링 막기 (중요)
+                              >
+                                <button onClick={(e) => { e.preventDefault(); decreaseQuantity(item.id); }}>-</button>
+                                <span>{item.quantity}</span>
+                                <button onClick={(e) => { e.preventDefault(); increaseQuantity(item.id); }}>+</button>
+                                <button
+                                  onClick={(e) => { e.preventDefault(); removeItem(item.id); }}
+                                  className={styles.deleteBtn}
+                                >
+                                  삭제
+                                </button>
+                              </div>
                             </div>
+                          </Link>
                         ))}
                     </div>
 
@@ -201,7 +214,7 @@ function Cart() {
                         </div>
 
                         <Link to="/checkout">
-                            <button className={styles.checkoutBtn}>주문하기</button>
+                            <button className={styles.checkoutBtn}>구매하기</button>
                         </Link>
                     </div>
                 </div>

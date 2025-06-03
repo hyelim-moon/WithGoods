@@ -28,7 +28,7 @@ function Limited_Edition() {
                     withCredentials: true
                 });
                 // API 응답 데이터에서 한정판 상품만 필터링
-                const productsData = Array.isArray(response.data) 
+                const productsData = Array.isArray(response.data)
                     ? response.data.filter(product => product.role === 'LIMITED')
                     : [];
                 console.log('Fetched limited products:', productsData);
@@ -164,12 +164,14 @@ function Limited_Edition() {
                                 className={`${styles.checkboxItem} ${isPanelOpen ? styles.visible : styles.hidden}`}
                                 style={{ transitionDelay: delay }}
                             >
+                                {/* 카테고리 체크박스 */}
                                 <input
                                     type="checkbox"
                                     value={category}
-                                    checked={selectedCategories.includes(category)}
-                                    onChange={handleCategoryChange}
+                                    checked={selectedCategories.includes(category)} // 선택 상태 반영
+                                    onChange={handleCategoryChange} // 변경 시 이벤트 핸들링
                                 />
+                                {/* 실제로 사용자에게 보이는 카테고리 이름 */}
                                 {category}
                             </label>
                         );
@@ -213,9 +215,9 @@ function Limited_Edition() {
                         <div className={styles.productItem}>
                             <div className={styles.productContent}>
                                 {product.imageUrl && (
-                                    <img 
-                                        src={product.imageUrl} 
-                                        alt={product.name} 
+                                    <img
+                                        src={product.imageUrl}
+                                        alt={product.name}
                                         className={styles.productImage}
                                     />
                                 )}

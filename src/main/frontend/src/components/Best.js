@@ -135,7 +135,7 @@ function Best() {
                     <div
                         key={product.id}
                         className={styles.productContainer}
-                        onClick={() => navigate(`/product/${product.id}`)} // ✅ 상세 페이지 이동
+                        onClick={() => navigate(`/product/${product.id}`)} // 상세 페이지 이동
                         style={{ cursor: 'pointer' }}
                     >
                         <div className={styles.productItem}>

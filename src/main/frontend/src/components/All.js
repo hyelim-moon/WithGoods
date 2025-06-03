@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import styles from '../assets/styles/Best.module.css';
+import styles from '../assets/styles/All.module.css';
 
 function All() {
     const navigate = useNavigate();
@@ -98,15 +98,13 @@ function All() {
             stars.push(<span key={`full-${i}`}>★</span>);
         }
 
-       // 빈 별 추가
-       if (halfStar) {
-           stars.push(<span key="half">☆</span>);
-       }
+        if (halfStar) {
+            stars.push(<span key="half">☆</span>);
+        }
 
-       // 총 별 개수가 5개가 되도록 나머지는 빈 별로 채움
-       while (stars.length < 5) {
-           stars.push(<span key={`empty-${stars.length}`}>☆</span>);
-       }
+        while (stars.length < 5) {
+            stars.push(<span key={`empty-${stars.length}`}>☆</span>);
+        }
 
         return stars;
     };
@@ -126,12 +124,11 @@ function All() {
     }
 
     return (
-        <div className={styles.bestGoodsContainer}>
+        <div className={styles.allGoodsContainer}>
             {/* 상단 타이틀 및 필터 영역 */}
             <div className={styles.titleRow}>
                 <h2 className={styles.pageTitle}>전체 상품</h2>
 
-                {/* 카테고리 토글 버튼 */}
                 <button
                     className={styles.categoryToggle}
                     onClick={() => setIsPanelOpen((prev) => !prev)}
@@ -150,9 +147,10 @@ function All() {
                         return (
                             <label
                                 key={category}
-                                className={`${styles.checkboxItem} ${isPanelOpen ? styles.visible : styles.hidden}`}
-                                style={{ transitionDelay: delay }}
+                                className={`${styles.checkboxItem} ${isPanelOpen ? styles.visible : styles.hidden}`} // 보이기/숨기기 클래스 동적 적용
+                                style={{ transitionDelay: delay }} // 각 항목별 transition delay 설정
                             >
+                                {/* 카테고리 체크박스 */}
                                 <input
                                     type="checkbox"
                                     value={category}
@@ -198,8 +196,8 @@ function All() {
             {/* 상품 리스트 영역 */}
             <div className={styles.productList}>
                 {getSortedGoods().map((product) => (
-                    <div 
-                        key={product.productId} 
+                    <div
+                        key={product.productId}
                         className={styles.productContainer}
                         onClick={() => handleProductClick(product.productId)}
                         style={{ cursor: 'pointer' }}
@@ -207,9 +205,9 @@ function All() {
                         <div className={styles.productItem}>
                             <div className={styles.productContent}>
                                 {product.imageUrl && (
-                                    <img 
-                                        src={product.imageUrl} 
-                                        alt={product.name} 
+                                    <img
+                                        src={product.imageUrl}
+                                        alt={product.name}
                                         className={styles.productImage}
                                     />
                                 )}
