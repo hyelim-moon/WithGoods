@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import axios from "axios";
 
 import Header from './components/Header';
@@ -29,64 +30,99 @@ import EstimateList from "./components/EstimateList";
 import ProductStats from "./components/ProductStats";
 import Checkout from "./components/Checkout";
 import OrderComplete from "./components/OrderComplete";
+import OrderHistory from './components/OrderHistory';
 
-function Record() {
-    return null;
+// Protected Route component
+const ProtectedRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" />;
+  }
+
+  return children;
+};
+
+function AppContent() {
+  const [hello, setHello] = React.useState('');
+  const [error, setError] = React.useState('');
+
+  React.useEffect(() => {
+    axios.get('http://localhost:8080/api/test')
+      .then((res) => {
+        setHello(res.data);
+      })
+      .catch((err) => {
+        setError(err.message);
+      });
+  }, []);
+
+  return (
+    <div className="App">
+      <Header />
+      <Navbar />
+      <Routes>
+        <Route path="/" element={
+          <>
+            <Banner />
+            <MainContent />
+          </>
+        } />
+        <Route path="/best" element={<Best />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/forgot" element={<Forgot />} />
+        <Route path="/all" element={<All />} />
+        <Route path="/anniversary" element={<Anniversary />} />
+        <Route path="/customization" element={<Customization />} />
+        <Route path="/limited_edition" element={<Limited_Edition />} />
+        <Route path="/inquiry" element={<InquiryPage />} />
+        <Route path="/inquiry/write" element={<InquiryForm />} />
+        <Route path="/inquiry/estimate" element={<EstimateInquiryForm />} />
+        <Route path="/mypage" element={<MyPage />} />
+        <Route path="/myproductlist" element={<MyProductList />} />
+        <Route path="/wishlist" element={<WishList />} />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <Cart />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/recent" element={<Recent />} />
+        <Route path="/estimatelist" element={<EstimateList />} />
+        <Route path="/product/:id" element={<ProductDetail />} />
+        <Route path="/product/:id/stats" element={<ProductStats />} />
+        <Route path="/edit-profile" element={<EditProfile />} />
+        <Route path="/registration" element={<Registration />} />
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/ordercomplete" element={<OrderComplete />} />
+        <Route path="/orders" element={<OrderHistory />} />
+      </Routes>
+    </div>
+  );
 }
 
 function App() {
-    const [hello, setHello] = useState('');
-    const [error, setError] = useState('');
-
-    useEffect(() => {
-        axios.get('http://localhost:8080/api/test')
-            .then((res) => {
-                setHello(res.data);
-            })
-            .catch((err) => {
-                setError(err.message);
-            });
-    }, []);
-
-    return (
-        <BrowserRouter>
-            <div className="App">
-                <Header />
-                <Navbar />
-                <Routes>
-                    <Route path="/" element={
-                        <>
-                            <Banner />
-                            <MainContent />
-                        </>
-                    } />
-                    <Route path="/best" element={<Best />} />
-                    <Route path="/login" element={<Login />} />
-                    <Route path="/signup" element={<SignUp />} />
-                    <Route path="/forgot" element={<Forgot />} />
-                    <Route path="/all" element={<All />} />
-                    <Route path="/anniversary" element={<Anniversary />} />
-                    <Route path="/customization" element={<Customization />} />
-                    <Route path="/limited_edition" element={<Limited_Edition />} />
-                    <Route path="/inquiry" element={<InquiryPage />} />
-                    <Route path="/inquiry/write" element={<InquiryForm />} />
-                    <Route path="/inquiry/estimate" element={<EstimateInquiryForm />} />
-                    <Route path="/mypage" element={<MyPage />} />
-                    <Route path="/myproductlist" element={<MyProductList />} />
-                    <Route path="/wishlist" element={<WishList />} />
-                    <Route path="/cart" element={<Cart />} />
-                    <Route path="/recent" element={<Recent />} />
-                    <Route path="/estimatelist" element={<EstimateList />} />
-                    <Route path="/product/:id" element={<ProductDetail />} />
-                    <Route path="/product/:id/stats" element={<ProductStats />} />
-                    <Route path="/edit-profile" element={<EditProfile />} />
-                    <Route path="/registration" element={<Registration />} />
-                    <Route path="/checkout" element={<Checkout />} />
-                    <Route path="/ordercomplete" element={<OrderComplete />} />
-                </Routes>
-            </div>
-        </BrowserRouter>
-    );
+  return (
+    <Router>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </Router>
+  );
 }
 
 export default App;

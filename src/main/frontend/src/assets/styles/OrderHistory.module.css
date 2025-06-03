@@ -1,0 +1,112 @@
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.loading, .error {
+    text-align: center;
+    padding: 40px;
+    font-size: 1.2em;
+    color: #666;
+}
+
+.error {
+    color: #e74c3c;
+}
+
+.orderList {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.orderItem {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 20px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.orderItem:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.orderHeader {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.orderDate, .orderId {
+    color: #666;
+    font-size: 0.9em;
+}
+
+.productInfo {
+    margin-bottom: 15px;
+}
+
+.productItem {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.productName {
+    font-weight: 500;
+}
+
+.productPrice {
+    color: #333;
+}
+
+.orderTotal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.totalAmount {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: #2ecc71;
+}
+
+.orderStatus {
+    margin-top: 10px;
+    text-align: right;
+    color: #3498db;
+    font-weight: 500;
+}
+
+.loadMoreButton {
+    width: 100%;
+    padding: 15px;
+    margin-top: 20px;
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1em;
+    color: #666;
+    transition: all 0.3s ease;
+}
+
+.loadMoreButton:hover:not(:disabled) {
+    background-color: #e9ecef;
+}
+
+.loadMoreButton:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+} 

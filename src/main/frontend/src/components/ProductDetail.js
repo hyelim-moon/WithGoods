@@ -1,14 +1,17 @@
-import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from '../assets/styles/ProductDetail.module.css';
 import { FaHeart, FaCartPlus, FaShoppingCart } from 'react-icons/fa'; // 아이콘 가져오기
+import { useParams } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import axios from 'axios';
 
 function ProductDetail() {
     const { id } = useParams(); // URL에서 id 파라미터 가져오기
     const navigate = useNavigate();
 
     // 상태 변수들 정의
-    const [quantity, setQuantity] = useState(1); // 구매 수량
+    const [selectedOption, setSelectedOption] = useState('');
+    const [quantity, setQuantity] = useState(1);
     const [selectedImage, setSelectedImage] = useState(0); // 선택된 이미지 인덱스
     const [showMoreInfo, setShowMoreInfo] = useState(false); // 상세 설명 더보기 여부
     const [isFavorited, setIsFavorited] = useState(false); // 즐겨찾기 여부
@@ -17,13 +20,18 @@ function ProductDetail() {
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [reportTarget, setReportTarget] = useState(null);
+    const [reportReasons, setReportReasons] = useState([]);
+    const [reportDetail, setReportDetail] = useState('');
+    const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+
 
     // 상품 데이터 불러오기
     useEffect(() => {
         const fetchProduct = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`http://localhost:8080/products/${id}`, {
+                const response = await axios.get(`/api/products/${id}`, {
                     withCredentials: true
                 });
                 console.log('Fetched product:', response.data); // 디버깅용 로그
@@ -43,8 +51,33 @@ function ProductDetail() {
     }, [id]);
 
     // 장바구니에 추가
-    const handleAddToCart = () => {
-        alert(`${quantity}개 장바구니에 담았습니다!`);
+    const handleAddToCart = async () => {
+        if (!selectedOption && product?.options) {
+            alert('옵션을 선택해주세요.');
+            return;
+        }
+
+        try {
+            const cartItem = {
+                productId: product.productId,
+                quantity: quantity,
+                option: selectedOption,
+            };
+
+            await axios.post('http://localhost:8080/api/cart', cartItem, {
+                withCredentials: true
+            });
+            
+            alert('장바구니에 추가되었습니다.');
+        } catch (error) {
+            if (error.response?.status === 401) {
+                alert('로그인이 필요한 서비스입니다.');
+                navigate('/login');
+            } else {
+                console.error('장바구니 추가 실패:', error);
+                alert('장바구니 추가에 실패했습니다.');
+            }
+        }
     };
 
     // 바로 구매
@@ -88,8 +121,12 @@ function ProductDetail() {
     setIsReportModalOpen(false);
   };
 
-  const averageRating =
-    product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length;
+    const reviews = product?.reviews || [];
+    const qnaList = product?.qna || [];
+
+    const averageRating = reviews.length
+        ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
+        : 0;
     if (loading) {
         return <div className={styles.loading}>상품 정보를 불러오는 중...</div>;
     }
@@ -132,23 +169,27 @@ function ProductDetail() {
                 <div className={styles.infoSection}>
                     <h2 className={styles.productName}>{product.name}</h2>
                     <p className={styles.productPrice}>₩{product.price?.toLocaleString()}</p>
+                    
+                    {/* 옵션 선택 */}
                     {product.options && (
-                        <ul className={styles.productOptions}>
-                            {product.options.split(',').map((opt, i) => (
-                                <li key={i}>{opt.trim()}</li>
-                            ))}
-                        </ul>
-                    )}
-
-                    {/* 한정판 상품 정보 */}
-                    {product.role === 'LIMITED' && (
-                        <div className={styles.limitedInfo}>
-                            <p>판매 기간: {new Date(product.startDate).toLocaleDateString()} ~ {new Date(product.endDate).toLocaleDateString()}</p>
-                            <p>남은 수량: {product.stock}개</p>
+                        <div className={styles.optionSection}>
+                            <label>옵션</label>
+                            <select 
+                                value={selectedOption} 
+                                onChange={(e) => setSelectedOption(e.target.value)}
+                                className={styles.optionSelect}
+                            >
+                                <option value="">옵션을 선택하세요</option>
+                                {product.options.split(',').map((opt, i) => (
+                                    <option key={i} value={opt.trim()}>
+                                        {opt.trim()}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                     )}
 
-                    {/* 수량 조절 UI */}
+                    {/* 수량 조절 */}
                     <div className={styles.quantityRow}>
                         <label>수량:</label>
                         <div className={styles.quantityControls}>
@@ -158,12 +199,12 @@ function ProductDetail() {
                         </div>
                     </div>
 
-                    {/* 총 상품 금액 표시 */}
+                    {/* 총 상품 금액 */}
                     <p className={styles.totalPrice}>
                         총 상품 금액: ₩{(product.price * quantity).toLocaleString()}
                     </p>
 
-                    {/* 장바구니/구매/즐겨찾기 버튼 */}
+                    {/* 버튼 영역 */}
                     <div className={styles.buttonRow}>
                         <button className={styles.favoriteBtn} onClick={toggleFavorite}>
                             <FaHeart color={isFavorited ? 'red' : 'gray'} />
@@ -286,39 +327,50 @@ function ProductDetail() {
         </div>
       )}
 
-      {activeTab === 'qa' && (
-        <div className={styles.reviewsSection}>
-          <div className={styles.qnaHeader}>
-            <h3>Q&A ({product.qna.length})</h3>
-            <button className={styles.inquiryBtn} onClick={() => navigate('/inquiry/write')}>
-              문의하기
-            </button>
-          </div>
+            {activeTab === 'qa' && (
+                <div className={styles.reviewsSection}>
+                    <div className={styles.qnaHeader}>
+                        <h3>Q&A ({qnaList.length})</h3>
+                        <button className={styles.inquiryBtn} onClick={() => navigate('/inquiry/write')}>
+                            문의하기
+                        </button>
+                    </div>
 
-          {product.qna.length === 0 ? (
-            <p className={styles.noInquiry}>등록된 문의가 없습니다.</p>
-          ) : (
-            <ul className={styles.reviewsList}>
-              {product.qna.map((q) => (
-                <li key={q.id} className={styles.reviewItem}>
-                  <div className={styles.reviewHeader}>
-                    <span>{q.userId}</span>
-                    <span>{q.date}</span>
-                  </div>
-                  <p>
-                    <strong>Q:</strong> {q.question}
-                  </p>
-                  <p>
-                    <strong>A:</strong> {q.answer}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      )}
+                    {qnaList.length === 0 ? (
+                        <p className={styles.noInquiry}>등록된 문의가 없습니다.</p>
+                    ) : (
+                        <ul className={styles.reviewsList}>
+                            {qnaList.map((q) => (
+                                <li key={q.id} className={styles.reviewItem}>
+                                    <div className={styles.reviewHeader}>
+                                        <span>{q.userId}</span>
+                                        <span>{q.date}</span>
+                                    </div>
+                                    <p>
+                                        <strong>Q:</strong> {q.question}
+                                    </p>
+                                    <p>
+                                        <strong>A:</strong> {q.answer}
+                                    </p>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
+            )}
 
-      {activeTab === 'return' && (
+            {activeTab === 'return' && (
+                <div className={styles.productDetailInfo}>
+                    <h4>반품/교환 안내</h4>
+                    <div
+                        className={styles.productDescription}
+                        dangerouslySetInnerHTML={{ __html: product.returnPolicy || '' }}
+                    />
+                </div>
+            )}
+
+
+            {activeTab === 'return' && (
         <div className={styles.productDetailInfo}>
           <h4>반품/교환 안내</h4>
           <div className={styles.productDescription} dangerouslySetInnerHTML={{ __html: product.returnPolicy }} />

@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from '../assets/styles/Best.module.css';
 
 function Limited_Edition() {
+    const navigate = useNavigate();
     // 카테고리 목록
     const categories = ['인형', '문구', '패션', '키링', '가전'];
 
@@ -24,7 +26,7 @@ function Limited_Edition() {
         const fetchProducts = async () => {
             try {
                 setIsLoading(true);
-                const response = await axios.get('http://localhost:8080/products', {
+                const response = await axios.get('/api/products', {
                     withCredentials: true
                 });
                 // API 응답 데이터에서 한정판 상품만 필터링
@@ -68,19 +70,19 @@ function Limited_Edition() {
 
     // 정렬 기준에 따른 상품 정렬
     const getSortedGoods = () => {
+        if (!Array.isArray(filteredGoods)) {
+            return [];
+        }
         const sorted = [...filteredGoods];
         switch (sortOrder) {
             case 'low':
-                // 가격 낮은순
-                sorted.sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
+                sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
                 break;
             case 'high':
-                // 가격 높은순
-                sorted.sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
+                sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
                 break;
             case 'rating':
-                // 평점 높은순
-            sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
                 break;
             default:
                 break;

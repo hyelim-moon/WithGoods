@@ -1,38 +1,43 @@
 .container {
-    padding: 1rem;
+    padding: 2rem;
     font-family: 'Noto Sans KR', sans-serif;
-    height: 80vh;
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .header {
     display: flex;
     align-items: center;
     gap: 3rem;
+    margin-bottom: 1.5rem;
 }
 
 .title {
     font-size: 2rem;
     font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0.7rem 0rem 1rem 1.3rem;
+    margin: 0;
+    color: #333;
 }
 
 .tabContainer {
     display: flex;
-    gap: 1.5rem;
+    gap: 1rem;
 }
 
 .tab {
-    font-size: 1.3rem;
-    font-weight: bold;
-    padding: 0.5rem 1.7rem;
-    border: 1px solid #333;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.5rem 1.5rem;
+    border: 1px solid #ddd;
     background-color: white;
-    border-radius: 6px;
-    color: black;
+    border-radius: 20px;
+    color: #666;
     cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.tab:hover {
+    background-color: #f5f5f5;
 }
 
 .active {
@@ -43,41 +48,155 @@
 
 .line {
     border: none;
-    border-top: 3px solid #944c21;
-    margin: 0.5rem 0;
+    border-top: 1px solid #eee;
+    margin: 1rem 0 2rem 0;
 }
 
 .content {
-    height: 70%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
     position: relative;
+    min-height: 400px;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
 }
 
 .noInquiry {
-    font-size: 1.5rem;
-    font-weight: bold;
+    text-align: center;
+    font-size: 1.1rem;
+    color: #666;
+    margin-top: 3rem;
+}
+
+.inquiryList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.inquiryItem {
+    padding: 1.5rem;
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.inquiryItem:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.inquiryHeader {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.inquiryType {
+    font-size: 0.9rem;
+    color: #944c21;
+    background: #fff5f0;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-weight: 500;
+}
+
+.inquiryTitle {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #333;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.secretBadge {
+    font-size: 0.8rem;
+    color: #666;
+    background: #f5f5f5;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+
+.inquiryMeta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.writer {
+    font-weight: 500;
+}
+
+.date {
+    color: #999;
+}
+
+.answerBadge {
+    color: #2e7d32;
+    background: #e8f5e9;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 500;
 }
 
 .inquiryButton {
-    background-color: #ffffff;
-    color: #333;
-    font-weight: bold;
-    position: absolute;
-    bottom: 1rem;
-    right: 1rem;
-    padding: 1rem 1.3rem;
-    border: 1px solid #ccc;
-    border-radius: 6px;
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background-color: #944c21;
+    color: white;
+    font-weight: 500;
+    padding: 1rem 2rem;
+    border: none;
+    border-radius: 25px;
     cursor: pointer;
     font-size: 1rem;
-    transition: background 0.3s ease;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(148, 76, 33, 0.2);
 }
 
 .inquiryButton:hover {
-    color: #fff;
-    background-color: #944c21;
+    background-color: #7a3f1c;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(148, 76, 33, 0.3);
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 1rem;
+    }
+
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+
+    .tabContainer {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
+
+    .tab {
+        white-space: nowrap;
+    }
+
+    .inquiryButton {
+        position: fixed;
+        bottom: 1rem;
+        right: 1rem;
+        padding: 0.8rem 1.5rem;
+    }
 }
 

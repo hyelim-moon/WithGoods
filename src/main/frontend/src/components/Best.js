@@ -1,87 +1,112 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import styles from '../assets/styles/Best.module.css';
 
-export const bestGoods = [
-    { id: 1, name: '상품 A', category: '인형', price: '₩50,000', rating: 4.5 },
-    { id: 2, name: '상품 B', category: '인형', price: '₩30,000', rating: 4.0 },
-    { id: 3, name: '상품 C', category: '키링', price: '₩45,000', rating: 3.8 },
-    { id: 4, name: '상품 D', category: '문구', price: '₩70,000', rating: 4.9 },
-    { id: 5, name: '상품 E', category: '문구', price: '₩60,000', rating: 4.2 },
-    { id: 6, name: '상품 F', category: '키링', price: '₩80,000', rating: 4.7 },
-    { id: 7, name: '상품 G', category: '패션', price: '₩12,000', rating: 3.5 },
-    { id: 8, name: '상품 H', category: '가전', price: '₩5,000', rating: 3.9 },
-    { id: 9, name: '상품 I', category: '패션', price: '₩5,000', rating: 0.5 },
-    { id: 10, name: '상품 J', category: '패션', price: '₩130,000', rating: 1.0 },
-    { id: 11, name: '상품 K', category: '가전', price: '₩9,000', rating: 5.0 },
-    { id: 12, name: '상품 L', category: '가전', price: '₩5550,000', rating: 2.7 },
-];
-
-// 별점 렌더링 함수 export
 export const renderStars = (rating) => {
     const stars = [];
-
-    const fullStars = Math.floor(rating);
-    const halfStar = rating - fullStars >= 0.5;
-
-    for (let i = 0; i < fullStars; i++) {
-        stars.push(<span key={`full-${i}`}>★</span>);
+    for (let i = 1; i <= 5; i++) {
+        if (i <= rating) {
+            stars.push('★');
+        } else {
+            stars.push('☆');
+        }
     }
-
-    if (halfStar) {
-        stars.push(<span key="half">☆</span>);
-    }
-
-    while (stars.length < 5) {
-        stars.push(<span key={`empty-${stars.length}`}>☆</span>);
-    }
-
-    return stars;
+    return stars.join('');
 };
 
 function Best() {
+    const navigate = useNavigate();
+    // 카테고리 목록
     const categories = ['인형', '문구', '패션', '키링', '가전'];
 
+    // 선택된 카테고리 상태
     const [selectedCategories, setSelectedCategories] = useState([]);
+    // 사이드 패널 열림/닫힘 상태
     const [isPanelOpen, setIsPanelOpen] = useState(false);
+    // 정렬 기준 상태 (낮은 가격순, 높은 가격순, 평점 높은 순)
     const [sortOrder, setSortOrder] = useState(null);
+    // 상품 데이터 상태
+    const [products, setProducts] = useState([]);
+    // 로딩 상태
+    const [isLoading, setIsLoading] = useState(true);
+    // 에러 상태
+    const [error, setError] = useState(null);
 
-    const navigate = useNavigate();
+    // 상품 데이터 불러오기
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                setIsLoading(true);
+                const response = await axios.get('/api/products', {
+                    withCredentials: true
+                });
+                // API 응답 데이터 구조 확인 및 처리
+                const productsData = Array.isArray(response.data) ? response.data : [];
+                console.log('Fetched products:', productsData); // 디버깅용 로그
+                setProducts(productsData);
+                setError(null);
+            } catch (err) {
+                setError('상품을 불러오는데 실패했습니다.');
+                console.error('상품 로딩 에러:', err);
+                setProducts([]); // 에러 시 빈 배열로 초기화
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, []);
 
     const handleCategoryChange = (e) => {
         const { value, checked } = e.target;
-
         setSelectedCategories((prev) =>
             checked ? [...prev, value] : prev.filter((cat) => cat !== value)
         );
     };
 
-    const filteredGoods = bestGoods.filter(
-        (good) =>
-            (selectedCategories.length === 0 || selectedCategories.includes(good.category)) &&
-            good.rating >= 4
+    const handleProductClick = (productId) => {
+        navigate(`/product/${productId}`);
+    };
+
+    // 필터링된 상품 목록 가져오기
+    const filteredGoods = products.filter(
+        (product) =>
+            (selectedCategories.length === 0 || selectedCategories.includes(product.category)) &&
+            product.rating >= 4
     );
 
-    const parsePrice = (priceStr) =>
-        Number(priceStr.replace('₩', '').replace(/,/g, ''));
-
+    // 정렬된 상품 목록 가져오기
     const getSortedGoods = () => {
+        if (!Array.isArray(filteredGoods)) {
+            console.error('filteredGoods is not an array:', filteredGoods);
+            return [];
+        }
+
         const sorted = [...filteredGoods];
         switch (sortOrder) {
             case 'low':
-                sorted.sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
+                sorted.sort((a, b) => (a.price || 0) - (b.price || 0));
                 break;
             case 'high':
-                sorted.sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
+                sorted.sort((a, b) => (b.price || 0) - (a.price || 0));
                 break;
             case 'rating':
-                sorted.sort((a, b) => b.rating - a.rating);
+                sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
                 break;
             default:
                 break;
         }
         return sorted;
     };
+
+    if (isLoading) {
+        return <div>Loading...</div>;
+    }
+
+    if (error) {
+        return <div>Error: {error}</div>;
+    }
 
     return (
         <div className={styles.bestGoodsContainer}>
@@ -120,37 +145,46 @@ function Best() {
                     })}
                 </div>
 
-                <div className={styles.sortOptions}>
-                    <span className={styles.sortOption} onClick={() => setSortOrder('low')}>낮은가격순</span>
-                    <span className={styles.sortOption} onClick={() => setSortOrder('high')}>높은가격순</span>
-                    <span className={styles.sortOption}>누적판매순</span>
-                    <span className={styles.sortOption}>리뷰 많은 순</span>
-                    <span className={styles.sortOption} onClick={() => setSortOrder('rating')}>평점높은순</span>
-                </div>
+                <span className={styles.sortOption} onClick={() => setSortOrder('low')}>낮은가격순</span>
+                <span className={styles.sortOption} onClick={() => setSortOrder('high')}>높은가격순</span>
+                <span className={styles.sortOption}>누적판매순</span>
+                <span className={styles.sortOption}>리뷰 많은 순</span>
+                <span className={styles.sortOption} onClick={() => setSortOrder('rating')}>평점높은순</span>
             </div>
 
             {/* 상품 목록 */}
             <div className={styles.productList}>
                 {getSortedGoods().map((product) => (
                     <div
-                        key={product.id}
+                        key={product.productId}
                         className={styles.productContainer}
-                        onClick={() => navigate(`/product/${product.id}`)} // 상세 페이지 이동
+                        onClick={() => handleProductClick(product.productId)}
                         style={{ cursor: 'pointer' }}
                     >
                         <div className={styles.productItem}>
                             <div className={styles.productContent}>
-                                {/* 이미지 자리 */}
+                                {product.imageUrl && (
+                                    <img
+                                        src={product.imageUrl}
+                                        alt={product.name}
+                                        className={styles.productImage}
+                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                    />
+                                )}
                             </div>
                         </div>
 
                         <div className={styles.productDetails}>
                             <div className={styles.productRating}>
                                 {renderStars(product.rating)}
-                                <span className={styles.ratingNumber}>({product.rating.toFixed(1)})</span>
+                                <span className={styles.ratingNumber}>
+                                    ({(product.rating || 0).toFixed(1)})
+                                </span>
                             </div>
                             <h4 className={styles.productTitle}>{product.name}</h4>
-                            <p className={styles.productPrice}>{product.price}</p>
+                            <p className={styles.productPrice}>
+                                ₩{product.price?.toLocaleString()}
+                            </p>
                         </div>
                     </div>
                 ))}

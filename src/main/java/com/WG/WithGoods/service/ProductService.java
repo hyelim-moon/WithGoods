@@ -23,6 +23,11 @@ public class ProductService {
                 .price(dto.getPrice())
                 .category(dto.getCategory())
                 .options(dto.getOptions())
+                .role(dto.getRole())
+                .startDate(dto.getStartDate())
+                .endDate(dto.getEndDate())
+                .stock(dto.getStock())
+                .rating(dto.getRating())
                 .build();
         return toDto(productRepository.save(product));
     }
@@ -49,6 +54,11 @@ public class ProductService {
         product.setPrice(dto.getPrice());
         product.setCategory(dto.getCategory());
         product.setOptions(dto.getOptions());
+        product.setRole(dto.getRole());
+        product.setStartDate(dto.getStartDate());
+        product.setEndDate(dto.getEndDate());
+        product.setStock(dto.getStock());
+        product.setRating(dto.getRating());
 
         return toDto(productRepository.save(product));
     }
@@ -66,6 +76,11 @@ public class ProductService {
                 .price(product.getPrice())
                 .category(product.getCategory())
                 .options(product.getOptions())
+                .role(product.getRole())
+                .startDate(product.getStartDate())
+                .endDate(product.getEndDate())
+                .stock(product.getStock())
+                .rating(product.getRating())
                 .build();
     }
 }

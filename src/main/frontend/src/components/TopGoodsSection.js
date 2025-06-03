@@ -12,17 +12,21 @@ function TopGoodsSection({ titleIcon, title, route, goods, emoji }) {
 
             <div className={styles.popularList}>
                 {goods.map((item) => (
-                    <Link to={`/product/${item.id}`} key={item.id} className={styles.popularItem}>
+                    <Link to={`/product/${item.productId}`} key={item.productId} className={styles.popularItem}>
                         <div className={styles.productImage}>
-                            <span style={{ fontSize: '2rem' }}>{emoji}</span>
+                            {item.imageUrl ? (
+                                <img src={item.imageUrl} alt={item.name} />
+                            ) : (
+                                <span style={{ fontSize: '2rem' }}>{emoji}</span>
+                            )}
                         </div>
                         <div className={styles.productInfo}>
                             <div className={styles.rating}>
                                 {renderStars(item.rating)}
-                                <span className={styles.ratingNumber}>({item.rating.toFixed(1)})</span>
+                                <span className={styles.ratingNumber}>({(item.rating || 0).toFixed(1)})</span>
                             </div>
                             <div className={styles.productName}>{item.name}</div>
-                            <div className={styles.productPrice}>{item.price}</div>
+                            <div className={styles.productPrice}>₩{item.price?.toLocaleString()}</div>
                         </div>
                     </Link>
                 ))}

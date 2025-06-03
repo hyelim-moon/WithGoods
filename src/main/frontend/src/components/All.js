@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import styles from '../assets/styles/All.module.css';
+import styles from '../assets/styles/Best.module.css';
 
 function All() {
     const navigate = useNavigate();
@@ -98,10 +98,12 @@ function All() {
             stars.push(<span key={`full-${i}`}>★</span>);
         }
 
+        // 빈 별 추가
         if (halfStar) {
             stars.push(<span key="half">☆</span>);
         }
 
+        // 총 별 개수가 5개가 되도록 나머지는 빈 별로 채움
         while (stars.length < 5) {
             stars.push(<span key={`empty-${stars.length}`}>☆</span>);
         }
@@ -124,11 +126,12 @@ function All() {
     }
 
     return (
-        <div className={styles.allGoodsContainer}>
+        <div className={styles.bestGoodsContainer}>
             {/* 상단 타이틀 및 필터 영역 */}
             <div className={styles.titleRow}>
                 <h2 className={styles.pageTitle}>전체 상품</h2>
 
+                {/* 카테고리 토글 버튼 */}
                 <button
                     className={styles.categoryToggle}
                     onClick={() => setIsPanelOpen((prev) => !prev)}
@@ -147,10 +150,9 @@ function All() {
                         return (
                             <label
                                 key={category}
-                                className={`${styles.checkboxItem} ${isPanelOpen ? styles.visible : styles.hidden}`} // 보이기/숨기기 클래스 동적 적용
-                                style={{ transitionDelay: delay }} // 각 항목별 transition delay 설정
+                                className={`${styles.checkboxItem} ${isPanelOpen ? styles.visible : styles.hidden}`}
+                                style={{ transitionDelay: delay }}
                             >
-                                {/* 카테고리 체크박스 */}
                                 <input
                                     type="checkbox"
                                     value={category}

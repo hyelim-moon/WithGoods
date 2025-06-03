@@ -48,4 +48,7 @@ public class Product {
 
     @Column(name = "stock")
     private Integer stock; // 한정판 재고
+
+    @Column(name = "rating")
+    private Double rating = 0.0; // 상품 평점, 기본값 0.0
 }

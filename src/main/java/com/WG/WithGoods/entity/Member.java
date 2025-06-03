@@ -5,6 +5,8 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "member")
@@ -51,6 +53,25 @@ public class Member {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private Role role;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private List<OrderInfo> orderInfos = new ArrayList<>();
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private java.util.Date createdAt;
+
+    @Temporal(TemporalType.TIMESTAMP)
+    private java.util.Date updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = new java.util.Date();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = new java.util.Date();
+    }
 
     public enum Role {
         USER, ADMIN
