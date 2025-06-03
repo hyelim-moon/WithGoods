@@ -58,6 +58,18 @@ public class ProductService {
                 .toList();
     }
 
+    public List<ProductDto> getAnniversaryProducts() {
+        return productRepository.findByRole(ProductRole.ANNIVERSARY).stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    public List<ProductDto> getActiveAnniversaryProducts() {
+        return productRepository.findActiveAnniversaryProducts(LocalDateTime.now()).stream()
+                .map(this::toDto)
+                .toList();
+    }
+
     public ProductDto getProductById(Integer id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다."));

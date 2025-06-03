@@ -1,71 +1,63 @@
 .mainContent {
-    text-align: center;
     padding: 1.25rem;
 }
 
-/* 타이틀은 가운데 정렬 */
 .mainTitle {
-    font-size: 2rem;
-    font-weight: bold;
+    font-size: 2.5rem;
     color: #000;
-    margin-bottom: 1.5rem;
+    text-align: center;
+    margin-bottom: 2rem;
 }
 
-/* 카드 전체 영역 래퍼 (전체보기 포함) */
+/* 카드 래퍼 스타일 */
 .cardWrapper {
-    position: relative;
-    padding: 2rem;
-    box-sizing: border-box;
+    margin-bottom: 3rem;
+    padding: 0 1rem;
 }
 
-/* ✅ BEST / 전체보기 한 줄로 정렬 */
+/* 상단 라인 스타일 */
 .topLine {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 0.5rem;
-    padding: 0 0.5rem;
+    margin-bottom: 1.25rem;
+    padding: 0 1rem;
 }
 
-/* 왼쪽 BEST 텍스트 */
 .label {
-    font-size: 1.7rem;
+    font-size: 1.5rem;
     font-weight: bold;
-    color: #222;
+    color: #000;
 }
 
-/* 오른쪽 전체보기 */
 .viewAll {
-    font-size: 1rem;
-    color: #333;
     text-decoration: none;
-    white-space: nowrap;
-    transition: color 0.2s;
+    color: #666;
+    font-size: 1rem;
+    transition: color 0.3s ease;
 }
 
 .viewAll:hover {
     color: #9e4b25;
-    text-decoration: underline;
 }
 
-/* 카드들과 겹치지 않게 위쪽 여백 */
+/* 인기 상품 리스트 스타일 */
 .popularList {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 2vw;
-    max-width: 100%;
-    padding-top: 1rem;
+    padding: 1rem;
 }
 
-/* 상품 카드 */
+/* 인기 상품 아이템 스타일 */
 .popularItem {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    width: 100%;
-    text-align: left;
+    gap: 0.5rem;
+    cursor: pointer;
 }
 
+/* 상품 이미지 스타일 */
 .productImage {
     width: 100%;
     aspect-ratio: 1 / 1;
@@ -78,27 +70,31 @@
     padding: 1rem;
     box-sizing: border-box;
     transition: transform 0.2s;
+    overflow: hidden;
 }
 
 .productImage:hover {
     transform: translateY(-0.4375rem);
 }
 
+.productImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 0.5rem;
+}
+
+/* 상품 정보 스타일 */
 .productInfo {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
-    gap: 0.125rem;
-    margin-top: -0.3125rem;
-    text-align: left;
-    position: relative;
-    bottom: -0.625rem;
+    gap: 0.25rem;
 }
 
+/* 별점 스타일 */
 .rating {
     font-size: 1rem;
     color: #f1a825;
-    font-weight: bold;
     display: flex;
     align-items: center;
     gap: 0.25rem;
@@ -109,17 +105,75 @@
     color: #555;
 }
 
+/* 상품명 스타일 */
 .productName {
-    font-size: 2rem;
+    font-size: 1.1rem;
     font-weight: bold;
-    margin-top: 0.125rem;
-    color: #000;
+    color: #333;
 }
 
+/* 가격 스타일 */
 .productPrice {
-    font-size: 1.5rem;
-    color: #333;
+    font-size: 1.2rem;
     font-weight: bold;
-    margin-top: 0.5rem;
-    margin-bottom: 1rem;
+    color: #333;
+}
+
+/* 로딩 상태 스타일 */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    font-size: 1.2rem;
+    color: #666;
+}
+
+/* 에러 상태 스타일 */
+.error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    font-size: 1.2rem;
+    color: #dc3545;
+    text-align: center;
+    padding: 20px;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1200px) {
+    .popularList {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (max-width: 992px) {
+    .popularList {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (max-width: 768px) {
+    .popularList {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .mainTitle {
+        font-size: 2rem;
+    }
+    
+    .label {
+        font-size: 1.3rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .popularList {
+        grid-template-columns: 1fr;
+    }
+    
+    .mainTitle {
+        font-size: 1.8rem;
+    }
 }

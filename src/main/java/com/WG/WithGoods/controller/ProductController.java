@@ -43,6 +43,16 @@ public class ProductController {
         return ResponseEntity.ok(productService.getNormalProducts());
     }
 
+    @GetMapping("/anniversary")
+    public ResponseEntity<List<ProductDto>> getAnniversaryProducts() {
+        return ResponseEntity.ok(productService.getAnniversaryProducts());
+    }
+
+    @GetMapping("/anniversary/active")
+    public ResponseEntity<List<ProductDto>> getActiveAnniversaryProducts() {
+        return ResponseEntity.ok(productService.getActiveAnniversaryProducts());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(productService.getProductById(id));
