@@ -213,7 +213,12 @@ function Limited_Edition() {
             <div className={styles.productList}>
                 {/* 필터된 상품 목록을 JSX로 렌더링 */}
                 {getSortedGoods().map((product) => (
-                    <div key={product.productId} className={styles.productContainer}>
+                    <div
+                        key={product.productId}
+                        className={styles.productContainer}
+                        onClick={() => navigate(`/product/${product.productId}`)}
+                        style={{ cursor: 'pointer' }} // 마우스 커서도 손가락 모양으로
+                    >
                         <div className={styles.productItem}>
                             <div className={styles.productContent}>
                                 {product.imageUrl && (
