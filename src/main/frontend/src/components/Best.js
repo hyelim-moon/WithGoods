@@ -60,12 +60,12 @@ function Best() {
                 // API 응답 데이터 구조 확인 및 처리
                 const productsData = Array.isArray(response.data) ? response.data : [];
                 console.log('Fetched all products:', productsData); // 디버깅용 로그
-                
+
                 // 평점 기준으로 정렬하여 상위 12개 상품만 선택
                 const bestProducts = productsData
                     .sort((a, b) => (b.rating || 0) - (a.rating || 0))
                     .slice(0, 12);
-                
+
                 setProducts(bestProducts);
                 setError(null);
             } catch (err) {
@@ -210,8 +210,8 @@ function Best() {
             {/* 상품 리스트 영역 */}
             <div className={styles.productList}>
                 {getSortedGoods().map((product) => (
-                    <div 
-                        key={product.productId} 
+                    <div
+                        key={product.productId}
                         className={styles.productContainer}
                         onClick={() => handleProductClick(product.productId)}
                         style={{ cursor: 'pointer' }}
@@ -219,9 +219,9 @@ function Best() {
                         <div className={styles.productItem}>
                             <div className={styles.productContent}>
                                 {product.imageUrl && (
-                                    <img 
-                                        src={product.imageUrl} 
-                                        alt={product.name} 
+                                    <img
+                                        src={product.imageUrl}
+                                        alt={product.name}
                                         className={styles.productImage}
                                     />
                                 )}

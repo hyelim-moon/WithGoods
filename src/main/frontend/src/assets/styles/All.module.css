@@ -46,12 +46,17 @@
 }
 
 .checkboxItem {
+    display: flex;          /* flex 설정 */
+    flex-direction: row !important; /* 무조건 가로 정렬 강제 */
+    align-items: center;    /* 수직 중앙 정렬 */
+    gap: 0.3rem;            /* 체크박스와 텍스트 간격 */
     opacity: 0;
-    transform: translateX(-1.25rem); /* 왼쪽에서 오른쪽으로 슬라이드 */
+    transform: translateX(-1.25rem);
     transition: opacity 0.4s ease, transform 0.4s ease;
     margin-right: 0.625rem;
     margin-bottom: 0.625rem;
 }
+
 
 .checkboxItem.visible {
     opacity: 1;
