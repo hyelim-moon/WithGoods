@@ -28,6 +28,31 @@ public class ProductController {
         return ResponseEntity.ok(products);
     }
 
+    @GetMapping("/limited")
+    public ResponseEntity<List<ProductDto>> getLimitedProducts() {
+        return ResponseEntity.ok(productService.getLimitedProducts());
+    }
+
+    @GetMapping("/limited/active")
+    public ResponseEntity<List<ProductDto>> getActiveLimitedProducts() {
+        return ResponseEntity.ok(productService.getActiveLimitedProducts());
+    }
+
+    @GetMapping("/normal")
+    public ResponseEntity<List<ProductDto>> getNormalProducts() {
+        return ResponseEntity.ok(productService.getNormalProducts());
+    }
+
+    @GetMapping("/anniversary")
+    public ResponseEntity<List<ProductDto>> getAnniversaryProducts() {
+        return ResponseEntity.ok(productService.getAnniversaryProducts());
+    }
+
+    @GetMapping("/anniversary/active")
+    public ResponseEntity<List<ProductDto>> getActiveAnniversaryProducts() {
+        return ResponseEntity.ok(productService.getActiveAnniversaryProducts());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(productService.getProductById(id));

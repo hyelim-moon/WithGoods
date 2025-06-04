@@ -2,10 +2,12 @@ package com.WG.WithGoods.service;
 
 import com.WG.WithGoods.dto.ProductDto;
 import com.WG.WithGoods.entity.Product;
+import com.WG.WithGoods.entity.ProductRole;
 import com.WG.WithGoods.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -23,17 +25,47 @@ public class ProductService {
                 .price(dto.getPrice())
                 .category(dto.getCategory())
                 .options(dto.getOptions())
-                .role(dto.getRole())
+                .role(dto.getRole() != null ? dto.getRole() : ProductRole.NORMAL)
                 .startDate(dto.getStartDate())
                 .endDate(dto.getEndDate())
                 .stock(dto.getStock())
-                .rating(dto.getRating())
+                .rating(dto.getRating() != null ? dto.getRating() : 0.0)
                 .build();
         return toDto(productRepository.save(product));
     }
 
     public List<ProductDto> getAllProducts() {
         return productRepository.findAll().stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    public List<ProductDto> getLimitedProducts() {
+        return productRepository.findByRole(ProductRole.LIMITED).stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    public List<ProductDto> getActiveLimitedProducts() {
+        return productRepository.findActiveLimitedProducts(LocalDateTime.now()).stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    public List<ProductDto> getNormalProducts() {
+        return productRepository.findByRole(ProductRole.NORMAL).stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    public List<ProductDto> getAnniversaryProducts() {
+        return productRepository.findByRole(ProductRole.ANNIVERSARY).stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    public List<ProductDto> getActiveAnniversaryProducts() {
+        return productRepository.findActiveAnniversaryProducts(LocalDateTime.now()).stream()
                 .map(this::toDto)
                 .toList();
     }
@@ -58,7 +90,6 @@ public class ProductService {
         product.setStartDate(dto.getStartDate());
         product.setEndDate(dto.getEndDate());
         product.setStock(dto.getStock());
-        product.setRating(dto.getRating());
 
         return toDto(productRepository.save(product));
     }
