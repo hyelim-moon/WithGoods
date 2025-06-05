@@ -4,6 +4,7 @@ import { FaHeart, FaCartPlus, FaShoppingCart } from 'react-icons/fa'; // 아이�
 import { useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
+import ProductBadge from './ProductBadge';
 
 function ProductDetail() {
     const { id } = useParams(); // URL에서 id 파라미터 가져오기
@@ -24,7 +25,7 @@ function ProductDetail() {
     const [reportReasons, setReportReasons] = useState([]);
     const [reportDetail, setReportDetail] = useState('');
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
-
+    const [timeLeft, setTimeLeft] = useState(null);
 
     // 상품 데이터 불러오기
     useEffect(() => {
@@ -49,6 +50,41 @@ function ProductDetail() {
             fetchProduct();
         }
     }, [id]);
+
+    // 남은 시간 계산 함수
+    const calculateTimeLeft = (endDate) => {
+        const now = new Date();
+        const end = new Date(endDate);
+        const timeLeft = end - now;
+
+        if (timeLeft <= 0) {
+            return '판매 종료';
+        }
+
+        const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+
+        return `${days}일 ${hours}시간 ${minutes}분`;
+    };
+
+    // 한정판 상품의 남은 시간 업데이트
+    useEffect(() => {
+        if (product?.endDate) {
+            const timer = setInterval(() => {
+                setTimeLeft(calculateTimeLeft(product.endDate));
+            }, 60000); // 1분마다 업데이트
+
+            setTimeLeft(calculateTimeLeft(product.endDate));
+
+            return () => clearInterval(timer);
+        }
+    }, [product]);
+
+    // 수량이 적을 때 urgentStock 클래스 적용
+    const getStockClassName = (stock) => {
+        return stock <= 5 ? `${styles.stockValue} ${styles.urgentStock}` : styles.stockValue;
+    };
 
     // 장바구니에 추가
     const handleAddToCart = async () => {
@@ -90,36 +126,36 @@ function ProductDetail() {
         setIsFavorited(!isFavorited);
     };
 
-  const openReportModal = (review) => {
-    setReportTarget({ id: review.id, content: review.text });
-    setReportReasons([]);
-    setReportDetail('');
-    setIsReportModalOpen(true);
-  };
+    const openReportModal = (review) => {
+        setReportTarget({ id: review.id, content: review.text });
+        setReportReasons([]);
+        setReportDetail('');
+        setIsReportModalOpen(true);
+    };
 
-  const closeReportModal = () => {
-    setIsReportModalOpen(false);
-  };
+    const closeReportModal = () => {
+        setIsReportModalOpen(false);
+    };
 
-  const toggleReason = (reason) => {
-    setReportReasons((prev) =>
-      prev.includes(reason) ? prev.filter((r) => r !== reason) : [...prev, reason]
-    );
-  };
+    const toggleReason = (reason) => {
+        setReportReasons((prev) =>
+            prev.includes(reason) ? prev.filter((r) => r !== reason) : [...prev, reason]
+        );
+    };
 
-  const submitReport = () => {
-    if (reportReasons.length === 0) {
-      alert('신고 사유를 하나 이상 선택해주세요.');
-      return;
-    }
-    // 실제 신고 API 호출 시 여기에 작성
-    alert(
-      `리뷰 ID ${reportTarget.id} 신고가 접수되었습니다.\n사유: ${reportReasons.join(
-        ', '
-      )}\n상세 내용: ${reportDetail}`
-    );
-    setIsReportModalOpen(false);
-  };
+    const submitReport = () => {
+        if (reportReasons.length === 0) {
+            alert('신고 사유를 하나 이상 선택해주세요.');
+            return;
+        }
+        // 실제 신고 API 호출 시 여기에 작성
+        alert(
+            `리뷰 ID ${reportTarget.id} 신고가 접수되었습니다.\n사유: ${reportReasons.join(
+                ', '
+            )}\n상세 내용: ${reportDetail}`
+        );
+        setIsReportModalOpen(false);
+    };
 
     const reviews = product?.reviews || [];
     const qnaList = product?.qna || [];
@@ -170,6 +206,9 @@ function ProductDetail() {
                     <h2 className={styles.productName}>{product.name}</h2>
                     <p className={styles.productPrice}>₩{product.price?.toLocaleString()}</p>
                     
+                    {/* 한정판/기념일 상품 정보 */}
+                    <ProductBadge product={product} />
+
                     {/* 옵션 선택 */}
                     {product.options && (
                         <div className={styles.optionSection}>
@@ -268,64 +307,64 @@ function ProductDetail() {
                 </div>
             )}
 
-      {activeTab === 'reviews' && (
-        <div className={styles.reviewsSection}>
-          <h3>전체 리뷰 ({product.reviews.length})</h3>
-          <div className={styles.ratingSection}>
-            <div className={styles.stars}>
-              {[...Array(5)].map((_, i) => (
-                <span
-                  key={i}
-                  className={i < Math.round(averageRating) ? styles.filledStar : styles.emptyStar}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
-            <span className={styles.ratingText}>
-              평점: {averageRating.toFixed(1)} ({product.reviews.length}명)
-            </span>
-          </div>
+            {activeTab === 'reviews' && (
+                <div className={styles.reviewsSection}>
+                    <h3>전체 리뷰 ({product.reviews.length})</h3>
+                    <div className={styles.ratingSection}>
+                        <div className={styles.stars}>
+                            {[...Array(5)].map((_, i) => (
+                                <span
+                                    key={i}
+                                    className={i < Math.round(averageRating) ? styles.filledStar : styles.emptyStar}
+                                >
+                                    ★
+                                </span>
+                            ))}
+                        </div>
+                        <span className={styles.ratingText}>
+                            평점: {averageRating.toFixed(1)} ({product.reviews.length}명)
+                        </span>
+                    </div>
 
-          <div className={styles.reviewsList}>
-            {product.reviews
-              .slice(0, showAllReviews ? product.reviews.length : 3)
-              .map((review) => (
-                <div key={review.id} className={styles.reviewItem}>
-                  <div className={styles.reviewHeader}>
-                    <span style={{ marginRight: '10px' }}>{review.userId}</span>
-                    <span>{review.date}</span>
-                    {/* 신고하기 라벨 - 모달 열기 */}
-                    <span
-                      className={styles.reportLabel}
-                      onClick={() => openReportModal(review)}
-                      style={{ cursor: 'pointer', color: 'red', fontSize: '0.8rem', marginLeft: 'auto' }}
-                      title="신고하기"
-                    >
-                      신고하기
-                    </span>
-                  </div>
-                  <div className={styles.reviewText}>
-                    {[...Array(5)].map((_, i) => (
-                      <span
-                        key={i}
-                        className={i < Math.round(review.rating) ? styles.filledStar : styles.emptyStar}
-                      >
-                        ★
-                      </span>
-                    ))}
-                    <span className={styles.ratingScore}>({review.rating}점)</span>
-                    <p>{review.text}</p>
-                  </div>
+                    <div className={styles.reviewsList}>
+                        {product.reviews
+                            .slice(0, showAllReviews ? product.reviews.length : 3)
+                            .map((review) => (
+                                <div key={review.id} className={styles.reviewItem}>
+                                    <div className={styles.reviewHeader}>
+                                        <span style={{ marginRight: '10px' }}>{review.userId}</span>
+                                        <span>{review.date}</span>
+                                        {/* 신고하기 라벨 - 모달 열기 */}
+                                        <span
+                                            className={styles.reportLabel}
+                                            onClick={() => openReportModal(review)}
+                                            style={{ cursor: 'pointer', color: 'red', fontSize: '0.8rem', marginLeft: 'auto' }}
+                                            title="신고하기"
+                                        >
+                                            신고하기
+                                        </span>
+                                    </div>
+                                    <div className={styles.reviewText}>
+                                        {[...Array(5)].map((_, i) => (
+                                            <span
+                                                key={i}
+                                                className={i < Math.round(review.rating) ? styles.filledStar : styles.emptyStar}
+                                            >
+                                                ★
+                                            </span>
+                                        ))}
+                                        <span className={styles.ratingScore}>({review.rating}점)</span>
+                                        <p>{review.text}</p>
+                                    </div>
+                                </div>
+                            ))}
+                    </div>
+
+                    <button className={styles.showMoreBtn} onClick={() => setShowAllReviews(!showAllReviews)}>
+                        {showAllReviews ? '리뷰 간략히 보기' : '리뷰 더보기'}
+                    </button>
                 </div>
-              ))}
-          </div>
-
-          <button className={styles.showMoreBtn} onClick={() => setShowAllReviews(!showAllReviews)}>
-            {showAllReviews ? '리뷰 간략히 보기' : '리뷰 더보기'}
-          </button>
-        </div>
-      )}
+            )}
 
             {activeTab === 'qa' && (
                 <div className={styles.reviewsSection}>
@@ -369,160 +408,159 @@ function ProductDetail() {
                 </div>
             )}
 
-
             {activeTab === 'return' && (
-        <div className={styles.productDetailInfo}>
-          <h4>반품/교환 안내</h4>
-          <div className={styles.productDescription} dangerouslySetInnerHTML={{ __html: product.returnPolicy }} />
+                <div className={styles.productDetailInfo}>
+                    <h4>반품/교환 안내</h4>
+                    <div className={styles.productDescription} dangerouslySetInnerHTML={{ __html: product.returnPolicy }} />
+                </div>
+            )}
+
+            {/* 신고하기 모달 */}
+            {isReportModalOpen && (
+                <div className={styles.modalOverlay} style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    width: '100vw',
+                    height: '100vh',
+                    backgroundColor: 'rgba(0,0,0,0.5)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 9999,
+                }}>
+                    <div
+                        className={styles.reportModal}
+                        style={{
+                            backgroundColor: 'white',
+                            padding: '20px',
+                            borderRadius: '8px',
+                            width: '400px',
+                            maxHeight: '90vh',
+                            overflowY: 'auto',
+                        }}
+                    >
+                        <h3>작성 글 신고하기</h3>
+                        <label>신고대상 ID</label>
+                        <div
+                            style={{
+                                padding: '8px',
+                                border: '1px solid #ccc',
+                                borderRadius: '4px',
+                                marginBottom: '10px',
+                                userSelect: 'text',
+                            }}
+                        >
+                            {reportTarget.id}
+                        </div>
+
+                        <label>신고대상 내용</label>
+                        <div
+                            style={{
+                                backgroundColor: '#eee',
+                                padding: '10px',
+                                borderRadius: '4px',
+                                marginBottom: '10px',
+                                whiteSpace: 'pre-wrap',
+                                maxHeight: '100px',
+                                overflowY: 'auto',
+                            }}
+                        >
+                            {reportTarget.content}
+                        </div>
+
+                        <label>신고 사유 (복수 선택 가능)</label>
+                        <div
+                            style={{
+                                maxHeight: '120px',
+                                overflowY: 'auto',
+                                marginBottom: '10px',
+                                paddingLeft: '10px',
+                            }}
+                        >
+                            {[
+                                '관련 없는 이미지',
+                                '관련 없는 내용',
+                                '욕설/비방',
+                                '광고/홍보글',
+                                '개인정보유출',
+                                '게시글 도배',
+                                '음란/선정성',
+                                '기타',
+                            ].map((reason) => (
+                                <label key={reason} style={{ display: 'block', marginBottom: '5px', cursor: 'pointer' }}>
+                                    <input
+                                        type="checkbox"
+                                        checked={reportReasons.includes(reason)}
+                                        onChange={() => toggleReason(reason)}
+                                        style={{ marginRight: '6px' }}
+                                    />
+                                    {reason}
+                                </label>
+                            ))}
+                        </div>
+
+                        <label>상세 내용 (최대 1000자)</label>
+                        <textarea
+                            maxLength={1000}
+                            rows={4}
+                            value={reportDetail}
+                            onChange={(e) => setReportDetail(e.target.value)}
+                            style={{
+                                width: '100%',
+                                resize: 'none',
+                                marginBottom: '10px',
+                                padding: '8px',
+                                borderRadius: '4px',
+                                border: '1px solid #ccc',
+                                boxSizing: 'border-box',
+                                fontSize: '14px',
+                            }}
+                        />
+
+                        <small
+                            style={{
+                                display: 'block',
+                                color: '#666',
+                                fontSize: '12px',
+                                marginBottom: '15px',
+                            }}
+                        >
+                            신고해주신 내용은 관리자 검토 후 내부정책에 의거 조치가 진행됩니다.
+                        </small>
+
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                            <button
+                                onClick={closeReportModal}
+                                style={{
+                                    padding: '6px 12px',
+                                    backgroundColor: '#eee',
+                                    borderRadius: '4px',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={submitReport}
+                                style={{
+                                    padding: '6px 12px',
+                                    backgroundColor: '#ff4d4f',
+                                    color: 'white',
+                                    borderRadius: '4px',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                }}
+                            >
+                                신고
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
-      )}
-
-      {/* 신고하기 모달 */}
-      {isReportModalOpen && (
-        <div className={styles.modalOverlay} style={{
-          position: 'fixed',
-          top: 0,
-          left: 0,
-          width: '100vw',
-          height: '100vh',
-          backgroundColor: 'rgba(0,0,0,0.5)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 9999,
-        }}>
-          <div
-            className={styles.reportModal}
-            style={{
-              backgroundColor: 'white',
-              padding: '20px',
-              borderRadius: '8px',
-              width: '400px',
-              maxHeight: '90vh',
-              overflowY: 'auto',
-            }}
-          >
-            <h3>작성 글 신고하기</h3>
-            <label>신고대상 ID</label>
-            <div
-              style={{
-                padding: '8px',
-                border: '1px solid #ccc',
-                borderRadius: '4px',
-                marginBottom: '10px',
-                userSelect: 'text',
-              }}
-            >
-              {reportTarget.id}
-            </div>
-
-            <label>신고대상 내용</label>
-            <div
-              style={{
-                backgroundColor: '#eee',
-                padding: '10px',
-                borderRadius: '4px',
-                marginBottom: '10px',
-                whiteSpace: 'pre-wrap',
-                maxHeight: '100px',
-                overflowY: 'auto',
-              }}
-            >
-              {reportTarget.content}
-            </div>
-
-            <label>신고 사유 (복수 선택 가능)</label>
-            <div
-              style={{
-                maxHeight: '120px',
-                overflowY: 'auto',
-                marginBottom: '10px',
-                paddingLeft: '10px',
-              }}
-            >
-              {[
-                '관련 없는 이미지',
-                '관련 없는 내용',
-                '욕설/비방',
-                '광고/홍보글',
-                '개인정보유출',
-                '게시글 도배',
-                '음란/선정성',
-                '기타',
-              ].map((reason) => (
-                <label key={reason} style={{ display: 'block', marginBottom: '5px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={reportReasons.includes(reason)}
-                    onChange={() => toggleReason(reason)}
-                    style={{ marginRight: '6px' }}
-                  />
-                  {reason}
-                </label>
-              ))}
-            </div>
-
-            <label>상세 내용 (최대 1000자)</label>
-            <textarea
-              maxLength={1000}
-              rows={4}
-              value={reportDetail}
-              onChange={(e) => setReportDetail(e.target.value)}
-              style={{
-                width: '100%',
-                resize: 'none',
-                marginBottom: '10px',
-                padding: '8px',
-                borderRadius: '4px',
-                border: '1px solid #ccc',
-                boxSizing: 'border-box',
-                fontSize: '14px',
-              }}
-            />
-
-            <small
-              style={{
-                display: 'block',
-                color: '#666',
-                fontSize: '12px',
-                marginBottom: '15px',
-              }}
-            >
-              신고해주신 내용은 관리자 검토 후 내부정책에 의거 조치가 진행됩니다.
-            </small>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button
-                onClick={closeReportModal}
-                style={{
-                  padding: '6px 12px',
-                  backgroundColor: '#eee',
-                  borderRadius: '4px',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                취소
-              </button>
-              <button
-                onClick={submitReport}
-                style={{
-                  padding: '6px 12px',
-                  backgroundColor: '#ff4d4f',
-                  color: 'white',
-                  borderRadius: '4px',
-                  border: 'none',
-                  cursor: 'pointer',
-                }}
-              >
-                신고
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+    );
 }
 
 export default ProductDetail;

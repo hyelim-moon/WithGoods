@@ -49,6 +49,22 @@ function Best() {
     // 에러 상태
     const [error, setError] = useState(null);
 
+    // 남은 시간 계산 함수
+    const calculateTimeLeft = (endDate) => {
+        const now = new Date();
+        const end = new Date(endDate);
+        const timeLeft = end - now;
+
+        if (timeLeft <= 0) {
+            return '판매 종료';
+        }
+
+        const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+        return `${days}일 ${hours}시간`;
+    };
+
     // 상품 데이터 불러오기
     useEffect(() => {
         const fetchProducts = async () => {
@@ -224,6 +240,21 @@ function Best() {
                                         alt={product.name}
                                         className={styles.productImage}
                                     />
+                                )}
+                                {product.role === 'LIMITED' && (
+                                    <div className={styles.limitedOverlay}>
+                                        <div className={styles.limitedTime}>⏰ {calculateTimeLeft(product.endDate)}</div>
+                                        <div className={`${styles.limitedStock} ${product.stock <= 5 ? styles.urgentStock : ''}`}>
+                                            남은 수량: {product.stock}개
+                                        </div>
+                                    </div>
+                                )}
+                                {product.role === 'ANNIVERSARY' && (
+                                    <div className={styles.anniversaryOverlay}>
+                                        <div className={`${styles.anniversaryStock} ${product.stock <= 5 ? styles.urgentStock : ''}`}>
+                                            남은 수량: {product.stock}개
+                                        </div>
+                                    </div>
                                 )}
                             </div>
                         </div>

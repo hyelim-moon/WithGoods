@@ -143,7 +143,7 @@ function Limited_Edition() {
     }
 
     return (
-        <div className={styles.bestGoodsContainer}>
+        <div className={styles.limitedGoodsContainer}>
             {/* 상단 타이틀 및 필터 영역 */}
             <div className={styles.titleRow}>
                 <h2 className={styles.pageTitle}>한정판 굿즈</h2>

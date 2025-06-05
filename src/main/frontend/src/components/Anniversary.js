@@ -126,7 +126,7 @@ function Anniversary() {
     }
 
     return (
-        <div className={styles.bestGoodsContainer}>
+        <div className={styles.AnniversaryGoodsContainer}>
             {/* 상단 타이틀 및 필터 영역 */}
             <div className={styles.titleRow}>
                 <h2 className={styles.pageTitle}>기념일 굿즈</h2>

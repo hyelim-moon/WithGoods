@@ -126,7 +126,7 @@ function All() {
     }
 
     return (
-        <div className={styles.bestGoodsContainer}>
+        <div className={styles.allGoodsContainer}>
             {/* 상단 타이틀 및 필터 영역 */}
             <div className={styles.titleRow}>
                 <h2 className={styles.pageTitle}>전체 상품</h2>

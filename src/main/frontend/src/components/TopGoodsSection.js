@@ -1,12 +1,27 @@
 import { renderStars } from '../components/Best';
-import { Link, useNavigate } from 'react-router-dom'; // ← useNavigate 추가
+import { Link, useNavigate } from 'react-router-dom';
 import styles from '../assets/styles/MainContent.module.css';
 
 function TopGoodsSection({ titleIcon, title, route, goods, emoji }) {
-    const navigate = useNavigate(); // ← 네비게이트 함수 정의
+    const navigate = useNavigate();
 
     const handleClick = (productId) => {
         navigate(`/product/${productId}`);
+    };
+
+    const calculateTimeLeft = (endDate) => {
+        const now = new Date();
+        const end = new Date(endDate);
+        const timeLeft = end - now;
+
+        if (timeLeft <= 0) {
+            return '판매 종료';
+        }
+
+        const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+
+        return `${days}일 ${hours}시간`;
     };
 
     return (
@@ -21,7 +36,7 @@ function TopGoodsSection({ titleIcon, title, route, goods, emoji }) {
                     <div
                         key={item.productId}
                         className={styles.popularItem}
-                        onClick={() => handleClick(item.productId)} // ← 클릭 시 상세 페이지로 이동
+                        onClick={() => handleClick(item.productId)}
                         style={{ cursor: 'pointer' }}
                     >
                         <div className={styles.productImage}>
@@ -33,6 +48,21 @@ function TopGoodsSection({ titleIcon, title, route, goods, emoji }) {
                                 />
                             ) : (
                                 <span style={{ fontSize: '2rem' }}>{emoji}</span>
+                            )}
+                            {item.role === 'LIMITED' && (
+                                <div className={styles.limitedOverlay}>
+                                    <div className={styles.limitedTime}>⏰ {calculateTimeLeft(item.endDate)}</div>
+                                    <div className={`${styles.limitedStock} ${item.stock <= 5 ? styles.urgentStock : ''}`}>
+                                        남은 수량: {item.stock}개
+                                    </div>
+                                </div>
+                            )}
+                            {item.role === 'ANNIVERSARY' && (
+                                <div className={styles.anniversaryOverlay}>
+                                    <div className={`${styles.anniversaryStock} ${item.stock <= 5 ? styles.urgentStock : ''}`}>
+                                        남은 수량: {item.stock}개
+                                    </div>
+                                </div>
                             )}
                         </div>
                         <div className={styles.productInfo}>

@@ -385,3 +385,78 @@
     font-size: 15px;
     margin-top: 10px;
 }
+
+/* 한정판/기념일 상품 공통 스타일 */
+.productBadge {
+    margin-top: 1rem;
+    padding: 1.5rem;
+    border-radius: 12px;
+    transition: all 0.3s ease;
+}
+
+/* 한정판 상품 스타일 */
+.limitedEditionInfo,
+.anniversaryInfo {
+    border: 2px solid #9e4b25;
+    border-radius: 8px;
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.limitedHeader,
+.anniversaryHeader {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #9e4b25;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.timeLeft,
+.stock {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.85rem;
+    margin-bottom: 0.4rem;
+    color: #333;
+}
+
+.timeLeft:last-child,
+.stock:last-child {
+    margin-bottom: 0;
+}
+
+.timeValue,
+.stockValue {
+    color: #9e4b25;
+    font-weight: 600;
+}
+
+.urgentStock {
+    color: #d32f2f !important;
+}
+
+/* 반응형 스타일 */
+@media (max-width: 768px) {
+    .productBadge {
+        padding: 1rem;
+        margin-top: 0.75rem;
+    }
+
+    .limitedHeader,
+    .anniversaryHeader {
+        font-size: 1.1rem;
+    }
+
+    .timeLeft, 
+    .stock {
+        font-size: 1rem;
+    }
+
+    .anniversaryDescription {
+        font-size: 0.85rem;
+    }
+}
