@@ -1,0 +1,78 @@
+.reviewContainer {
+  max-width: 600px;
+  margin: 40px auto;
+  font-family: 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
+  padding: 20px;
+  background-color: #fef7e6;
+  border-radius: 20px;
+  box-shadow: 0 4px 10px rgba(158, 75, 37, 0.1);
+  color: #5c3c23;
+}
+
+.reviewTitle {
+  text-align: center;
+  color: #9e4b25;
+  margin-bottom: 30px;
+}
+
+.reviewForm label {
+  display: block;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+
+.stars {
+  font-size: 28px;
+  color: #d5b8a1;
+  cursor: pointer;
+}
+
+.star {
+  margin-right: 6px;
+  user-select: none;
+}
+
+.filled {
+  color: #9e4b25;
+}
+
+.reviewTextarea {
+  width: 100%;
+  border: 2px solid #9e4b25;
+  border-radius: 12px;
+  padding: 10px;
+  font-size: 15px;
+  resize: vertical;
+  font-family: inherit;
+  color: #5c3c23;
+}
+
+.reviewButton {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  background-color: #9e4b25;
+  color: white;
+  font-size: 16px;
+  font-weight: bold;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.reviewButton:hover:not(:disabled) {
+  background-color: #7c3f1a;
+}
+
+.reviewButton:disabled {
+  background-color: #d5b8a1;
+  cursor: not-allowed;
+  color: #fff0e6;
+}
+
+.error {
+  color: #e57373;
+  margin-bottom: 16px;
+  font-weight: 600;
+}

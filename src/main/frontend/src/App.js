@@ -31,6 +31,7 @@ import ProductStats from "./components/ProductStats";
 import Checkout from "./components/Checkout";
 import OrderComplete from "./components/OrderComplete";
 import OrderHistory from './components/OrderHistory';
+import ReviewWrite from './components/ReviewWrite';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -110,6 +111,7 @@ function AppContent() {
         />
         <Route path="/ordercomplete" element={<OrderComplete />} />
         <Route path="/orders" element={<OrderHistory />} />
+        <Route path="/review/write" element={<ReviewWrite />} />
       </Routes>
     </div>
   );
