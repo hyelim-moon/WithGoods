@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import logoImg from '../assets/images/logo.png';
 import styles from '../assets/styles/Header.module.css';
-import { Link, useNavigate } from 'react-router-dom';
-import userpage from '../assets/images/userpage.png';
-import axios from 'axios';
 
 function Header() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -31,6 +30,8 @@ function Header() {
         setNickname('');
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('nickname');
+        localStorage.removeItem('username');
+        window.dispatchEvent(new Event('storage'));
         navigate('/');
     };
 
@@ -38,6 +39,7 @@ function Header() {
         <header className={styles.mainHeader}>
             <div className={styles.bottomRow}>
                 <div className={styles.box}></div>
+
                 <div className={styles.logo}>
                     <Link to="/">
                         <img src={logoImg} alt="WithGoods Logo" />
@@ -47,20 +49,21 @@ function Header() {
                 <div className={styles.rightGroup}>
                     <div className={styles.login}>
                         {isLoggedIn ? (
-                            <div>
-                                <Link to="/mypage" className={styles.mypageIcon}>
-                                    <img src={userpage} alt="My Page" />
+                            <div className={styles.userBox}>
+                                <Link to="/mypage" className={styles.nicknameLink}>
+                                    {nickname}님
                                 </Link>
-                                <span>{nickname}님</span> |
-                                <Link to="/cart" style={{ marginLeft: '10px' }}>
+                                <div className={styles.divider}></div>
+                                <Link to="/cart" className={styles.cartLink}>
                                     장바구니
                                 </Link>
+                                <div className={styles.divider}></div>
                                 <button onClick={handleLogout} className={styles.logoutButton}>
                                     로그아웃
                                 </button>
                             </div>
                         ) : (
-                            <Link to="/login">로그인</Link>
+                            <Link to="/login" className={styles.loginLink}>로그인</Link>
                         )}
                     </div>
 

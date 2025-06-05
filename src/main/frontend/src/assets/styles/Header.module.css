@@ -6,18 +6,20 @@
     background-image:
             repeating-linear-gradient(0deg, #ccc 0px, #ccc 1px, transparent 1px, transparent 20px),
             repeating-linear-gradient(90deg, #ccc 0px, #ccc 1px, transparent 1px, transparent 20px);
+    color: #333;
+    font-family: 'Noto Sans KR', sans-serif;
 }
 
 /* 로고 + 로그인/검색 묶음 */
 .bottomRow {
     position: relative;
-    height: 125px; /* 로고와 같은 높이 */
+    height: 125px;
     display: flex;
     justify-content: flex-end;
     align-items: stretch;
 }
 
-/* 로고: 정확히 가로 중앙 */
+/* 로고: 중앙 정렬 */
 .logo {
     position: absolute;
     left: 50%;
@@ -26,6 +28,7 @@
     align-items: center;
     justify-content: center;
 }
+
 .logo img {
     height: 125px;
     display: block;
@@ -39,47 +42,112 @@
     justify-content: space-between;
 }
 
-/* 로그인 (위쪽) */
-/*.login {
-    font-size: 0.9rem;
-    padding-right: 0.4rem;
-    text-align: right;
-    margin-bottom: auto;
-    padding-top: 0.2rem;
-    color: #white;
-}*/
+/* 로그인 영역 */
 .login {
-    display: flex;               /* 가로 정렬 */
+    display: flex;
     align-items: center;
     font-size: 0.9rem;
     padding-right: 0.4rem;
     margin-bottom: auto;
     padding-top: 0.2rem;
-    color: white;
-    gap: 0.4rem;                 /* 로그인 텍스트와 아이콘 사이 간격 */
+    gap: 0.4rem;
+    color: #9e4b25;
 }
 
+/* 로그인 링크 */
 .login a {
     color: inherit;
     text-decoration: none;
 }
 
-/* 로그인 텍스트에 배경색 추가 */
-.login span,
-.login a {
-    background-color: #9e4b25; /* 배경색 */
-    color: #ffffff;            /* 글씨 흰색 */
+.loginLink {
+    background-color: #9e4b25 !important;
+    color: #ffffff !important;
+    font-weight: bold !important;
+    padding: 0.3rem 0.6rem !important;
+    border-radius: 50px !important;
+    text-decoration: none !important;
+    display: inline-block !important;
+}
+
+
+.loginLink:hover {
+    background-color: #7c3b1d;
+}
+
+/* 유저 박스 */
+.userBox {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.9);
+    padding: 0.2rem 0.6rem;
+    border-radius: 30px;
+    border: 1px solid #9e4b25;
+    gap: 0.4rem;
+    color: #9e4b25;
+}
+
+/* 구분선 */
+.divider {
+    width: 1px;
+    height: 20px;
+    background-color: #9e4b25;
+    opacity: 0.7;
+}
+
+/* 닉네임 */
+.nicknameLink {
+    background-color: transparent;
+    color: #9e4b25;
+    font-weight: bold;
     padding: 0.3rem 0.6rem;
-    border-radius: 50px;    /* 모서리 둥글게 */
+    border-radius: 20px;
+    text-decoration: none;
     transition: background-color 0.3s;
+    font-family: 'Noto Sans KR', sans-serif;
 }
 
-.login a:hover {
+.nicknameLink:hover {
+    background-color: #9e4b25;
+    color: white;
+}
+
+/* 장바구니 */
+.cartLink {
+    background-color: transparent;
+    color: #9e4b25;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: bold;
+}
+
+.cartLink:hover {
+    background-color: #9e4b25;
+    color: white;
+}
+
+/* 로그아웃 */
+.logoutButton {
+    background-color: transparent;
+    color: #9e4b25;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    border: none;
     cursor: pointer;
+    transition: background-color 0.3s;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: bold;
 }
 
+.logoutButton:hover {
+    background-color: #9e4b25;
+    color: white;
+}
 
-/* 검색창 (아래쪽) */
+/* 검색창 */
 .searchBox {
     display: flex;
     align-items: center;
@@ -87,45 +155,75 @@
 }
 
 .searchBox input {
-    padding: 0.5rem 1rem;
+    padding: 0 1rem; /* 위아래 패딩 제거하고 좌우만 */
     border: 2px solid #9e4b25;
     border-radius: 30px 0 0 30px;
     outline: none;
     background-color: #ffffff;
-    font-size: 0.95rem;
+    color: #333;
+    height: 40px;
 }
 
 .searchBox button {
-    padding: 0.5rem 1rem;
-    border: 1px solid #9e4b25;
+    padding: 0 1rem;
+    border: 2px solid #9e4b25;
     border-left: none;
     border-radius: 0 30px 30px 0;
     background-color: #9e4b25;
     font-weight: bold;
     cursor: pointer;
     color: #ffffff;
-}
-
-/* 마이페이지 아이콘 (사람 이미지) */
-.mypageIcon {
-    padding: 0.2rem;
-    margin-left: 0.3rem;
-    border-radius: 50%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    font-size: 16px;
     transition: background-color 0.3s;
+    height: 40px;
 }
 
-
-.mypageIcon img {
-    width: 24px;
-    height: 24px;
-    object-fit: cover;
-}
-
-.mypageIcon:hover {
+.searchBox button:hover {
     background-color: #7c3b1d;
-    cursor: pointer;
 }
 
+/* 반응형 */
+@media (max-width: 768px) {
+    .bottomRow {
+        flex-direction: column;
+        align-items: stretch;
+        height: auto;
+    }
+
+    .rightGroup {
+        flex-direction: column;
+        align-items: flex-end;
+        margin-top: 1rem;
+        gap: 0.5rem;
+    }
+
+    .searchBox {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .searchBox input {
+        width: 60%;
+    }
+
+    .searchBox button {
+        width: auto;
+    }
+
+    .logo {
+        position: static;
+        transform: none;
+        justify-content: center;
+        margin-top: 0.5rem;
+    }
+
+    .userBox {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.4rem;
+    }
+
+    .divider {
+        display: none;
+    }
+}
