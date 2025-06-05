@@ -16,7 +16,6 @@ function Cart() {
     const [error, setError] = useState(null);
     const navigate = useNavigate();
 
-    // 장바구니 데이터 불러오기
     useEffect(() => {
         fetchCartItems();
     }, []);
@@ -28,7 +27,6 @@ function Cart() {
                 withCredentials: true
             });
             setCartItems(response.data);
-            // 초기 상태에서 모든 아이템을 선택된 상태로 설정
             const initialSelectedState = {};
             response.data.forEach(item => {
                 initialSelectedState[item.cartId] = true;
@@ -48,7 +46,6 @@ function Cart() {
         }
     };
 
-    // 선택된 아이템 토글
     const toggleSelect = (id) => {
         setSelectedItems(prev => ({
             ...prev,
@@ -56,7 +53,6 @@ function Cart() {
         }));
     };
 
-    // 전체 선택/해제
     const toggleSelectAll = () => {
         const isAllSelected = cartItems.every((item) => selectedItems[item.cartId]);
         const newSelectedItems = {};
@@ -66,18 +62,16 @@ function Cart() {
         setSelectedItems(newSelectedItems);
     };
 
-    // 수량 증가
     const increaseQuantity = async (cartId) => {
         const item = cartItems.find(item => item.cartId === cartId);
         if (!item) return;
-        
+
         try {
             const response = await axios.put(`${API_BASE_URL}/api/cart/${cartId}`, null, {
                 params: { quantity: item.quantity + 1 },
                 withCredentials: true
             });
-            // 성공하면 로컬 상태 업데이트
-            setCartItems(prev => prev.map(item => 
+            setCartItems(prev => prev.map(item =>
                 item.cartId === cartId ? response.data : item
             ));
         } catch (err) {
@@ -86,7 +80,6 @@ function Cart() {
         }
     };
 
-    // 수량 감소
     const decreaseQuantity = async (cartId) => {
         const item = cartItems.find(item => item.cartId === cartId);
         if (!item || item.quantity <= 1) return;
@@ -96,8 +89,7 @@ function Cart() {
                 params: { quantity: item.quantity - 1 },
                 withCredentials: true
             });
-            // 성공하면 로컬 상태 업데이트
-            setCartItems(prev => prev.map(item => 
+            setCartItems(prev => prev.map(item =>
                 item.cartId === cartId ? response.data : item
             ));
         } catch (err) {
@@ -106,7 +98,6 @@ function Cart() {
         }
     };
 
-    // 아이템 삭제
     const removeItem = async (cartId) => {
         try {
             await axios.delete(`${API_BASE_URL}/api/cart/${cartId}`, {
@@ -119,7 +110,6 @@ function Cart() {
         }
     };
 
-    // 선택된 상품들의 총 상품 금액
     const getSelectedItemsPrice = () => {
         return cartItems.reduce((sum, item) => {
             if (selectedItems[item.cartId]) {
@@ -129,12 +119,8 @@ function Cart() {
         }, 0);
     };
 
-    // 할인 금액 계산
     const getDiscountAmount = () => {
         const totalPrice = getSelectedItemsPrice();
-        // 10만원 이상: 10% 할인
-        // 5만원 이상: 5% 할인
-        // 3만원 이상: 3% 할인
         if (totalPrice >= 100000) {
             return Math.floor(totalPrice * 0.10);
         } else if (totalPrice >= 50000) {
@@ -145,13 +131,11 @@ function Cart() {
         return 0;
     };
 
-    // 배송비 계산
     const getShippingFee = () => {
         const totalPrice = getSelectedItemsPrice();
         return totalPrice >= FREE_SHIPPING_THRESHOLD ? 0 : BASIC_SHIPPING_FEE;
     };
 
-    // 최종 결제 금액 계산
     const getFinalAmount = () => {
         const totalPrice = getSelectedItemsPrice();
         const discountAmount = getDiscountAmount();
@@ -159,7 +143,6 @@ function Cart() {
         return totalPrice - discountAmount + shippingFee;
     };
 
-    // 총 결제 예정 금액 계산
     const handleCheckout = () => {
         if (!cartItems.some(item => selectedItems[item.cartId])) {
             alert('구매할 상품을 선택해주세요.');
@@ -193,6 +176,17 @@ function Cart() {
         return <div className={styles.error}>{error}</div>;
     }
 
+    const discountPercent = (() => {
+      const totalPrice = getSelectedItemsPrice();
+      if (totalPrice >= 100000) return 10;
+      if (totalPrice >= 50000) return 5;
+      if (totalPrice >= 30000) return 3;
+      return 0;
+    })();
+
+    const freeShipping = getSelectedItemsPrice() >= FREE_SHIPPING_THRESHOLD;
+
+
     return (
         <div className={styles.cartContainer}>
             <div className={styles.pageTitleRow}>
@@ -220,7 +214,7 @@ function Cart() {
                     <div className={styles.cartList}>
                         {cartItems.map((item) => (
                             <div key={item.cartId} className={styles.cartItem}>
-                                <div 
+                                <div
                                     className={styles.checkboxWrapper}
                                     onClick={(e) => e.stopPropagation()}
                                 >
@@ -231,29 +225,32 @@ function Cart() {
                                         className={styles.checkbox}
                                     />
                                 </div>
-                                
-                                <Link
-                                    to={`/product/${item.productId}`}
-                                    className={styles.productLink}
-                                    style={{ textDecoration: 'none', color: 'inherit' }}
-                                >
-                                    <div className={styles.productItem}>
-                                        <img
-                                            src={item.imageUrl || 'https://via.placeholder.com/150'}
-                                            alt={item.productName}
-                                            className={styles.productImage}
-                                        />
-                                    </div>
 
-                                    <div className={styles.productDetails}>
-                                        <h4 className={styles.productTitle}>{item.productName}</h4>
-                                        {item.option && (
-                                            <p className={styles.productOption}>{item.option}</p>
-                                        )}
-                                        <p className={styles.productPrice}>₩{item.price.toLocaleString()}</p>
-                                    </div>
-                                </Link>
+                                {/* 왼쪽 영역: 이미지 + 상품 정보 */}
+                                <div className={styles.itemLeft}>
+                                    <Link
+                                        to={`/product/${item.productId}`}
+                                        className={styles.productLink}
+                                    >
+                                        <div className={styles.productItem}>
+                                            <img
+                                                src={item.imageUrl || 'https://via.placeholder.com/150'}
+                                                alt={item.productName}
+                                                className={styles.productImage}
+                                            />
+                                        </div>
 
+                                        <div className={styles.productDetails}>
+                                            <h4 className={styles.productTitle}>{item.productName}</h4>
+                                            {item.option && (
+                                                <p className={styles.productOption}>{item.option}</p>
+                                            )}
+                                            <p className={styles.productPrice}>₩{item.price.toLocaleString()}</p>
+                                        </div>
+                                    </Link>
+                                </div>
+
+                                {/* 오른쪽 수량 및 삭제 버튼 */}
                                 <div
                                     className={styles.itemControls}
                                     onClick={(e) => e.stopPropagation()}
@@ -274,7 +271,7 @@ function Cart() {
 
                     <div className={styles.summaryBox}>
                         <h3 className={styles.summaryTitle}>결제 요약</h3>
-                        
+
                         <div className={styles.summaryLine}>
                             <span>상품 금액</span>
                             <span>₩{getSelectedItemsPrice().toLocaleString()}</span>
@@ -293,11 +290,6 @@ function Cart() {
                                 <span className={getShippingFee() === 0 ? styles.freeShipping : ''}>
                                     {getShippingFee() === 0 ? '무료 배송' : `₩${BASIC_SHIPPING_FEE.toLocaleString()}`}
                                 </span>
-                                {getShippingFee() !== 0 && (
-                                    <small className={styles.shippingNotice}>
-                                        {FREE_SHIPPING_THRESHOLD.toLocaleString()}원 이상 구매 시 무료배송
-                                    </small>
-                                )}
                             </div>
                         </div>
 
@@ -308,25 +300,38 @@ function Cart() {
                             <span className={styles.totalAmount}>₩{getFinalAmount().toLocaleString()}</span>
                         </div>
 
-                        <button 
+                        <button
                             onClick={handleCheckout}
                             className={styles.checkoutBtn}
                             disabled={!cartItems.some(item => selectedItems[item.cartId])}
                         >
-                            {cartItems.some(item => selectedItems[item.cartId]) ? 
-                                `${getFinalAmount().toLocaleString()}원 결제하기` : 
+                            {cartItems.some(item => selectedItems[item.cartId]) ?
+                                `${getFinalAmount().toLocaleString()}원 결제하기` :
                                 '상품을 선택해주세요'}
                         </button>
 
+                        {/* 혜택 안내 박스 */}
                         <div className={styles.benefitInfo}>
-                            <p>🎁 혜택 안내</p>
-                            <ul>
-                                <li>3만원 이상: 3% 할인</li>
-                                <li>5만원 이상: 5% 할인</li>
-                                <li>10만원 이상: 10% 할인</li>
-                                <li>5만원 이상 구매 시 무료배송</li>
-                            </ul>
+                          <p>🎁 <strong>혜택 안내</strong></p>
+                          <ul>
+                            <li>💰 3만원 이상: 3% 할인</li>
+                            <li>💰 5만원 이상: 5% 할인</li>
+                            <li>💰 10만원 이상: 10% 할인</li>
+                            <li>🚚 5만원 이상 구매 시 무료배송</li>
+                          </ul>
                         </div>
+
+                        {/* 현재 적용 중인 혜택 */}
+                        {discountPercent > 0 && (
+                            <div className={styles.currentBenefit}>
+                              현재 총 금액 기준으로 <strong>{discountPercent}% 할인</strong> 혜택이 적용됩니다!
+                            </div>
+                        )}
+                        {freeShipping && (
+                            <div className={styles.currentBenefit}>
+                              무료배송 혜택이 적용됩니다! 🚚
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

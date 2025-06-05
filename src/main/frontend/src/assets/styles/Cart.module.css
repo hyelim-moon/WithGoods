@@ -62,18 +62,26 @@
 /* 각 상품 박스 */
 .cartItem {
     display: flex;
+    flex-direction: row;  /* 명시적으로 써서 확실히 */
     align-items: center;
     padding: 1rem;
     gap: 1rem;
     background-color: #fff;
     border: 1px solid #eaeaea;
-    border-radius: 1rem;  /* 둥근 모서리로 수정 */
+    border-radius: 1rem;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
 }
 
 .cartItem:hover {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.itemLeft {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-grow: 1; /* 좌측 영역 넓게 차지 */
 }
 
 /* 이미지 */
@@ -93,6 +101,14 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.productLink {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  text-decoration: none;
+  color: inherit;
 }
 
 /* 상품 정보 */
@@ -149,6 +165,9 @@
     color: white !important;
     border: none !important;
     border-radius: 0.4rem;
+    padding: 0.3rem 0.6rem;
+    cursor: pointer;
+    margin-left: 10px;
 }
 
 .deleteBtn:hover {
@@ -163,6 +182,7 @@
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     max-height: 350px;
     height: auto;
+    margin-bottom: 2rem;
 }
 
 .summaryTitle {
@@ -218,6 +238,69 @@
     background-color: #7e3b1d;
 }
 
+.benefitInfo {
+  background-color: #fef7e6;
+  border: 2px solid #9e4b25;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-top: 4rem;
+  font-size: 15px;
+  color: #663300;
+  max-width: 420px;
+  line-height: 1.6;
+  font-family: 'Pretendard', 'Noto Sans KR', sans-serif;
+  transition: box-shadow 0.3s ease;
+  margin-left: -21px;
+}
+
+.benefitInfo p {
+  font-weight: 700;
+  font-size: 18px;
+  margin-bottom: 14px;
+  letter-spacing: 0.03em;
+  /* 살짝 밝은 텍스트 그림자 느낌 추가 */
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.7);
+}
+
+.benefitInfo ul {
+  list-style: inside disc;
+  margin-left: 12px;
+  margin-bottom: 16px;
+  padding-left: 0;
+}
+
+.benefitInfo li {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14.5px;
+  color: #663300;
+}
+
+.benefitInfo li::before {
+  content: "✓";
+  color: #9e4b25;
+  font-weight: bold;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.currentBenefit {
+  font-weight: 800;
+  color: #7e3b1d;
+  background-color: #f9f1ed;
+  padding: 10px 16px;
+  border-radius: 10px;
+  box-shadow: 0 3px 6px rgba(158, 75, 37, 0.35);
+  margin-top: 15px;
+  max-width: fit-content;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  margin-left: -21px;
+}
+
+
 /* 반응형 */
 @media (max-width: 768px) {
     .cartContentWrapper {
@@ -242,4 +325,22 @@
         align-items: flex-start;
         gap: 0.5rem;
     }
+
+     .benefitInfo {
+        font-size: 14px;
+        padding: 16px 20px;
+        max-width: 100%;
+      }
+
+      .benefitInfo p {
+        font-size: 16px;
+      }
+
+      .benefitInfo li {
+        font-size: 14px;
+      }
+
+      .currentBenefit {
+        font-size: 14px;
+      }
 }
