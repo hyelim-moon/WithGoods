@@ -63,6 +63,11 @@ public class ProductService {
                 .map(this::toDto)
                 .toList();
     }
+    public List<ProductDto> getCustomProducts() {
+        return productRepository.findByRole(ProductRole.CUSTOM).stream()
+                .map(this::toDto)
+                .toList();
+    }
 
     public List<ProductDto> getActiveAnniversaryProducts() {
         return productRepository.findActiveAnniversaryProducts(LocalDateTime.now()).stream()
@@ -114,4 +119,5 @@ public class ProductService {
                 .rating(product.getRating())
                 .build();
     }
+
 }

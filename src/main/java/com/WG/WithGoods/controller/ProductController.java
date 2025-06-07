@@ -52,6 +52,11 @@ public class ProductController {
     public ResponseEntity<List<ProductDto>> getActiveAnniversaryProducts() {
         return ResponseEntity.ok(productService.getActiveAnniversaryProducts());
     }
+    @GetMapping("/custom")
+    public ResponseEntity<List<ProductDto>> getCustomProducts() {
+        return ResponseEntity.ok(productService.getCustomProducts());
+    }
+
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getById(@PathVariable Integer id) {
@@ -68,5 +73,6 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
+
 }
 

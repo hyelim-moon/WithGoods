@@ -90,6 +90,7 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
+
 .productContent {
     width: 100%;
     aspect-ratio: 1 / 1;
@@ -202,15 +203,15 @@
         grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
     }
-    
+
     .productContainer {
         max-width: 100%;
     }
-    
+
     .productTitle {
         font-size: 0.9rem;
     }
-    
+
     .productPrice {
         font-size: 1rem;
     }
@@ -244,7 +245,7 @@
     .productList {
         grid-template-columns: 1fr;
     }
-    
+
     .bestGoodsContainer,
     .limitedGoodsContainer,
     .AnniversaryGoodsContainer,
@@ -422,7 +423,7 @@
     .mainContent {
         padding: 2rem 8rem 3rem 8rem;
     }
-    
+
     .sectionGrid {
         grid-template-columns: repeat(4, 1fr);
     }
@@ -432,11 +433,11 @@
     .mainContent {
         padding: 2rem 4rem 3rem 4rem;
     }
-    
+
     .sectionGrid {
         grid-template-columns: repeat(3, 1fr);
     }
-    
+
     .mainTitle {
         font-size: 2.2rem;
     }
@@ -446,15 +447,15 @@
     .mainContent {
         padding: 2rem 2rem 3rem 2rem;
     }
-    
+
     .sectionContainer {
         padding: 1.5rem;
     }
-    
+
     .sectionTitle {
         font-size: 1.5rem;
     }
-    
+
     .sectionEmoji {
         font-size: 1.6rem;
         width: 2.5rem;
@@ -466,30 +467,30 @@
     .mainContent {
         padding: 1.5rem 1rem;
     }
-    
+
     .mainTitle {
         font-size: 1.8rem;
         margin-bottom: 2rem;
     }
-    
+
     .mainTitle::after {
         width: 80px;
     }
-    
+
     .sectionGrid {
         grid-template-columns: repeat(2, 1fr);
         gap: 1rem;
     }
-    
+
     .sectionContainer {
         padding: 1rem;
         margin-bottom: 1.5rem;
     }
-    
+
     .sectionHeader {
         margin-bottom: 1rem;
     }
-    
+
     .viewMoreButton {
         padding: 0.5rem 1rem;
         font-size: 0.9rem;
@@ -500,26 +501,26 @@
     .mainContent {
         padding: 1rem 0.5rem;
     }
-    
+
     .mainTitle {
         font-size: 1.5rem;
         margin-bottom: 1.5rem;
     }
-    
+
     .sectionGrid {
         grid-template-columns: 1fr;
     }
-    
+
     .sectionTitle {
         font-size: 1.3rem;
     }
-    
+
     .sectionEmoji {
         font-size: 1.4rem;
         width: 2rem;
         height: 2rem;
     }
-    
+
     .viewMoreButton {
         padding: 0.4rem 0.8rem;
         font-size: 0.8rem;
