@@ -226,55 +226,28 @@ function Best() {
             {/* 상품 리스트 영역 */}
             <div className={styles.productList}>
                 {getSortedGoods().map((product) => (
-                    <div
-                        key={product.productId}
-                        className={styles.productContainer}
+                    <div 
+                        key={product.productId} 
+                        className={styles.productCard}
                         onClick={() => handleProductClick(product.productId)}
-                        style={{ cursor: 'pointer' }}
                     >
-                        <div className={styles.productItem}>
-                            <div className={styles.productContent}>
-                                {product.imageUrl && (
-                                    <img
-                                        src={product.imageUrl}
-                                        alt={product.name}
-                                        className={styles.productImage}
-                                    />
-                                )}
-                                {product.role === 'LIMITED' && (
-                                    <div className={styles.limitedOverlay}>
-                                        <div className={styles.limitedTime}>⏰ {calculateTimeLeft(product.endDate)}</div>
-                                        <div className={`${styles.limitedStock} ${product.stock <= 5 ? styles.urgentStock : ''}`}>
-                                            남은 수량: {product.stock}개
-                                        </div>
-                                    </div>
-                                )}
-                                {product.role === 'ANNIVERSARY' && (
-                                    <div className={styles.anniversaryOverlay}>
-                                        <div className={`${styles.anniversaryStock} ${product.stock <= 5 ? styles.urgentStock : ''}`}>
-                                            남은 수량: {product.stock}개
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
+                        <div className={styles.productContent}>
+                            <img 
+                                src={product.imageUrl} 
+                                alt={product.name} 
+                                className={styles.productImage}
+                            />
                         </div>
-
-                        {/* 상품 정보 영역 */}
-                        <div className={styles.productDetails}>
-                            {/* 별점 표시 */}
-                            <div className={styles.productRating}>
+                        <div className={styles.productInfo}>
+                            <div className={styles.rating}>
                                 {renderStars(product.rating)}
                                 <span className={styles.ratingNumber}>
                                     ({(product.rating || 0).toFixed(1)})
                                 </span>
                             </div>
-
-                            {/* 상품명 */}
-                            <h4 className={styles.productTitle}>{product.name}</h4>
-
-                            {/* 가격 */}
+                            <h3 className={styles.productName}>{product.name}</h3>
                             <p className={styles.productPrice}>
-                                ₩{product.price?.toLocaleString()}
+                                {product.price?.toLocaleString()}원
                             </p>
                         </div>
                     </div>

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import styles from '../assets/styles/Best.module.css';
+import styles from '../assets/styles/All.module.css';
 
 function All() {
     const navigate = useNavigate();
@@ -101,10 +101,10 @@ function All() {
                 stars.push(<span key={`star-${i}`} style={{ color: '#FFD700' }}>★</span>);
             } else if (i === fullStars && hasHalfStar) {
                 // 반 별
-                stars.push(<span key={`star-${i}`} style={{ color: '#FFD700' }}>★</span>);
+                stars.push(<span key={`star-${i}`} style={{ color: '#FFD700' }}>☆</span>);
             } else {
                 // 빈 별
-                stars.push(<span key={`star-${i}`} style={{ color: '#D3D3D3' }}>★</span>);
+                stars.push(<span key={`star-${i}`} style={{ color: '#D3D3D3' }}>☆</span>);
             }
         }
 
@@ -200,38 +200,26 @@ function All() {
                 {getSortedGoods().map((product) => (
                     <div 
                         key={product.productId} 
-                        className={styles.productContainer}
+                        className={styles.productCard}
                         onClick={() => handleProductClick(product.productId)}
-                        style={{ cursor: 'pointer' }}
                     >
-                        <div className={styles.productItem}>
-                            <div className={styles.productContent}>
-                                {product.imageUrl && (
-                                    <img 
-                                        src={product.imageUrl} 
-                                        alt={product.name} 
-                                        className={styles.productImage}
-                                    />
-                                )}
-                            </div>
+                        <div className={styles.productContent}>
+                            <img 
+                                src={product.imageUrl} 
+                                alt={product.name} 
+                                className={styles.productImage}
+                            />
                         </div>
-
-                        {/* 상품 정보 영역 */}
-                        <div className={styles.productDetails}>
-                            {/* 별점 표시 */}
-                            <div className={styles.productRating}>
+                        <div className={styles.productInfo}>
+                            <div className={styles.rating}>
                                 {renderStars(product.rating)}
                                 <span className={styles.ratingNumber}>
                                     ({(product.rating || 0).toFixed(1)})
                                 </span>
                             </div>
-
-                            {/* 상품명 */}
-                            <h4 className={styles.productTitle}>{product.name}</h4>
-
-                            {/* 가격 */}
+                            <h3 className={styles.productName}>{product.name}</h3>
                             <p className={styles.productPrice}>
-                                ₩{product.price?.toLocaleString()}
+                                {product.price?.toLocaleString()}원
                             </p>
                         </div>
                     </div>
