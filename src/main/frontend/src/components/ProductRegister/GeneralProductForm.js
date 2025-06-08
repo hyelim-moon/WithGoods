@@ -4,7 +4,7 @@ import styles from '../../assets/styles/GeneralProductForm.module.css';
 function GeneralProductForm() {
   const [formData, setFormData] = useState({
     category: '',
-    productType: '', // category와 동기화
+    productType: '',
     name: '',
     price: '',
     hasDiscount: false,
@@ -18,19 +18,15 @@ function GeneralProductForm() {
     additionalPreviews: [],
     detailDescription: '',
     hasOption: false,
-    optionType: 'single', // single or combo
+    optionType: 'single',
     singleOptions: [{ name: '', price: '' }],
-    options: [
-      // 조합형 옵션 그룹 구조 예시
-      // { group: '', values: [{ name: '', price: '' }] }
-    ],
+    options: [],
     combinations: [],
     limitedEditionNumber: '',
     limitedReleaseDate: '',
     allowMessageOption: false,
   });
 
-  // 입력값 변경 핸들러
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
 
@@ -38,7 +34,7 @@ function GeneralProductForm() {
       setFormData((prev) => ({
         ...prev,
         category: value,
-        productType: value, // 동기화
+        productType: value,
       }));
       return;
     }
@@ -49,8 +45,7 @@ function GeneralProductForm() {
         [name]: checked,
       }));
     } else if (files) {
-      // 파일은 따로 처리 (이미지 업로드)
-      // 여기선 일반적인 input 파일 처리가 아닌 별도 함수 사용 예정
+      // 파일 처리는 handleImageChange에서 따로
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -59,7 +54,6 @@ function GeneralProductForm() {
     }
   };
 
-  // 대표 이미지, 추가 이미지 업로드 처리
   const handleImageChange = (e, isRepresentative) => {
     const files = e.target.files;
     if (isRepresentative) {
@@ -71,7 +65,6 @@ function GeneralProductForm() {
         repPreview: URL.createObjectURL(file),
       }));
     } else {
-      // 추가 이미지 (최대 9장)
       const newFiles = Array.from(files);
       setFormData((prev) => {
         const combined = [...prev.additionalImages, ...newFiles].slice(0, 9);
@@ -106,7 +99,6 @@ function GeneralProductForm() {
     });
   };
 
-  // 단독형 옵션 관련 핸들러
   const handleSingleOptionChange = (index, key, value) => {
     setFormData((prev) => {
       const newOptions = [...prev.singleOptions];
@@ -136,7 +128,6 @@ function GeneralProductForm() {
     });
   };
 
-  // 조합형 옵션 관련 핸들러
   const handleOptionGroupChange = (groupIndex, key, value) => {
     setFormData((prev) => {
       const newGroups = [...prev.options];
@@ -179,14 +170,24 @@ function GeneralProductForm() {
 
   const addOptionValue = (groupIndex) => {
     setFormData((prev) => {
-      const newGroups = [...prev.options];
-      newGroups[groupIndex].values.push({ name: '', price: '' });
+      // options 배열과 해당 그룹 values 배열을 깊은 복사
+      const newGroups = prev.options.map((group, idx) => {
+        if (idx === groupIndex) {
+          return {
+            ...group,
+            values: [...group.values, { name: '', price: '' }],
+          };
+        }
+        return group;
+      });
+
       return {
         ...prev,
         options: newGroups,
       };
     });
   };
+
 
   const removeOptionValue = (groupIndex, valueIndex) => {
     setFormData((prev) => {
@@ -199,20 +200,17 @@ function GeneralProductForm() {
     });
   };
 
-  // 옵션 타입 변경
   const handleOptionTypeChange = (e) => {
     const optionType = e.target.value;
     setFormData((prev) => ({
       ...prev,
       optionType,
-      // 초기화 (옵션 변경 시 초기화 필요할 수 있음)
       singleOptions: optionType === 'single' ? [{ name: '', price: '' }] : [],
       options: optionType === 'combo' ? [{ group: '', values: [{ name: '', price: '' }] }] : [],
       combinations: [],
     }));
   };
 
-  // 조합형 옵션 조합 생성 함수
   const generateCombinations = () => {
     if (formData.options.length === 0) return;
 
@@ -260,23 +258,16 @@ function GeneralProductForm() {
     });
   };
 
-  // 폼 제출
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    // 유효성 검사 등 필요한 부분 추가 가능
-
-    // 제출할 데이터 구조 정리 (FormData, JSON 등 필요에 따라)
     console.log('폼 제출 데이터:', formData);
     alert('폼 제출! (콘솔 확인)');
   };
 
   return (
     <form className={styles.registerForm} onSubmit={handleSubmit}>
-
       <h2 className={styles.title}>상품 등록</h2>
 
-      {/* 카테고리 선택 */}
       <label className={styles.label}>
         카테고리
         <select
@@ -294,7 +285,6 @@ function GeneralProductForm() {
         </select>
       </label>
 
-      {/* 상품명 */}
       <label className={styles.label}>
         상품명
         <input
@@ -307,7 +297,6 @@ function GeneralProductForm() {
         />
       </label>
 
-      {/* 가격 */}
       <label className={styles.label}>
         가격
         <input
@@ -321,7 +310,6 @@ function GeneralProductForm() {
         />
       </label>
 
-      {/* 할인 여부 */}
       <label className={`${styles.label} ${styles.checkboxLabel}`}>
         <input
           type="checkbox"
@@ -349,7 +337,6 @@ function GeneralProductForm() {
         </label>
       )}
 
-      {/* 판매 기간 */}
       <label className={`${styles.label} ${styles.checkboxLabel}`}>
         <input
           type="checkbox"
@@ -390,7 +377,6 @@ function GeneralProductForm() {
         </>
       )}
 
-      {/* 대표 이미지 */}
       <label className={styles.label}>
         대표 이미지
         <input
@@ -411,7 +397,6 @@ function GeneralProductForm() {
         </div>
       )}
 
-      {/* 추가 이미지 */}
       <label className={styles.label}>
         추가 이미지 (최대 9장)
         <input
@@ -434,7 +419,6 @@ function GeneralProductForm() {
         ))}
       </div>
 
-      {/* 상세 설명 */}
       <label className={styles.label}>
         상세 설명
         <textarea
@@ -447,7 +431,6 @@ function GeneralProductForm() {
         />
       </label>
 
-      {/* 옵션 여부 */}
       <label className={`${styles.label} ${styles.checkboxLabel}`}>
         <input
           type="checkbox"
@@ -483,7 +466,6 @@ function GeneralProductForm() {
             </select>
           </label>
 
-          {/* 단독형 옵션 */}
           {formData.optionType === 'single' && (
             <>
               {formData.singleOptions.map((opt, idx) => (
@@ -505,18 +487,17 @@ function GeneralProductForm() {
                     min="0"
                     required
                   />
-                  <button type="button" onClick={() => removeSingleOption(idx)}>
+                  <button type="button" onClick={() => removeSingleOption(idx)} className={styles.removeButton}>
                     삭제
                   </button>
                 </div>
               ))}
-              <button type="button" onClick={addSingleOption}>
+              <button type="button" onClick={addSingleOption} className={styles.addButton}>
                 옵션 추가
               </button>
             </>
           )}
 
-          {/* 조합형 옵션 */}
           {formData.optionType === 'combo' && (
             <>
               {formData.options.map((group, gIdx) => (
@@ -529,7 +510,7 @@ function GeneralProductForm() {
                     className={styles.input}
                     required
                   />
-                  <button type="button" onClick={() => removeOptionGroup(gIdx)}>
+                  <button type="button" onClick={() => removeOptionGroup(gIdx)} className={styles.removeButton}>
                     그룹 삭제
                   </button>
 
@@ -552,30 +533,35 @@ function GeneralProductForm() {
                         min="0"
                         required
                       />
-                      <button type="button" onClick={() => removeOptionValue(gIdx, vIdx)}>
+                      <button type="button" onClick={() => removeOptionValue(gIdx, vIdx)} className={styles.removeButton}>
                         삭제
                       </button>
                     </div>
                   ))}
-                  <button type="button" onClick={() => addOptionValue(gIdx)}>
+
+                  <button
+                    type="button"
+                    onClick={() => addOptionValue(gIdx)}
+                    className={styles.addButton}
+                  >
                     옵션값 추가
                   </button>
+
                 </div>
               ))}
-              <button type="button" onClick={addOptionGroup}>
+
+              <button type="button" onClick={addOptionGroup} className={styles.addButton}>
                 옵션 그룹 추가
               </button>
 
-              <button type="button" onClick={generateCombinations}>
+              <button type="button" onClick={generateCombinations} className={styles.generateButton}>
                 조합 생성
               </button>
 
-              {/* 생성된 조합 리스트 */}
               {formData.combinations.length > 0 && (
-                <div>
-                  <h4>조합 리스트</h4>
+                <div className={styles.combinationsContainer}>
                   {formData.combinations.map((comb, idx) => (
-                    <div key={idx} className={styles.optionRow}>
+                    <div key={idx} className={styles.combinationRow}>
                       <span>{comb.name}</span>
                       <input
                         type="number"
@@ -584,8 +570,9 @@ function GeneralProductForm() {
                         onChange={(e) => handleCombinationChange(idx, e.target.value)}
                         className={styles.input}
                         min="0"
+                        required
                       />
-                      <button type="button" onClick={() => handleRemoveCombination(idx)}>
+                      <button type="button" onClick={() => handleRemoveCombination(idx)} className={styles.removeButton}>
                         삭제
                       </button>
                     </div>
@@ -597,7 +584,6 @@ function GeneralProductForm() {
         </>
       )}
 
-      {/* 한정판 - 한정 수량, 발매일 */}
       {formData.productType === 'limited' && (
         <>
           <label className={styles.label}>
@@ -614,7 +600,7 @@ function GeneralProductForm() {
           </label>
 
           <label className={styles.label}>
-            발매일
+            출시일
             <input
               type="date"
               name="limitedReleaseDate"
@@ -627,22 +613,8 @@ function GeneralProductForm() {
         </>
       )}
 
-      {/* 기념일 - 메시지 옵션 허용 여부 */}
-      {formData.productType === 'anniversary' && (
-        <label className={`${styles.label} ${styles.checkboxLabel}`}>
-          <input
-            type="checkbox"
-            name="allowMessageOption"
-            checked={formData.allowMessageOption}
-            onChange={handleChange}
-            className={styles.checkbox}
-          />
-          메시지 옵션 허용
-        </label>
-      )}
-
       <button type="submit" className={styles.submitButton}>
-        등록
+        등록하기
       </button>
     </form>
   );
