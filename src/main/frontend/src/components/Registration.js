@@ -23,37 +23,69 @@ function Register() {
     limitedEditionNumber: '',
     limitedReleaseDate: '',
     anniversaryDate: '',
-    allowMessageOption: false,  // 메시지 옵션 허용 추가
+    allowMessageOption: false,
   });
 
   useEffect(() => {
-    if (formData.productType === 'custom') {
+    // category 변경 시 productType 및 옵션 상태 초기화
+    if (formData.category === 'custom') {
       setFormData(prev => ({
         ...prev,
+        productType: 'custom',
         hasOption: true,
         optionType: 'combo',
         singleOptions: [],
         options: [{ group: '', values: [{ name: '', price: '' }] }],
         combinations: [],
+        hasSalePeriod: false,
       }));
-    } else if (formData.hasOption === false) {
+    } else if (formData.category === 'limited') {
       setFormData(prev => ({
         ...prev,
+        productType: 'limited',
+        hasOption: false,
         optionType: 'single',
         singleOptions: [{ name: '', price: '' }],
         options: [{ group: '', values: [{ name: '', price: '' }] }],
         combinations: [],
+        hasSalePeriod: true, // 한정판은 판매기간 필수
       }));
-    }
-
-    // 한정판일 경우 판매 기간 체크박스 자동 체크 & 비활성화
-    if (formData.productType === 'limited') {
+    } else if (formData.category === 'anniversary') {
       setFormData(prev => ({
         ...prev,
-        hasSalePeriod: true,
+        productType: 'anniversary',
+        hasOption: false,
+        optionType: 'single',
+        singleOptions: [{ name: '', price: '' }],
+        options: [{ group: '', values: [{ name: '', price: '' }] }],
+        combinations: [],
+        hasSalePeriod: false,
+      }));
+    } else if (formData.category === 'general') {
+      setFormData(prev => ({
+        ...prev,
+        productType: 'general',
+        hasOption: false,
+        optionType: 'single',
+        singleOptions: [{ name: '', price: '' }],
+        options: [{ group: '', values: [{ name: '', price: '' }] }],
+        combinations: [],
+        hasSalePeriod: false,
+      }));
+    } else {
+      // 빈값 선택시 초기화
+      setFormData(prev => ({
+        ...prev,
+        productType: '',
+        hasOption: false,
+        optionType: 'single',
+        singleOptions: [{ name: '', price: '' }],
+        options: [{ group: '', values: [{ name: '', price: '' }] }],
+        combinations: [],
+        hasSalePeriod: false,
       }));
     }
-  }, [formData.productType]);
+  }, [formData.category]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -66,7 +98,8 @@ function Register() {
     }
 
     if (type === 'checkbox') {
-      if (name === 'hasOption' && formData.productType === 'custom') return;
+      if (name === 'hasOption' && formData.productType === 'custom') return; // 커스텀은 옵션 사용 고정
+
       setFormData(prev => ({ ...prev, [name]: checked }));
 
       if (name === 'hasDiscount' && !checked) {
@@ -108,24 +141,25 @@ function Register() {
     }));
   };
 
-  const handleRemoveCombination = (index) => {
-    const newCombinations = [...formData.combinations];
-    newCombinations.splice(index, 1);
-    setFormData(prev => ({ ...prev, combinations: newCombinations }));
-  };
-
+  // 옵션 그룹명 변경
   const handleOptionGroupChange = (groupIndex, field, value) => {
-    const newOptions = [...formData.options];
-    newOptions[groupIndex][field] = value;
-    setFormData(prev => ({ ...prev, options: newOptions }));
+    setFormData(prev => {
+      const newOptions = [...prev.options];
+      newOptions[groupIndex][field] = value;
+      return { ...prev, options: newOptions };
+    });
   };
 
+  // 옵션값 변경
   const handleOptionValueChange = (groupIndex, valueIndex, field, value) => {
-    const newOptions = [...formData.options];
-    newOptions[groupIndex].values[valueIndex][field] = value;
-    setFormData(prev => ({ ...prev, options: newOptions }));
+    setFormData(prev => {
+      const newOptions = [...prev.options];
+      newOptions[groupIndex].values[valueIndex][field] = value;
+      return { ...prev, options: newOptions };
+    });
   };
 
+  // 옵션 그룹 추가
   const addOptionGroup = () => {
     setFormData(prev => ({
       ...prev,
@@ -133,74 +167,42 @@ function Register() {
     }));
   };
 
-  const removeOptionGroup = (index) => {
-    const newOptions = [...formData.options];
-    newOptions.splice(index, 1);
-    setFormData(prev => ({ ...prev, options: newOptions }));
-  };
-
-  const addOptionValue = (groupIndex) => {
-    const newOptions = [...formData.options];
-    newOptions[groupIndex].values.push({ name: '', price: '' });
-    setFormData(prev => ({ ...prev, options: newOptions }));
-  };
-
-  const removeOptionValue = (groupIndex, valueIndex) => {
-    const newOptions = [...formData.options];
-    newOptions[groupIndex].values.splice(valueIndex, 1);
-    setFormData(prev => ({ ...prev, options: newOptions }));
-  };
-
-  const generateCombinations = () => {
-    const combine = (arrays) => {
-      if (!arrays.length) return [];
-      if (arrays.length === 1) return arrays[0].map(v => [v]);
-      const result = [];
-      const rest = combine(arrays.slice(1));
-      arrays[0].forEach(v => {
-        rest.forEach(r => {
-          result.push([v, ...r]);
-        });
-      });
-      return result;
-    };
-
-    const groups = formData.options.map(o => o.group.trim());
-    const valuesArray = formData.options.map(o => o.values);
-
-    if (groups.some(g => !g)) {
-      alert('옵션 그룹명을 모두 입력해주세요.');
-      return;
-    }
-
-    if (valuesArray.some(arr => arr.length === 0)) {
-      alert('모든 옵션 값을 입력해주세요.');
-      return;
-    }
-
-    const combos = combine(valuesArray).map(comboValues => {
-      const values = {};
-      comboValues.forEach((opt, i) => {
-        values[groups[i]] = opt.name;
-      });
-      return { values, price: '' };
+  // 옵션 그룹 삭제
+  const removeOptionGroup = (groupIndex) => {
+    setFormData(prev => {
+      const newOptions = prev.options.filter((_, idx) => idx !== groupIndex);
+      return { ...prev, options: newOptions };
     });
-
-    setFormData(prev => ({ ...prev, combinations: combos }));
   };
 
-  const handleCombinationChange = (index, field, value) => {
-    const newCombinations = [...formData.combinations];
-    newCombinations[index][field] = value;
-    setFormData(prev => ({ ...prev, combinations: newCombinations }));
+  // 옵션값 추가
+  const addOptionValue = (groupIndex) => {
+    setFormData(prev => {
+      const newOptions = [...prev.options];
+      newOptions[groupIndex].values.push({ name: '', price: '' });
+      return { ...prev, options: newOptions };
+    });
   };
 
+  // 옵션값 삭제
+  const removeOptionValue = (groupIndex, valueIndex) => {
+    setFormData(prev => {
+      const newOptions = [...prev.options];
+      newOptions[groupIndex].values = newOptions[groupIndex].values.filter((_, idx) => idx !== valueIndex);
+      return { ...prev, options: newOptions };
+    });
+  };
+
+  // 단독형 옵션명 또는 가격 변경
   const handleSingleOptionChange = (index, field, value) => {
-    const newOptions = [...formData.singleOptions];
-    newOptions[index][field] = value;
-    setFormData(prev => ({ ...prev, singleOptions: newOptions }));
+    setFormData(prev => {
+      const newSingleOptions = [...prev.singleOptions];
+      newSingleOptions[index][field] = value;
+      return { ...prev, singleOptions: newSingleOptions };
+    });
   };
 
+  // 단독형 옵션 추가
   const addSingleOption = () => {
     setFormData(prev => ({
       ...prev,
@@ -208,70 +210,143 @@ function Register() {
     }));
   };
 
+  // 단독형 옵션 삭제
   const removeSingleOption = (index) => {
-    const newOptions = [...formData.singleOptions];
-    newOptions.splice(index, 1);
-    setFormData(prev => ({ ...prev, singleOptions: newOptions }));
+    setFormData(prev => {
+      const newSingleOptions = prev.singleOptions.filter((_, idx) => idx !== index);
+      return { ...prev, singleOptions: newSingleOptions };
+    });
+  };
+
+  // 옵션 조합 생성
+  const generateCombinations = () => {
+    if (formData.options.length === 0) {
+      alert('옵션 그룹을 추가해주세요.');
+      return;
+    }
+
+    // 그룹별 옵션값 배열만 뽑기
+    const optionValuesArrays = formData.options.map(group => group.values.map(v => v.name));
+
+    // 모든 조합 구하기 (카테시안 프로덕트)
+    const cartesian = (arr) => {
+      return arr.reduce((a, b) =>
+        a.flatMap(d => b.map(e => [...d, e]))
+      , [[]]);
+    };
+
+    const combos = cartesian(optionValuesArrays);
+
+    // 이름 생성 + 가격 기본 빈값
+    const newCombinations = combos.map(combo => ({
+      name: combo.join(' / '),
+      price: '',
+    }));
+
+    setFormData(prev => ({ ...prev, combinations: newCombinations }));
+  };
+
+  // 조합 가격 변경
+  const handleCombinationChange = (index, value) => {
+    setFormData(prev => {
+      const newComb = [...prev.combinations];
+      newComb[index].price = value;
+      return { ...prev, combinations: newComb };
+    });
+  };
+
+  // 조합 삭제
+  const handleRemoveCombination = (index) => {
+    setFormData(prev => {
+      const newComb = prev.combinations.filter((_, idx) => idx !== index);
+      return { ...prev, combinations: newComb };
+    });
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    // 유효성 검사 간단히
+    if (!formData.category) {
+      alert('카테고리를 선택하세요.');
+      return;
+    }
     if (!formData.name.trim()) {
-      alert('상품명을 입력해주세요.');
+      alert('상품명을 입력하세요.');
       return;
     }
-
-    if (!formData.price) {
-      alert('가격을 입력해주세요.');
+    if (!formData.price || isNaN(formData.price) || Number(formData.price) < 0) {
+      alert('올바른 가격을 입력하세요.');
       return;
     }
-
+    if (formData.hasDiscount && (!formData.discountRate || Number(formData.discountRate) < 0 || Number(formData.discountRate) > 100)) {
+      alert('올바른 할인율을 입력하세요.');
+      return;
+    }
+    if (formData.hasSalePeriod) {
+      if (!formData.saleStartDate || !formData.saleEndDate) {
+        alert('판매 시작일과 종료일을 모두 입력하세요.');
+        return;
+      }
+      if (formData.saleStartDate > formData.saleEndDate) {
+        alert('판매 종료일은 판매 시작일 이후여야 합니다.');
+        return;
+      }
+    }
+    if (!formData.representativeImage) {
+      alert('대표 이미지를 선택하세요.');
+      return;
+    }
     if (formData.hasOption) {
       if (formData.optionType === 'single') {
-        if (formData.singleOptions.some(opt => !opt.name.trim())) {
-          alert('단독형 옵션명을 모두 입력해주세요.');
-          return;
+        for (const opt of formData.singleOptions) {
+          if (!opt.name.trim() || !opt.price || Number(opt.price) < 0) {
+            alert('단독형 옵션명을 모두 입력하고, 가격은 0 이상이어야 합니다.');
+            return;
+          }
         }
       } else {
-        if (formData.combinations.length === 0) {
-          alert('조합형 옵션을 먼저 생성해주세요.');
-          return;
+        // 조합형 옵션 유효성 검사
+        for (const group of formData.options) {
+          if (!group.group.trim()) {
+            alert('옵션 그룹명을 모두 입력하세요.');
+            return;
+          }
+          for (const val of group.values) {
+            if (!val.name.trim() || !val.price || Number(val.price) < 0) {
+              alert('옵션값과 가격을 모두 입력하고 가격은 0 이상이어야 합니다.');
+              return;
+            }
+          }
         }
-        if (formData.combinations.some(c => c.price === '')) {
-          alert('모든 조합형 옵션 가격을 입력해주세요.');
-          return;
+        for (const comb of formData.combinations) {
+          if (!comb.price || Number(comb.price) < 0) {
+            alert('조합 옵션의 가격을 모두 입력하고 0 이상이어야 합니다.');
+            return;
+          }
         }
       }
     }
-
     if (formData.productType === 'limited') {
-      if (!formData.limitedEditionNumber.trim() || !formData.limitedReleaseDate) {
-        alert('한정판 정보를 모두 입력해주세요.');
+      if (!formData.limitedEditionNumber || Number(formData.limitedEditionNumber) < 1) {
+        alert('한정 수량을 올바르게 입력하세요.');
         return;
       }
-      if (!formData.hasSalePeriod) {
-        alert('한정판은 판매 기간 설정이 필수입니다.');
+      if (!formData.limitedReleaseDate) {
+        alert('출시일을 입력하세요.');
         return;
       }
-      if (!formData.saleStartDate || !formData.saleEndDate) {
-        alert('한정판의 판매 시작일과 종료일을 모두 입력해주세요.');
+    }
+    if (formData.productType === 'anniversary') {
+      if (!formData.anniversaryDate) {
+        alert('기념일 날짜를 입력하세요.');
         return;
       }
     }
 
-    if (formData.productType === 'anniversary' && !formData.anniversaryDate) {
-      alert('기념일 날짜를 입력해주세요.');
-      return;
-    }
-
-    const payload = {
-      ...formData,
-      options: formData.optionType === 'combo' ? formData.combinations : formData.singleOptions,
-    };
-
-    console.log('제출 데이터:', payload);
-    alert('상품 등록 완료!');
+    // 제출 데이터 확인 (여기서 서버 요청 처리)
+    console.log('제출 데이터:', formData);
+    alert('상품이 성공적으로 등록되었습니다.');
   };
 
   return (
@@ -279,15 +354,17 @@ function Register() {
 
       <h2 className={styles.title}>상품 등록</h2>
 
-      {/* 상품 유형 선택 */}
+      {/* 카테고리 선택 */}
       <label className={styles.label}>
-        상품 유형
+        카테고리
         <select
-          name="productType"
-          value={formData.productType}
+          name="category"
+          value={formData.category}
           onChange={handleChange}
           className={styles.select}
+          required
         >
+          <option value="">선택하세요</option>
           <option value="general">일반</option>
           <option value="custom">커스텀</option>
           <option value="limited">한정판</option>
@@ -295,7 +372,7 @@ function Register() {
         </select>
       </label>
 
-      {/* 기본 정보 */}
+      {/* 상품명 */}
       <label className={styles.label}>
         상품명
         <input
@@ -308,6 +385,7 @@ function Register() {
         />
       </label>
 
+      {/* 가격 */}
       <label className={styles.label}>
         가격
         <input
@@ -426,7 +504,7 @@ function Register() {
         />
       </label>
 
-      {/* 옵션 설정 */}
+      {/* 옵션 사용 */}
       <label className={`${styles.label} ${styles.checkboxLabel}`}>
         <input
           type="checkbox"
@@ -449,8 +527,8 @@ function Register() {
               onChange={handleOptionTypeChange}
               className={styles.select}
             >
-              <option value="single">단독형</option>
-              <option value="combo">조합형</option>
+              <option value="single">단독형 옵션</option>
+              <option value="combo">조합형 옵션</option>
             </select>
           </label>
 
@@ -464,7 +542,7 @@ function Register() {
                     placeholder="옵션명"
                     value={opt.name}
                     onChange={(e) => handleSingleOptionChange(idx, 'name', e.target.value)}
-                    className={styles.optionInput}
+                    className={styles.input}
                     required
                   />
                   <input
@@ -472,18 +550,16 @@ function Register() {
                     placeholder="가격"
                     value={opt.price}
                     onChange={(e) => handleSingleOptionChange(idx, 'price', e.target.value)}
-                    className={styles.optionInput}
                     min="0"
+                    className={styles.input}
                     required
                   />
-                  {formData.singleOptions.length > 1 && (
-                    <button type="button" onClick={() => removeSingleOption(idx)} className={styles.removeBtn}>
-                      삭제
-                    </button>
-                  )}
+                  <button type="button" onClick={() => removeSingleOption(idx)} className={styles.removeBtn}>
+                    삭제
+                  </button>
                 </div>
               ))}
-              <button type="button" onClick={addSingleOption} className={styles.addBtn}>
+              <button type="button" onClick={addSingleOption} className={styles.addGroupBtn}>
                 옵션 추가
               </button>
             </>
@@ -492,76 +568,73 @@ function Register() {
           {/* 조합형 옵션 */}
           {formData.optionType === 'combo' && (
             <>
-              {formData.options.map((group, groupIdx) => (
-                <div key={groupIdx} className={styles.optionGroup}>
+              {formData.options.map((group, groupIndex) => (
+                <div key={groupIndex} className={styles.optionGroup}>
                   <input
                     type="text"
                     placeholder="옵션 그룹명"
                     value={group.group}
-                    onChange={(e) => handleOptionGroupChange(groupIdx, 'group', e.target.value)}
-                    className={styles.optionGroupInput}
+                    onChange={(e) => handleOptionGroupChange(groupIndex, 'group', e.target.value)}
+                    className={styles.input}
                     required
                   />
-                  {group.values.map((val, valIdx) => (
-                    <div key={valIdx} className={styles.optionValueRow}>
+
+                  {group.values.map((val, valueIndex) => (
+                    <div key={valueIndex} className={styles.optionRow}>
                       <input
                         type="text"
                         placeholder="옵션값"
                         value={val.name}
-                        onChange={(e) => handleOptionValueChange(groupIdx, valIdx, 'name', e.target.value)}
-                        className={styles.optionValueInput}
+                        onChange={(e) => handleOptionValueChange(groupIndex, valueIndex, 'name', e.target.value)}
+                        className={styles.input}
                         required
                       />
                       <input
                         type="number"
                         placeholder="가격"
                         value={val.price}
-                        onChange={(e) => handleOptionValueChange(groupIdx, valIdx, 'price', e.target.value)}
-                        className={styles.optionValueInput}
+                        onChange={(e) => handleOptionValueChange(groupIndex, valueIndex, 'price', e.target.value)}
                         min="0"
+                        className={styles.input}
                         required
                       />
-                      {group.values.length > 1 && (
-                        <button type="button" onClick={() => removeOptionValue(groupIdx, valIdx)} className={styles.removeBtn}>
-                          삭제
-                        </button>
-                      )}
+                      <button type="button" onClick={() => removeOptionValue(groupIndex, valueIndex)} className={styles.removeBtn}>
+                        삭제
+                      </button>
                     </div>
                   ))}
-                  <button type="button" onClick={() => addOptionValue(groupIdx)} className={styles.addBtn}>
+
+                  <button type="button" onClick={() => addOptionValue(groupIndex)} className={styles.addValueBtn}>
                     옵션값 추가
                   </button>
-                  {formData.options.length > 1 && (
-                    <button type="button" onClick={() => removeOptionGroup(groupIdx)} className={styles.removeGroupBtn}>
-                      그룹 삭제
-                    </button>
-                  )}
+
+                  <button type="button" onClick={() => removeOptionGroup(groupIndex)} className={styles.removeGroupBtn}>
+                    그룹 삭제
+                  </button>
                 </div>
               ))}
-              <button type="button" onClick={addOptionGroup} className={styles.addBtn}>
-                그룹 추가
+
+              <button type="button" onClick={addOptionGroup} className={styles.addGroupBtn}>
+                옵션 그룹 추가
               </button>
+
               <button type="button" onClick={generateCombinations} className={styles.generateBtn}>
                 조합 생성
               </button>
 
-              {/* 조합 옵션 리스트 */}
               {formData.combinations.length > 0 && (
                 <div className={styles.combinations}>
-                  {formData.combinations.map((combo, idx) => (
+                  <h4>조합 목록</h4>
+                  {formData.combinations.map((comb, idx) => (
                     <div key={idx} className={styles.combinationRow}>
-                      <span>
-                        {Object.entries(combo.values).map(([k, v]) => (
-                          <strong key={k}>{k}: {v} </strong>
-                        ))}
-                      </span>
+                      <span>{comb.name}</span>
                       <input
                         type="number"
                         placeholder="가격"
-                        value={combo.price}
-                        onChange={(e) => handleCombinationChange(idx, 'price', e.target.value)}
-                        className={styles.combinationPriceInput}
+                        value={comb.price}
+                        onChange={(e) => handleCombinationChange(idx, e.target.value)}
                         min="0"
+                        className={styles.combinationPriceInput}
                         required
                       />
                       <button type="button" onClick={() => handleRemoveCombination(idx)} className={styles.removeBtn}>
@@ -576,23 +649,23 @@ function Register() {
         </>
       )}
 
-      {/* 한정판 설정 */}
+      {/* 한정판 입력 */}
       {formData.productType === 'limited' && (
         <>
           <label className={styles.label}>
-            한정판 수량
+            한정 수량
             <input
-              type="text"
+              type="number"
               name="limitedEditionNumber"
               value={formData.limitedEditionNumber}
               onChange={handleChange}
               className={styles.input}
+              min="1"
               required
             />
           </label>
-
           <label className={styles.label}>
-            한정판 발매일
+            출시일
             <input
               type="date"
               name="limitedReleaseDate"
@@ -605,7 +678,7 @@ function Register() {
         </>
       )}
 
-      {/* 기념일 설정 */}
+      {/* 기념일 입력 */}
       {formData.productType === 'anniversary' && (
         <>
           <label className={styles.label}>
@@ -619,7 +692,6 @@ function Register() {
               required
             />
           </label>
-
           <label className={`${styles.label} ${styles.checkboxLabel}`}>
             <input
               type="checkbox"
