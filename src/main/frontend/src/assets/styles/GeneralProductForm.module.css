@@ -1,222 +1,203 @@
-/* GeneralProductForm.module.css */
-
-.generalForm {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+.registerForm {
+  max-width: 900px;
+  margin: 40px auto;
+  background: #fff8f0;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(158, 75, 37, 0.3);
+  padding: 40px 60px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: #4a2c12;
 }
 
 .title {
-  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  font-size: 2.4rem;
   font-weight: 700;
+  margin-bottom: 30px;
   color: #9e4b25;
-  margin-bottom: 20px;
-  text-align: center;
+  gap: 12px;
+}
+
+/* 곰돌이 아이콘 SVG 크기 조절 */
+.title svg {
+  width: 40px;
+  height: 40px;
+  fill: #9e4b25;
 }
 
 .label {
   display: block;
-  font-size: 1rem;
-  font-weight: 500;
-  margin-bottom: 8px;
-  color: #333;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+  margin-top: 25px;
 }
 
 .input,
 .textarea,
-.select {
+.select,
+.fileInput {
   width: 100%;
-  padding: 10px;
-  margin-bottom: 16px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 10px 15px;
+  border: 2px solid #9e4b25;
+  border-radius: 8px;
   font-size: 1rem;
+  transition: border-color 0.3s ease;
+  background: #fff;
+  color: #4a2c12;
 }
 
 .input:focus,
 .textarea:focus,
 .select:focus {
-  border-color: #9e4b25;
   outline: none;
+  border-color: #d66f32;
+  box-shadow: 0 0 6px #d66f32aa;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 100px;
 }
 
 .checkboxLabel {
   display: flex;
   align-items: center;
-  margin-bottom: 16px;
+  gap: 12px;
+  font-weight: 600;
+  margin-top: 20px;
 }
 
 .checkbox {
-  margin-right: 10px;
+  width: 20px;
+  height: 20px;
+  accent-color: #9e4b25;
+  cursor: pointer;
 }
 
 .fileInput {
-  width: 100%;
-  margin-bottom: 16px;
+  padding: 5px;
+  cursor: pointer;
 }
 
 .imagePreview {
-  display: flex;
-  align-items: center;
-  margin-top: 12px;
+  position: relative;
+  margin-top: 10px;
+  width: 200px;
+  border: 2px solid #9e4b25;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 0 8px #9e4b25aa;
 }
 
 .imagePreview img {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-  margin-right: 10px;
+  width: 100%;
+  height: auto;
+  display: block;
 }
 
 .imagePreview button {
-  background-color: #e63946;
-  color: white;
-  padding: 8px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.imagePreview button:hover {
-  background-color: #d62828;
-}
-
-.additionalImagesGrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px;
-}
-
-.additionalImagesGrid .imagePreview {
-  position: relative;
-}
-
-.additionalImagesGrid .imagePreview img {
-  width: 100px;
-  height: 100px;
-  object-fit: cover;
-}
-
-.additionalImagesGrid .imagePreview button {
   position: absolute;
-  top: 5px;
-  right: 5px;
-  background-color: #e63946;
+  top: 6px;
+  right: 6px;
+  background: #9e4b25;
+  border: none;
   color: white;
   padding: 4px 8px;
-  border: none;
-  border-radius: 50%;
+  border-radius: 6px;
   cursor: pointer;
-}
-
-.additionalImagesGrid .imagePreview button:hover {
-  background-color: #d62828;
-}
-
-.textarea {
-  height: 120px;
-  resize: vertical;
-}
-
-.optionRow {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 12px;
-}
-
-.optionRow input {
-  width: 100%;
-}
-
-.optionRow button {
-  background-color: #9e4b25;
-  color: white;
-  padding: 6px 12px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.optionRow button:hover {
-  background-color: #7a3919;
-}
-
-.select {
-  width: 100%;
-  margin-bottom: 16px;
-}
-
-.submitButton {
-  display: block;
-  width: 100%;
-  padding: 12px 0;
-  font-size: 1.2rem;
-  background-color: #9e4b25;
-  color: white;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+  font-size: 0.85rem;
   transition: background-color 0.3s ease;
 }
 
+.imagePreview button:hover {
+  background: #d66f32;
+}
+
+.additionalImagesGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin-top: 15px;
+}
+
+.optionRow,
+.optionGroup {
+  margin-top: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.optionGroup {
+  border: 2px solid #9e4b25;
+  padding: 15px;
+  border-radius: 12px;
+  background: #fff0e5;
+}
+
+.removeButton {
+  background: #c55300;
+  border: none;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.3s ease;
+}
+
+.removeButton:hover {
+  background: #9e4b25;
+}
+
+.addButton,
+.generateButton,
+.submitButton {
+  margin-top: 20px;
+  background-color: #9e4b25;
+  color: white;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  font-weight: 700;
+  transition: background-color 0.3s ease;
+}
+
+.addButton:hover,
+.generateButton:hover,
 .submitButton:hover {
-  background-color: #7a3919;
+  background-color: #d66f32;
 }
 
-@media (min-width: 768px) {
-  .generalForm {
-    padding: 40px;
-  }
-
-  .optionRow {
-    gap: 20px;
-  }
-
-  .input,
-  .textarea,
-  .select {
-    width: 48%;
-  }
-
-  .checkboxLabel {
-    font-size: 1.1rem;
-  }
-
-  .imagePreview {
-    margin-top: 20px;
-  }
-
-  .additionalImagesGrid .imagePreview {
-    width: calc(33% - 16px);
-  }
-
-  .additionalImagesGrid .imagePreview img {
-    width: 100%;
-    height: auto;
-  }
+.combinationsContainer {
+  margin-top: 20px;
+  border-top: 2px solid #9e4b25;
+  padding-top: 15px;
 }
 
-@media (min-width: 1024px) {
-  .generalForm {
-    padding: 60px;
+.combinationRow {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 12px;
+}
+
+.combinationRow input {
+  width: 120px;
+}
+
+@media screen and (max-width: 1024px) {
+  .registerForm {
+    max-width: 600px;
+    padding: 30px 40px;
   }
 
-  .input,
-  .textarea,
-  .select {
-    width: 48%;
-  }
-
-  .additionalImagesGrid .imagePreview {
-    width: calc(23% - 16px);
-  }
-
-  .additionalImagesGrid .imagePreview img {
-    width: 100%;
-    height: auto;
+  .additionalImagesGrid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
