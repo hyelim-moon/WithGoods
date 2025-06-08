@@ -1,8 +1,5 @@
 import React, { useState } from 'react';
-import styles from '../../assets/styles/ProductRegisterMain.module.css';
-
-
-
+import styles from '../../assets/styles/GeneralProductForm.module.css';
 
 function GeneralProductForm() {
   const [formData, setFormData] = useState({

@@ -1,0 +1,222 @@
+/* GeneralProductForm.module.css */
+
+.generalForm {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #9e4b25;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.label {
+  display: block;
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.input,
+.textarea,
+.select {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 16px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.input:focus,
+.textarea:focus,
+.select:focus {
+  border-color: #9e4b25;
+  outline: none;
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.checkbox {
+  margin-right: 10px;
+}
+
+.fileInput {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.imagePreview {
+  display: flex;
+  align-items: center;
+  margin-top: 12px;
+}
+
+.imagePreview img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  margin-right: 10px;
+}
+
+.imagePreview button {
+  background-color: #e63946;
+  color: white;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.imagePreview button:hover {
+  background-color: #d62828;
+}
+
+.additionalImagesGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.additionalImagesGrid .imagePreview {
+  position: relative;
+}
+
+.additionalImagesGrid .imagePreview img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+}
+
+.additionalImagesGrid .imagePreview button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: #e63946;
+  color: white;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.additionalImagesGrid .imagePreview button:hover {
+  background-color: #d62828;
+}
+
+.textarea {
+  height: 120px;
+  resize: vertical;
+}
+
+.optionRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.optionRow input {
+  width: 100%;
+}
+
+.optionRow button {
+  background-color: #9e4b25;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.optionRow button:hover {
+  background-color: #7a3919;
+}
+
+.select {
+  width: 100%;
+  margin-bottom: 16px;
+}
+
+.submitButton {
+  display: block;
+  width: 100%;
+  padding: 12px 0;
+  font-size: 1.2rem;
+  background-color: #9e4b25;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submitButton:hover {
+  background-color: #7a3919;
+}
+
+@media (min-width: 768px) {
+  .generalForm {
+    padding: 40px;
+  }
+
+  .optionRow {
+    gap: 20px;
+  }
+
+  .input,
+  .textarea,
+  .select {
+    width: 48%;
+  }
+
+  .checkboxLabel {
+    font-size: 1.1rem;
+  }
+
+  .imagePreview {
+    margin-top: 20px;
+  }
+
+  .additionalImagesGrid .imagePreview {
+    width: calc(33% - 16px);
+  }
+
+  .additionalImagesGrid .imagePreview img {
+    width: 100%;
+    height: auto;
+  }
+}
+
+@media (min-width: 1024px) {
+  .generalForm {
+    padding: 60px;
+  }
+
+  .input,
+  .textarea,
+  .select {
+    width: 48%;
+  }
+
+  .additionalImagesGrid .imagePreview {
+    width: calc(23% - 16px);
+  }
+
+  .additionalImagesGrid .imagePreview img {
+    width: 100%;
+    height: auto;
+  }
+}
