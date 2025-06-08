@@ -1,189 +1,163 @@
 .registerForm {
-  max-width: 900px;       /* 최대 넓이 제한 */
-  margin: 20px auto;      /* 화면 가운데 정렬 */
-  padding: 20px 30px;
-  background: #fff;
-  border-radius: 10px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
-  font-family: 'Noto Sans KR', sans-serif;
-  color: #333;
+  max-width: 600px;
+  margin: 20px auto;
+  padding: 20px 25px;
+  background: #fff1e6;
+  border-radius: 15px;
+  box-shadow: 0 6px 15px rgba(158, 75, 37, 0.3);
   display: flex;
   flex-direction: column;
-  gap: 24px;              /* 각 폼 요소 간격 */
+  gap: 10px; /* 간격 줄임 */
 }
 
 .title {
-  color: #9e4b25;         /* 대표색상 */
-  font-size: 28px;
-  font-weight: 700;
-  margin-bottom: 10px;
+  color: #9e4b25;
   text-align: center;
+  font-weight: 700;
+  font-size: 1.6rem; /* 폰트 크기 살짝 줄임 */
+  margin-bottom: 10px;
 }
 
-/* 폼 내부를 2단 그리드로 */
-.formGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 24px 40px;
-  align-items: flex-start;
-}
-
-/* label 기본 스타일 */
 .label {
   display: flex;
   flex-direction: column;
-  font-size: 14px;
+  color: #9e4b25;
   font-weight: 600;
-  color: #4a4a4a;
+  font-size: 0.95rem; /* 폰트 크기 살짝 줄임 */
+  margin-bottom: 4px;
 }
 
-/* input, select, textarea 스타일 통일 */
 .input,
 .select,
 .textarea {
-  margin-top: 6px;
-  padding: 10px 14px;
-  font-size: 15px;
-  border: 2px solid #ccc;
-  border-radius: 6px;
-  transition: border-color 0.3s ease;
+  margin-top: 4px; /* 위쪽 마진 줄임 */
+  padding: 6px 10px; /* 패딩 줄임 */
+  border: 2px solid #9e4b25;
+  border-radius: 10px;
+  background-color: #fff8f0;
   outline: none;
+  transition: border-color 0.3s ease;
+  font-size: 0.9rem; /* 폰트 크기 줄임 */
 }
 
 .input:focus,
 .select:focus,
 .textarea:focus {
-  border-color: #9e4b25;
-  box-shadow: 0 0 5px #9e4b25;
+  border-color: #d2691e;
 }
 
 .textarea {
   resize: vertical;
-  min-height: 90px;
-  max-height: 160px;
+  min-height: 60px; /* 높이 제한으로 길이 조절 */
+  max-height: 100px;
 }
 
-/* 체크박스 레이블 */
 .checkboxLabel {
-  display: flex;
+  flex-direction: row;
   align-items: center;
+  gap: 6px; /* 간격 줄임 */
   font-weight: 600;
-  gap: 8px;
-  color: #4a4a4a;
-  user-select: none;
-  cursor: pointer;
-  font-size: 15px;
+  font-size: 0.95rem;
 }
 
-.checkboxLabel input[type='checkbox'] {
-  width: 18px;
-  height: 18px;
+.checkbox {
+  width: 16px; /* 크기 조금 줄임 */
+  height: 16px;
   accent-color: #9e4b25;
   cursor: pointer;
 }
 
-/* 라디오 버튼 스타일 */
-.optionTypeWrapper {
+.optionRow,
+.optionGroup,
+.combinationRow {
   display: flex;
-  gap: 24px;
-  margin-top: 10px;
-  font-weight: 600;
-  color: #4a4a4a;
-}
-
-.optionTypeWrapper input[type='radio'] {
-  accent-color: #9e4b25;
-  cursor: pointer;
-}
-
-/* 옵션 관련 영역 */
-.optionGroup, .singleOptionsWrapper, .combinationsWrapper {
-  border: 1px solid #e0d3c4;
-  padding: 16px;
-  border-radius: 8px;
-  background-color: #fff8f1;
-}
-
-/* 옵션 행 (옵션 값 입력창 등) */
-.optionRow, .combinationRow {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 12px;
   align-items: center;
+  gap: 8px; /* 간격 줄임 */
+  margin-top: 6px;
+  flex-wrap: wrap;
 }
 
-.optionRow input,
-.combinationRow input {
-  flex: 1;
-  font-size: 14px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  border: 1.5px solid #ccc;
+.optionGroup {
+  background-color: #ffe6d0;
+  padding: 8px 12px; /* 패딩 줄임 */
+  border-radius: 12px;
+  border: 1.5px solid #9e4b25;
+}
+
+.optionRow input[type="text"],
+.optionRow input[type="number"] {
+  flex: 1 1 110px; /* 기본 크기 줄임 */
+  min-width: 90px;
+  font-size: 0.9rem;
+}
+
+.removeBtn,
+.addGroupBtn,
+.addValueBtn,
+.generateBtn,
+.removeGroupBtn,
+.submitBtn {
+  background-color: #9e4b25;
+  color: #fff;
+  border: none;
+  padding: 5px 12px; /* 패딩 작게 */
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background-color 0.25s ease;
+}
+
+.removeBtn:hover,
+.addGroupBtn:hover,
+.addValueBtn:hover,
+.generateBtn:hover,
+.removeGroupBtn:hover,
+.submitBtn:hover {
+  background-color: #d2691e;
+}
+
+.addGroupBtn,
+.addValueBtn,
+.generateBtn {
+  margin-top: 8px;
+  align-self: flex-start;
+}
+
+.combinations {
+  margin-top: 12px;
+  background-color: #fff3e8;
+  border: 1.5px solid #9e4b25;
+  border-radius: 12px;
+  padding: 8px 12px;
+}
+
+.combinationRow {
+  justify-content: space-between;
+}
+
+.combinationPriceInput {
+  width: 70px;
+  padding: 5px 8px;
+  border: 2px solid #9e4b25;
+  border-radius: 10px;
+  background-color: #fff8f0;
+  outline: none;
+  font-size: 0.9rem;
   transition: border-color 0.3s ease;
 }
 
-.optionRow input:focus,
-.combinationRow input:focus {
-  border-color: #9e4b25;
-  box-shadow: 0 0 4px #9e4b25;
+.combinationPriceInput:focus {
+  border-color: #d2691e;
 }
 
-/* 버튼 스타일 */
-.addBtn, .removeBtn, .generateBtn, .submitBtn {
-  background-color: #9e4b25;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 10px 18px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  user-select: none;
-}
-
-.addBtn:hover, .removeBtn:hover, .generateBtn:hover, .submitBtn:hover {
-  background-color: #7b3a1a;
-}
-
-/* 삭제 버튼은 작고 붉은색으로 */
-.removeBtn {
-  background-color: #d95b3e;
-  padding: 6px 12px;
-  font-size: 13px;
-}
-
-.removeBtn:hover {
-  background-color: #b63e22;
-}
-
-/* 조합 옵션 그룹 내 옵션 그룹명 input 스타일 */
-.optionGroup > input[type="text"] {
-  font-weight: 700;
-  margin-bottom: 10px;
-  border-color: #9e4b25;
-}
-
-/* 조합형 옵션 내 조합 라벨 스타일 */
-.comboLabel {
-  background-color: #f7e4d6;
-  color: #9e4b25;
-  font-weight: 700;
-  border-radius: 4px;
-  padding: 2px 8px;
-  margin-right: 6px;
-  font-size: 13px;
-}
-
-/* 전체 버튼 박스 정렬 */
-button[type='submit'] {
-  margin-top: 30px;
-  width: 100%;
-  font-size: 18px;
-}
-
-/* 반응형: 좁은 화면에서는 한 칸으로 */
+/* 반응형 간단 조정 */
 @media (max-width: 650px) {
-  .formGrid {
-    grid-template-columns: 1fr;
+  .registerForm {
+    padding: 15px 15px;
+  }
+  .optionRow input[type="text"],
+  .optionRow input[type="number"] {
+    flex: 1 1 100%;
   }
 }
