@@ -266,7 +266,6 @@ function GeneralProductForm() {
           value={formData.productType}
           onChange={handleChange}
           className={styles.input}
-          placeholder="예: general, custom, limited, anniversary"
           required
         />
       </label>
