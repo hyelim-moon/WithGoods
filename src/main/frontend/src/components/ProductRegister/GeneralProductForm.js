@@ -3,7 +3,6 @@ import styles from '../../assets/styles/GeneralProductForm.module.css';
 
 function GeneralProductForm() {
   const [formData, setFormData] = useState({
-    category: '',
     productType: '',
     name: '',
     price: '',
@@ -29,16 +28,6 @@ function GeneralProductForm() {
 
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
-
-    if (name === 'category') {
-      setFormData((prev) => ({
-        ...prev,
-        category: value,
-        productType: value,
-      }));
-      return;
-    }
-
     if (type === 'checkbox') {
       setFormData((prev) => ({
         ...prev,
@@ -268,21 +257,18 @@ function GeneralProductForm() {
     <form className={styles.registerForm} onSubmit={handleSubmit}>
       <h2 className={styles.title}>상품 등록</h2>
 
+      {/* 상품 유형 인풋박스 */}
       <label className={styles.label}>
-        카테고리
-        <select
-          name="category"
-          value={formData.category}
+        상품 유형
+        <input
+          type="text"
+          name="productType"
+          value={formData.productType}
           onChange={handleChange}
-          className={styles.select}
+          className={styles.input}
+          placeholder="예: general, custom, limited, anniversary"
           required
-        >
-          <option value="">선택하세요</option>
-          <option value="general">일반</option>
-          <option value="custom">커스텀</option>
-          <option value="limited">한정판</option>
-          <option value="anniversary">기념일</option>
-        </select>
+        />
       </label>
 
       <label className={styles.label}>
