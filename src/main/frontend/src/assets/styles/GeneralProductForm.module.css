@@ -7,197 +7,197 @@
   padding: 40px 60px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   color: #4a2c12;
-}
 
-.title {
-  display: flex;
-  align-items: center;
-  font-size: 2.4rem;
-  font-weight: 700;
-  margin-bottom: 30px;
-  color: #9e4b25;
-  gap: 12px;
-}
+    .title {
+      display: flex;
+      align-items: center;
+      font-size: 2.4rem;
+      font-weight: 700;
+      margin-bottom: 30px;
+      color: #9e4b25;
+      gap: 12px;
+    }
 
-/* 곰돌이 아이콘 SVG 크기 조절 */
-.title svg {
-  width: 40px;
-  height: 40px;
-  fill: #9e4b25;
-}
+    /* 곰돌이 아이콘 SVG 크기 조절 */
+    .title svg {
+      width: 40px;
+      height: 40px;
+      fill: #9e4b25;
+    }
 
-.label {
-  display: block;
-  font-weight: 600;
-  font-size: 1.1rem;
-  margin-bottom: 10px;
-  margin-top: 25px;
-}
+    .label {
+      display: block;
+      font-weight: 600;
+      font-size: 1.1rem;
+      margin-bottom: 10px;
+      margin-top: 25px;
+    }
 
-.input,
-.textarea,
-.select,
-.fileInput {
-  width: 100%;
-  padding: 10px 15px;
-  border: 2px solid #9e4b25;
-  border-radius: 8px;
-  font-size: 1rem;
-  transition: border-color 0.3s ease;
-  background: #fff;
-  color: #4a2c12;
-}
+    .input,
+    .textarea,
+    .select,
+    .fileInput {
+      width: 100%;
+      padding: 10px 15px;
+      border: 2px solid #9e4b25;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+      background: #fff;
+      color: #4a2c12;
+    }
 
-.input:focus,
-.textarea:focus,
-.select:focus {
-  outline: none;
-  border-color: #d66f32;
-  box-shadow: 0 0 6px #d66f32aa;
-}
+    .input:focus,
+    .textarea:focus,
+    .select:focus {
+      outline: none;
+      border-color: #d66f32;
+      box-shadow: 0 0 6px #d66f32aa;
+    }
 
-.textarea {
-  resize: vertical;
-  min-height: 100px;
-}
+    .textarea {
+      resize: vertical;
+      min-height: 100px;
+    }
 
-.checkboxLabel {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-weight: 600;
-  margin-top: 20px;
-}
+    .checkboxLabel {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 600;
+      margin-top: 20px;
+    }
 
-.checkbox {
-  width: 20px;
-  height: 20px;
-  accent-color: #9e4b25;
-  cursor: pointer;
-}
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      accent-color: #9e4b25;
+      cursor: pointer;
+    }
 
-.fileInput {
-  padding: 5px;
-  cursor: pointer;
-}
+    .fileInput {
+      padding: 5px;
+      cursor: pointer;
+    }
 
-.imagePreview {
-  position: relative;
-  margin-top: 10px;
-  width: 200px;
-  border: 2px solid #9e4b25;
-  border-radius: 10px;
-  overflow: hidden;
-  box-shadow: 0 0 8px #9e4b25aa;
-}
+    .imagePreview {
+      position: relative;
+      margin-top: 10px;
+      width: 200px;
+      border: 2px solid #9e4b25;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 8px #9e4b25aa;
+    }
 
-.imagePreview img {
-  width: 100%;
-  height: auto;
-  display: block;
-}
+    .imagePreview img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
 
-.imagePreview button {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: #9e4b25;
-  border: none;
-  color: white;
-  padding: 4px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition: background-color 0.3s ease;
-}
+    .imagePreview button {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      background: #9e4b25;
+      border: none;
+      color: white;
+      padding: 4px 8px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      transition: background-color 0.3s ease;
+    }
 
-.imagePreview button:hover {
-  background: #d66f32;
-}
+    .imagePreview button:hover {
+      background: #d66f32;
+    }
 
-.additionalImagesGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 15px;
-  margin-top: 15px;
-}
+    .additionalImagesGrid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-top: 15px;
+    }
 
-.optionRow,
-.optionGroup {
-  margin-top: 15px;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  flex-wrap: wrap;
-}
+    .optionRow,
+    .optionGroup {
+      margin-top: 15px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      flex-wrap: wrap;
+    }
 
-.optionGroup {
-  border: 2px solid #9e4b25;
-  padding: 15px;
-  border-radius: 12px;
-  background: #fff0e5;
-}
+    .optionGroup {
+      border: 2px solid #9e4b25;
+      padding: 15px;
+      border-radius: 12px;
+      background: #fff0e5;
+    }
 
-.removeButton {
-  background: #c55300;
-  border: none;
-  color: white;
-  padding: 6px 12px;
-  border-radius: 8px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: background-color 0.3s ease;
-}
+    .removeButton {
+      background: #c55300;
+      border: none;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background-color 0.3s ease;
+    }
 
-.removeButton:hover {
-  background: #9e4b25;
-}
+    .removeButton:hover {
+      background: #9e4b25;
+    }
 
-.addButton,
-.generateButton,
-.submitButton {
-  margin-top: 20px;
-  background-color: #9e4b25;
-  color: white;
-  border: none;
-  padding: 12px 25px;
-  border-radius: 10px;
-  font-size: 1.1rem;
-  cursor: pointer;
-  font-weight: 700;
-  transition: background-color 0.3s ease;
-}
+    .addButton,
+    .generateButton,
+    .submitButton {
+      margin-top: 20px;
+      background-color: #9e4b25;
+      color: white;
+      border: none;
+      padding: 12px 25px;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      font-weight: 700;
+      transition: background-color 0.3s ease;
+    }
 
-.addButton:hover,
-.generateButton:hover,
-.submitButton:hover {
-  background-color: #d66f32;
-}
+    .addButton:hover,
+    .generateButton:hover,
+    .submitButton:hover {
+      background-color: #d66f32;
+    }
 
-.combinationsContainer {
-  margin-top: 20px;
-  border-top: 2px solid #9e4b25;
-  padding-top: 15px;
-}
+    .combinationsContainer {
+      margin-top: 20px;
+      border-top: 2px solid #9e4b25;
+      padding-top: 15px;
+    }
 
-.combinationRow {
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 12px;
-}
+    .combinationRow {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 12px;
+    }
 
-.combinationRow input {
-  width: 120px;
-}
+    .combinationRow input {
+      width: 120px;
+    }
 
-@media screen and (max-width: 1024px) {
-  .registerForm {
-    max-width: 600px;
-    padding: 30px 40px;
-  }
+    @media screen and (max-width: 1024px) {
+      .registerForm {
+        max-width: 600px;
+        padding: 30px 40px;
+      }
 
-  .additionalImagesGrid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+      .additionalImagesGrid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
 }
