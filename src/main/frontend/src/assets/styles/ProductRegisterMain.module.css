@@ -1,0 +1,30 @@
+/* ProductRegisterMain.module.css */
+.productNav {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 8px;
+  margin-bottom: 20px;
+}
+
+.productNav a {
+  position: relative;
+  text-decoration: none;
+  color: #555;
+  padding: 8px 0;
+  font-weight: 500;
+}
+
+.productNav a.active {
+  color: #222;
+}
+
+.productNav a.active::after {
+  content: '';
+  position: absolute;
+  bottom: -9px; /* 밑선 위치 조정 */
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background-color: #1976d2; /* 강조 색상 */
+}

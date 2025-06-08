@@ -25,7 +25,7 @@ function Navbar() {
             <Link to="/anniversary"><button>기념일</button></Link>
             <Link to="/all"><button>일반</button></Link>
             <Link to="/inquiry"><button>문의</button></Link>
-            {isAdmin && <Link to="/registration"><button>상품등록</button></Link>}
+            {isAdmin && <Link to="/product-register"><button>상품등록</button></Link>}
         </nav>
     );
 }

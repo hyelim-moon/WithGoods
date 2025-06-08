@@ -26,8 +26,12 @@ function Register() {
     allowMessageOption: false,
   });
 
+  // 대표 이미지 미리보기 상태
+  const [repPreview, setRepPreview] = useState(null);
+  // 추가 이미지 미리보기 상태
+  const [additionalPreviews, setAdditionalPreviews] = useState([]);
+
   useEffect(() => {
-    // category 변경 시 productType 및 옵션 상태 초기화
     if (formData.category === 'custom') {
       setFormData(prev => ({
         ...prev,
@@ -48,7 +52,7 @@ function Register() {
         singleOptions: [{ name: '', price: '' }],
         options: [{ group: '', values: [{ name: '', price: '' }] }],
         combinations: [],
-        hasSalePeriod: true, // 한정판은 판매기간 필수
+        hasSalePeriod: true,
       }));
     } else if (formData.category === 'anniversary') {
       setFormData(prev => ({
@@ -73,7 +77,6 @@ function Register() {
         hasSalePeriod: false,
       }));
     } else {
-      // 빈값 선택시 초기화
       setFormData(prev => ({
         ...prev,
         productType: '',
@@ -98,7 +101,7 @@ function Register() {
     }
 
     if (type === 'checkbox') {
-      if (name === 'hasOption' && formData.productType === 'custom') return; // 커스텀은 옵션 사용 고정
+      if (name === 'hasOption' && formData.productType === 'custom') return;
 
       setFormData(prev => ({ ...prev, [name]: checked }));
 
@@ -121,15 +124,55 @@ function Register() {
     }
   };
 
+  // 이미지 변경 처리 (대표 이미지 및 추가 이미지)
   const handleImageChange = (e, isRepresentative = false) => {
     const files = Array.from(e.target.files);
+
     if (isRepresentative) {
-      setFormData(prev => ({ ...prev, representativeImage: files[0] }));
+      const file = files[0] || null;
+      setFormData(prev => ({ ...prev, representativeImage: file }));
+
+      if (file) {
+        setRepPreview(URL.createObjectURL(file));
+      } else {
+        setRepPreview(null);
+      }
     } else {
-      setFormData(prev => ({ ...prev, additionalImages: files.slice(0, 9) }));
+      setFormData(prev => {
+        // 기존 이미지 + 새로 추가된 이미지 합침
+        const combinedFiles = [...prev.additionalImages, ...files];
+        // 최대 9장까지만 자르기
+        const slicedFiles = combinedFiles.slice(0, 9);
+        // 추가 이미지 미리보기도 업데이트
+        setAdditionalPreviews(slicedFiles.map(file => URL.createObjectURL(file)));
+
+        return { ...prev, additionalImages: slicedFiles };
+      });
     }
   };
 
+
+  // 대표 이미지 삭제
+  const handleRemoveRepresentativeImage = () => {
+    setFormData(prev => ({ ...prev, representativeImage: null }));
+    setRepPreview(null);
+  };
+
+  // 추가 이미지 삭제
+  const handleRemoveAdditionalImage = (index) => {
+    setFormData(prev => {
+      const newImages = [...prev.additionalImages];
+      newImages.splice(index, 1);
+      return { ...prev, additionalImages: newImages };
+    });
+    setAdditionalPreviews(prev => {
+      const newPreviews = [...prev];
+      newPreviews.splice(index, 1);
+      return newPreviews;
+    });
+  };
+
+  // 옵션 타입 변경
   const handleOptionTypeChange = (e) => {
     const newType = e.target.value;
     setFormData(prev => ({
@@ -225,19 +268,15 @@ function Register() {
       return;
     }
 
-    // 그룹별 옵션값 배열만 뽑기
     const optionValuesArrays = formData.options.map(group => group.values.map(v => v.name));
 
-    // 모든 조합 구하기 (카테시안 프로덕트)
-    const cartesian = (arr) => {
-      return arr.reduce((a, b) =>
-        a.flatMap(d => b.map(e => [...d, e]))
-      , [[]]);
-    };
+    const cartesian = (arr) => arr.reduce(
+      (a, b) => a.flatMap(d => b.map(e => [...d, e])),
+      [[]]
+    );
 
     const combos = cartesian(optionValuesArrays);
 
-    // 이름 생성 + 가격 기본 빈값
     const newCombinations = combos.map(combo => ({
       name: combo.join(' / '),
       price: '',
@@ -263,10 +302,10 @@ function Register() {
     });
   };
 
+  // 제출 처리
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // 유효성 검사 간단히
     if (!formData.category) {
       alert('카테고리를 선택하세요.');
       return;
@@ -306,7 +345,6 @@ function Register() {
           }
         }
       } else {
-        // 조합형 옵션 유효성 검사
         for (const group of formData.options) {
           if (!group.group.trim()) {
             alert('옵션 그룹명을 모두 입력하세요.');
@@ -344,7 +382,6 @@ function Register() {
       }
     }
 
-    // 제출 데이터 확인 (여기서 서버 요청 처리)
     console.log('제출 데이터:', formData);
     alert('상품이 성공적으로 등록되었습니다.');
   };
@@ -468,7 +505,6 @@ function Register() {
         </>
       )}
 
-      {/* 대표 이미지 */}
       <label className={styles.label}>
         대표 이미지
         <input
@@ -476,9 +512,18 @@ function Register() {
           accept="image/*"
           onChange={(e) => handleImageChange(e, true)}
           className={styles.input}
-          required
         />
       </label>
+
+      {/* 대표 이미지 미리보기 */}
+      {repPreview && (
+        <div className={styles.imagePreview}>
+          <img src={repPreview} alt="대표 이미지 미리보기" className={styles.previewImg} />
+          <button type="button" onClick={handleRemoveRepresentativeImage} className={styles.removeBtn}>
+            -
+          </button>
+        </div>
+      )}
 
       {/* 추가 이미지 */}
       <label className={styles.label}>
@@ -487,10 +532,21 @@ function Register() {
           type="file"
           accept="image/*"
           multiple
-          onChange={handleImageChange}
+          onChange={(e) => handleImageChange(e, false)}
           className={styles.input}
         />
       </label>
+      {/* 추가 이미지 미리보기 */}
+      <div className={styles.additionalPreviews}>
+        {additionalPreviews.map((src, idx) => (
+          <div key={idx} className={styles.imagePreview}>
+            <img src={src} alt={`추가 이미지 ${idx + 1}`} className={styles.previewImg} />
+            <button type="button" onClick={() => handleRemoveAdditionalImage(idx)} className={styles.removeBtn}>
+              -
+            </button>
+          </div>
+        ))}
+      </div>
 
       {/* 상세 설명 */}
       <label className={styles.label}>
@@ -681,17 +737,6 @@ function Register() {
       {/* 기념일 입력 */}
       {formData.productType === 'anniversary' && (
         <>
-          <label className={styles.label}>
-            기념일 날짜
-            <input
-              type="date"
-              name="anniversaryDate"
-              value={formData.anniversaryDate}
-              onChange={handleChange}
-              className={styles.input}
-              required
-            />
-          </label>
           <label className={`${styles.label} ${styles.checkboxLabel}`}>
             <input
               type="checkbox"

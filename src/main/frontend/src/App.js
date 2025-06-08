@@ -32,6 +32,11 @@ import Checkout from "./components/Checkout";
 import OrderComplete from "./components/OrderComplete";
 import OrderHistory from './components/OrderHistory';
 import ReviewWrite from './components/ReviewWrite';
+import ProductRegisterMain from './components/ProductRegister/ProductRegisterMain';
+import GeneralProductForm from './components/ProductRegister/GeneralProductForm';
+import CustomProductForm from './components/ProductRegister/CustomProductForm';
+import LimitedProductForm from './components/ProductRegister/LimitedProductForm';
+import AnniversaryProductForm from './components/ProductRegister/AnniversaryProductForm';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -100,7 +105,13 @@ function AppContent() {
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/product/:id/stats" element={<ProductStats />} />
         <Route path="/edit-profile" element={<EditProfile />} />
-        <Route path="/registration" element={<Registration />} />
+        <Route path="/product-register" element={<ProductRegisterMain />}>
+          <Route index element={<GeneralProductForm />} />  {/* 인덱스 라우트: 기본 화면 */}
+          <Route path="general" element={<GeneralProductForm />} />
+          <Route path="custom" element={<CustomProductForm />} />
+          <Route path="limited" element={<LimitedProductForm />} />
+          <Route path="anniversary" element={<AnniversaryProductForm />} />
+        </Route>
         <Route
           path="/checkout"
           element={
