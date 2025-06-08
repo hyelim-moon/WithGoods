@@ -1,143 +1,189 @@
 .registerForm {
-    max-width: 1000px;
-    margin: 40px auto;
-    padding: 40px 30px;
-    background-color: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-    border: 4px solid #9e4b25;
+  max-width: 900px;       /* 최대 넓이 제한 */
+  margin: 20px auto;      /* 화면 가운데 정렬 */
+  padding: 20px 30px;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #333;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;              /* 각 폼 요소 간격 */
 }
 
-/* 타이틀 */
-.registerForm h2,
-.registerForm h3,
-.registerForm h4 {
-    color: #9e4b25;
-    margin-bottom: 20px;
-    font-weight: 700;
+.title {
+  color: #9e4b25;         /* 대표색상 */
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-align: center;
 }
 
-/* 입력 그룹 */
-.registerForm label {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 25px;
-    font-weight: 600;
-    color: #333;
+/* 폼 내부를 2단 그리드로 */
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px 40px;
+  align-items: flex-start;
 }
 
-/* 체크박스 라벨 */
-.registerForm label.checkboxLabel {
-    flex-direction: row;
-    align-items: center;
-    gap: 10px;
+/* label 기본 스타일 */
+.label {
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: 600;
+  color: #4a4a4a;
 }
 
-/* 레이블과 폼 요소 간격 */
-.registerForm label:not(.checkboxLabel) > input,
-.registerForm label:not(.checkboxLabel) > select,
-.registerForm label:not(.checkboxLabel) > textarea {
-    margin-top: 8px;
+/* input, select, textarea 스타일 통일 */
+.input,
+.select,
+.textarea {
+  margin-top: 6px;
+  padding: 10px 14px;
+  font-size: 15px;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  transition: border-color 0.3s ease;
+  outline: none;
 }
 
-/* 기본 입력 스타일 */
-.registerForm input[type="text"],
-.registerForm input[type="number"],
-.registerForm input[type="file"],
-.registerForm select,
-.registerForm textarea {
-    padding: 10px 14px;
-    font-size: 14px;
-    border: 1.8px solid #ccc;
-    border-radius: 8px;
-    transition: border-color 0.3s;
-    box-sizing: border-box;
+.input:focus,
+.select:focus,
+.textarea:focus {
+  border-color: #9e4b25;
+  box-shadow: 0 0 5px #9e4b25;
 }
 
-/* 포커스 스타일 */
-.registerForm input:focus,
-.registerForm select:focus,
-.registerForm textarea:focus {
-    border-color: #3673B0;
-    outline: none;
+.textarea {
+  resize: vertical;
+  min-height: 90px;
+  max-height: 160px;
 }
 
-/* 파일, 셀렉트 등 크기 조절 */
-.registerForm input[type="number"],
-.registerForm select[name="optionType"] {
-    max-width: 200px;
+/* 체크박스 레이블 */
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  gap: 8px;
+  color: #4a4a4a;
+  user-select: none;
+  cursor: pointer;
+  font-size: 15px;
 }
 
-.registerForm input[type="file"] {
-    max-width: 320px;
+.checkboxLabel input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  accent-color: #9e4b25;
+  cursor: pointer;
 }
 
-/* 옵션 리스트 */
-.optionList {
-    margin-top: 10px;
+/* 라디오 버튼 스타일 */
+.optionTypeWrapper {
+  display: flex;
+  gap: 24px;
+  margin-top: 10px;
+  font-weight: 600;
+  color: #4a4a4a;
 }
 
-.optionList > div {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
+.optionTypeWrapper input[type='radio'] {
+  accent-color: #9e4b25;
+  cursor: pointer;
 }
 
-.optionList input {
-    flex: 1;
-    min-width: 150px;
+/* 옵션 관련 영역 */
+.optionGroup, .singleOptionsWrapper, .combinationsWrapper {
+  border: 1px solid #e0d3c4;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: #fff8f1;
 }
 
-.optionList button {
-    background-color: #9e4b25;
-    border: none;
-    color: white;
-    border-radius: 8px;
-    padding: 6px 12px;
-    cursor: pointer;
-    font-weight: 600;
-    transition: background-color 0.3s;
+/* 옵션 행 (옵션 값 입력창 등) */
+.optionRow, .combinationRow {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  align-items: center;
 }
 
-.optionList button:hover {
-    background-color: #75361b;
+.optionRow input,
+.combinationRow input {
+  flex: 1;
+  font-size: 14px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1.5px solid #ccc;
+  transition: border-color 0.3s ease;
 }
 
-/* 제출 버튼 */
-.registerForm > button[type="submit"] {
-    background-color: #9e4b25;
-    color: white;
-    border: none;
-    padding: 14px 30px;
-    font-size: 18px;
-    font-weight: bold;
-    border-radius: 30px;
-    cursor: pointer;
-    width: 100%;
-    margin-top: 30px;
-    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
-    transition: background-color 0.3s ease;
+.optionRow input:focus,
+.combinationRow input:focus {
+  border-color: #9e4b25;
+  box-shadow: 0 0 4px #9e4b25;
 }
 
-.registerForm > button[type="submit"]:hover {
-    background-color: #75361b;
+/* 버튼 스타일 */
+.addBtn, .removeBtn, .generateBtn, .submitBtn {
+  background-color: #9e4b25;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 10px 18px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  user-select: none;
 }
 
-/* 반응형 */
-@media (max-width: 600px) {
-    .registerForm {
-        padding: 20px 15px;
-    }
+.addBtn:hover, .removeBtn:hover, .generateBtn:hover, .submitBtn:hover {
+  background-color: #7b3a1a;
+}
 
-    .registerForm label {
-        max-width: 100%;
-    }
+/* 삭제 버튼은 작고 붉은색으로 */
+.removeBtn {
+  background-color: #d95b3e;
+  padding: 6px 12px;
+  font-size: 13px;
+}
 
-    .optionList input,
-    .registerForm input[type="file"],
-    .registerForm input[type="number"],
-    .registerForm select {
-        max-width: 100%;
-    }
+.removeBtn:hover {
+  background-color: #b63e22;
+}
+
+/* 조합 옵션 그룹 내 옵션 그룹명 input 스타일 */
+.optionGroup > input[type="text"] {
+  font-weight: 700;
+  margin-bottom: 10px;
+  border-color: #9e4b25;
+}
+
+/* 조합형 옵션 내 조합 라벨 스타일 */
+.comboLabel {
+  background-color: #f7e4d6;
+  color: #9e4b25;
+  font-weight: 700;
+  border-radius: 4px;
+  padding: 2px 8px;
+  margin-right: 6px;
+  font-size: 13px;
+}
+
+/* 전체 버튼 박스 정렬 */
+button[type='submit'] {
+  margin-top: 30px;
+  width: 100%;
+  font-size: 18px;
+}
+
+/* 반응형: 좁은 화면에서는 한 칸으로 */
+@media (max-width: 650px) {
+  .formGrid {
+    grid-template-columns: 1fr;
+  }
 }
