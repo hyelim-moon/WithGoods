@@ -1,0 +1,224 @@
+:root {
+    --main-color: #9e4b25;
+    --input-bg: #fff8f3;
+    --input-border: #c88c5a;
+    --font-family: 'Pretendard', sans-serif;
+    --border-radius: 12px;
+    --font-color: var(--main-color);
+    --button-bg: var(--main-color);
+    --button-hover-bg: #7a3a1c;
+}
+
+.registerForm {
+    width: 100%;
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 0 30px 40px 30px;
+    background-color: var(--bg-color);
+    border-radius: 20px;
+    font-family: var(--font-family);
+    color: var(--font-color);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    box-sizing: border-box;
+    overflow-x: hidden;
+}
+
+.title {
+    font-size: 50px;
+    font-weight: 700;
+    color: var(--main-color);
+    margin-bottom: 32px;
+    align-self: flex-start;
+}
+
+.label {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+    font-weight: 600;
+    width: 100%;
+    max-width: 100%;
+}
+
+.input,
+.select,
+.textarea {
+    margin-top: 8px;
+    padding: 10px 14px;
+    border: 2px solid var(--input-border);
+    border-radius: var(--border-radius);
+    font-size: 15px;
+    background-color: var(--input-bg);
+    box-sizing: border-box;
+    width: 100%;
+    transition: border-color 0.3s ease;
+    color: var(--main-color);
+    font-weight: 600;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+    outline: none;
+    border-color: var(--main-color);
+    background-color: #fff;
+}
+
+.textarea {
+    resize: vertical;
+    min-height: 120px;
+}
+
+.checkboxLabel {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    width: 100%;
+}
+
+.checkbox {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--main-color);
+    cursor: pointer;
+}
+
+.imagePreview {
+    margin-top: 10px;
+    position: relative;
+    max-width: 180px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(158, 75, 37, 0.3);
+}
+
+.imagePreview img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 12px;
+}
+
+.imagePreview button {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    background: #f8dede;
+    border: none;
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 12px;
+    color: var(--main-color);
+    cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.3s ease;
+}
+
+.imagePreview button:hover {
+    background-color: #fbbbbb;
+}
+
+.additionalImagesGrid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+    width: 100%;
+}
+
+.optionRow {
+    display: flex;
+    gap: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.optionRow input {
+    flex: 1 1 0;
+    min-width: 0;
+    border-radius: var(--border-radius);
+    border: 2px solid var(--input-border);
+    padding: 12px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--main-color);
+    background-color: var(--input-bg);
+    transition: border-color 0.3s ease;
+    box-sizing: border-box;
+}
+
+.optionRow input:focus {
+    border-color: var(--main-color);
+    background-color: #fff;
+}
+
+.removeButton {
+    background-color: #f6b0a7;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 6px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--main-color);
+    transition: background-color 0.3s ease;
+    flex-shrink: 0;
+}
+
+.removeButton:hover {
+    background-color: #e77b6c;
+    color: #fff;
+}
+
+.optionGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    border: 3px dashed var(--main-color);
+    background-color: #fff2e7;
+    padding: 24px 28px;
+    border-radius: 20px;
+    margin-bottom: 32px;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: auto;
+}
+
+.addButton,
+.submitButton {
+    background-color: var(--button-bg);
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    padding: 12px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.3s ease;
+    user-select: none;
+    align-self: flex-start;
+    margin-top: 8px;
+}
+
+.addButton {
+    max-width: 140px;
+}
+
+.addButton:hover {
+    background-color: var(--button-hover-bg);
+}
+
+.submitButton {
+    width: 100%;
+    margin-top: 36px;
+    box-shadow: 0 4px 14px rgba(158, 75, 37, 0.5);
+}
+
+.submitButton:hover {
+    background-color: var(--button-hover-bg);
+}
