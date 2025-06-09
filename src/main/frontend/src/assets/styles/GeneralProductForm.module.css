@@ -1,203 +1,224 @@
+:root {
+  --main-color: #9e4b25;
+  --input-bg: #fff8f3;
+  --input-border: #c88c5a;
+  --font-family: 'Pretendard', sans-serif;
+  --border-radius: 12px;
+  --font-color: var(--main-color);
+  --button-bg: var(--main-color);
+  --button-hover-bg: #7a3a1c;
+}
+
 .registerForm {
-  max-width: 900px;
-  margin: 40px auto;
-  background: #fff8f0;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 0 30px 40px 30px;
+  background-color: var(--bg-color);
+  border-radius: 20px;
+  font-family: var(--font-family);
+  color: var(--font-color);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+.title {
+  font-size: 50px;
+  font-weight: 700;
+  color: var(--main-color);
+  margin-bottom: 32px;
+  align-self: flex-start;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+  font-weight: 600;
+  width: 100%;
+  max-width: 100%;
+}
+
+.input,
+.select,
+.textarea {
+  margin-top: 8px;
+  padding: 10px 14px;
+  border: 2px solid var(--input-border);
+  border-radius: var(--border-radius);
+  font-size: 15px;
+  background-color: var(--input-bg);
+  box-sizing: border-box;
+  width: 100%;
+  transition: border-color 0.3s ease;
+  color: var(--main-color);
+  font-weight: 600;
+}
+
+.input:focus,
+.select:focus,
+.textarea:focus {
+  outline: none;
+  border-color: var(--main-color);
+  background-color: #fff;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.checkboxLabel {
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  width: 100%;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--main-color);
+  cursor: pointer;
+}
+
+.imagePreview {
+  margin-top: 10px;
+  position: relative;
+  max-width: 180px;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(158, 75, 37, 0.3);
-  padding: 40px 60px;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  color: #4a2c12;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(158, 75, 37, 0.3);
+}
 
-    .title {
-      display: flex;
-      align-items: center;
-      font-size: 2.4rem;
-      font-weight: 700;
-      margin-bottom: 30px;
-      color: #9e4b25;
-      gap: 12px;
-    }
+.imagePreview img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 12px;
+}
 
-    /* 곰돌이 아이콘 SVG 크기 조절 */
-    .title svg {
-      width: 40px;
-      height: 40px;
-      fill: #9e4b25;
-    }
+.imagePreview button {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: #f8dede;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  color: var(--main-color);
+  cursor: pointer;
+  font-weight: 700;
+  transition: background-color 0.3s ease;
+}
 
-    .label {
-      display: block;
-      font-weight: 600;
-      font-size: 1.1rem;
-      margin-bottom: 10px;
-      margin-top: 25px;
-    }
+.imagePreview button:hover {
+  background-color: #fbbbbb;
+}
 
-    .input,
-    .textarea,
-    .select,
-    .fileInput {
-      width: 100%;
-      padding: 10px 15px;
-      border: 2px solid #9e4b25;
-      border-radius: 8px;
-      font-size: 1rem;
-      transition: border-color 0.3s ease;
-      background: #fff;
-      color: #4a2c12;
-    }
+.additionalImagesGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 18px;
+  width: 100%;
+}
 
-    .input:focus,
-    .textarea:focus,
-    .select:focus {
-      outline: none;
-      border-color: #d66f32;
-      box-shadow: 0 0 6px #d66f32aa;
-    }
+.optionRow {
+  display: flex;
+  gap: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
 
-    .textarea {
-      resize: vertical;
-      min-height: 100px;
-    }
+.optionRow input {
+  flex: 1 1 0;
+  min-width: 0;
+  border-radius: var(--border-radius);
+  border: 2px solid var(--input-border);
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--main-color);
+  background-color: var(--input-bg);
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
 
-    .checkboxLabel {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      font-weight: 600;
-      margin-top: 20px;
-    }
+.optionRow input:focus {
+  border-color: var(--main-color);
+  background-color: #fff;
+}
 
-    .checkbox {
-      width: 20px;
-      height: 20px;
-      accent-color: #9e4b25;
-      cursor: pointer;
-    }
+.removeButton {
+  background-color: #f6b0a7;
+  border: none;
+  border-radius: var(--border-radius);
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--main-color);
+  transition: background-color 0.3s ease;
+  flex-shrink: 0;
+}
 
-    .fileInput {
-      padding: 5px;
-      cursor: pointer;
-    }
+.removeButton:hover {
+  background-color: #e77b6c;
+  color: #fff;
+}
 
-    .imagePreview {
-      position: relative;
-      margin-top: 10px;
-      width: 200px;
-      border: 2px solid #9e4b25;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 0 8px #9e4b25aa;
-    }
+.optionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  border: 3px dashed var(--main-color);
+  background-color: #fff2e7;
+  padding: 24px 28px;
+  border-radius: 20px;
+  margin-bottom: 32px;
+  width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+}
 
-    .imagePreview img {
-      width: 100%;
-      height: auto;
-      display: block;
-    }
+.addButton,
+.submitButton {
+  background-color: var(--button-bg);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  font-size: 16px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: background-color 0.3s ease;
+  user-select: none;
+  align-self: flex-start;
+  margin-top: 8px;
+}
 
-    .imagePreview button {
-      position: absolute;
-      top: 6px;
-      right: 6px;
-      background: #9e4b25;
-      border: none;
-      color: white;
-      padding: 4px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-      transition: background-color 0.3s ease;
-    }
+.addButton {
+  max-width: 140px;
+}
 
-    .imagePreview button:hover {
-      background: #d66f32;
-    }
+.addButton:hover {
+  background-color: var(--button-hover-bg);
+}
 
-    .additionalImagesGrid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 15px;
-      margin-top: 15px;
-    }
+.submitButton {
+  width: 100%;
+  margin-top: 36px;
+  box-shadow: 0 4px 14px rgba(158, 75, 37, 0.5);
+}
 
-    .optionRow,
-    .optionGroup {
-      margin-top: 15px;
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      flex-wrap: wrap;
-    }
-
-    .optionGroup {
-      border: 2px solid #9e4b25;
-      padding: 15px;
-      border-radius: 12px;
-      background: #fff0e5;
-    }
-
-    .removeButton {
-      background: #c55300;
-      border: none;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-      transition: background-color 0.3s ease;
-    }
-
-    .removeButton:hover {
-      background: #9e4b25;
-    }
-
-    .addButton,
-    .generateButton,
-    .submitButton {
-      margin-top: 20px;
-      background-color: #9e4b25;
-      color: white;
-      border: none;
-      padding: 12px 25px;
-      border-radius: 10px;
-      font-size: 1.1rem;
-      cursor: pointer;
-      font-weight: 700;
-      transition: background-color 0.3s ease;
-    }
-
-    .addButton:hover,
-    .generateButton:hover,
-    .submitButton:hover {
-      background-color: #d66f32;
-    }
-
-    .combinationsContainer {
-      margin-top: 20px;
-      border-top: 2px solid #9e4b25;
-      padding-top: 15px;
-    }
-
-    .combinationRow {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-      margin-bottom: 12px;
-    }
-
-    .combinationRow input {
-      width: 120px;
-    }
-
-    @media screen and (max-width: 1024px) {
-      .registerForm {
-        max-width: 600px;
-        padding: 30px 40px;
-      }
-
-      .additionalImagesGrid {
-        grid-template-columns: repeat(2, 1fr);
-      }
-    }
+.submitButton:hover {
+  background-color: var(--button-hover-bg);
 }
