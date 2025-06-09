@@ -343,19 +343,6 @@ function GeneralProductForm() {
             </>
         )}
 
-        {formData.productType === 'limited' && (
-            <>
-              <label className={styles.label}>
-                한정 수량
-                <input type="number" name="limitedEditionNumber" value={formData.limitedEditionNumber} onChange={handleChange} className={styles.input} min="1" required />
-              </label>
-              <label className={styles.label}>
-                출시일
-                <input type="date" name="limitedReleaseDate" value={formData.limitedReleaseDate} onChange={handleChange} className={styles.input} required />
-              </label>
-            </>
-        )}
-
         <button type="submit" className={styles.submitButton}>등록하기</button>
       </form>
   );
