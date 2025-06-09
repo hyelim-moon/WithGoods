@@ -7,6 +7,7 @@ import com.WG.WithGoods.entity.ProductRole;
 import com.WG.WithGoods.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,7 +19,50 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
-    // 상품 생성
+    public ProductDto createProductFromRequest(ProductRequestDto req,
+                                               MultipartFile representativeImage,
+                                               List<MultipartFile> additionalImages) throws Exception {
+
+        String imageUrl = null;
+        if (representativeImage != null && !representativeImage.isEmpty()) {
+            imageUrl = saveImageAndGetUrl(representativeImage);
+        }
+
+        ProductRole role;
+        try {
+            role = ProductRole.valueOf(req.getProductType().toUpperCase());
+        } catch (Exception e) {
+            role = ProductRole.NORMAL;
+        }
+
+        Product product = Product.builder()
+                .name(req.getName())
+                .description(req.getDescription())
+                .price(req.getPrice())
+                .category(req.getCategory())
+                .options(req.getOptions())
+                .role(role)
+                .startDate(parseDate(req.getStartDate()))
+                .endDate(parseDate(req.getEndDate()))
+                .stock(req.getStock())
+                .imageUrl(imageUrl)
+                .rating(0.0)
+                .build();
+
+        Product savedProduct = productRepository.save(product);
+
+        if (additionalImages != null) {
+            for (MultipartFile file : additionalImages) {
+                if (!file.isEmpty()) {
+                    saveAdditionalImage(savedProduct.getProductId(), file);
+                }
+            }
+        }
+
+        return toDto(savedProduct);
+    }
+
+    // 상품 생성 (기존 메서드)
     public ProductDto createProduct(ProductDto dto) {
         Product product = Product.builder()
                 .name(dto.getName())
@@ -36,21 +80,18 @@ public class ProductService {
         return toDto(productRepository.save(product));
     }
 
-    // 전체 상품 조회
     public List<ProductDto> getAllProducts() {
         return productRepository.findAll().stream()
                 .map(this::toDto)
                 .toList();
     }
 
-    // 상품 ID 조회
     public ProductDto getProductById(Integer id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다."));
         return toDto(product);
     }
 
-    // 상품 수정
     public ProductDto updateProduct(Integer id, ProductDto dto) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다."));
@@ -69,12 +110,10 @@ public class ProductService {
         return toDto(productRepository.save(product));
     }
 
-    // 상품 삭제
     public void deleteProduct(Integer id) {
         productRepository.deleteById(id);
     }
 
-    // 역할별 상품
     public List<ProductDto> getNormalProducts() {
         return productRepository.findByRole(ProductRole.NORMAL).stream()
                 .map(this::toDto)
@@ -128,27 +167,23 @@ public class ProductService {
                 .build();
     }
 
-    public ProductDto createProductFromRequest(ProductRequestDto req) {
-        Product product = Product.builder()
-                .name(req.getName())
-                .description(req.getDescription())
-                .price(req.getPrice())
-                .category(req.getCategory())
-                .options(req.getOptions()) // JSON 문자열 그대로 저장
-                .role(ProductRole.valueOf(req.getRole().toUpperCase()))
-                .startDate(parseDate(req.getStartDate()))
-                .endDate(parseDate(req.getEndDate()))
-                .stock(req.getStock())
-                .rating(0.0)
-                .build();
-
-        return toDto(productRepository.save(product));
-    }
-
     // 문자열 → LocalDateTime 변환 (null-safe)
     private LocalDateTime parseDate(String dateStr) {
         if (dateStr == null || dateStr.isEmpty()) return null;
         return LocalDateTime.parse(dateStr);
     }
 
+    // 이미지 저장 (임시 예시)
+    private String saveImageAndGetUrl(MultipartFile file) throws Exception {
+        // 실제 저장 로직 필요
+        // 파일명, 저장 위치 결정 후 저장
+        // 저장 후 접근 가능한 URL 리턴
+        return "https://example.com/images/" + file.getOriginalFilename();
+    }
+
+    // 추가 이미지 저장 (임시 예시)
+    private void saveAdditionalImage(Integer productId, MultipartFile file) {
+        // 추가 이미지 저장 로직 구현
+        // 예: productId와 파일명 연결해서 저장
+    }
 }

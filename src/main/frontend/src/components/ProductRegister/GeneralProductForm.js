@@ -3,7 +3,8 @@ import styles from '../../assets/styles/GeneralProductForm.module.css';
 
 function GeneralProductForm() {
   const [formData, setFormData] = useState({
-    productType: '',
+    productType: 'normal',
+    category: '',
     name: '',
     price: '',
     hasDiscount: false,
@@ -33,7 +34,7 @@ function GeneralProductForm() {
         [name]: checked,
       }));
     } else if (files) {
-      // 파일은 따로 처리
+      // 파일은 따로 처리 (여기서는 별도 함수 handleImageChange 사용)
     } else {
       setFormData((prev) => ({
         ...prev,
@@ -47,6 +48,9 @@ function GeneralProductForm() {
     if (isRepresentative) {
       if (files.length === 0) return;
       const file = files[0];
+      if (formData.repPreview) {
+        URL.revokeObjectURL(formData.repPreview);
+      }
       setFormData((prev) => ({
         ...prev,
         representativeImage: file,
@@ -54,6 +58,7 @@ function GeneralProductForm() {
       }));
     } else {
       const newFiles = Array.from(files);
+      formData.additionalPreviews.forEach(URL.revokeObjectURL);
       setFormData((prev) => {
         const combined = [...prev.additionalImages, ...newFiles].slice(0, 9);
         const combinedPreviews = combined.map((file) => URL.createObjectURL(file));
@@ -78,6 +83,8 @@ function GeneralProductForm() {
     setFormData((prev) => {
       const newImages = [...prev.additionalImages];
       newImages.splice(index, 1);
+      // 미리보기 URL 재생성
+      formData.additionalPreviews.forEach(URL.revokeObjectURL);
       const newPreviews = newImages.map((file) => URL.createObjectURL(file));
       return {
         ...prev,
@@ -195,156 +202,290 @@ function GeneralProductForm() {
     }));
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('폼 제출 데이터:', formData);
-    alert('폼 제출 완료! 콘솔을 확인하세요.');
-  };
+ const handleSubmit = async (e) => {
+   e.preventDefault();
+
+   const dto = {
+     productType: formData.productType,
+     category: formData.category,
+     name: formData.name,
+     price: Number(formData.price),
+     hasDiscount: formData.hasDiscount,
+     discountRate: formData.discountRate ? Number(formData.discountRate) : null,
+     hasSalePeriod: formData.hasSalePeriod,
+     startDate: formData.saleStartDate || null,
+     endDate: formData.saleEndDate || null,
+     description: formData.detailDescription,
+     options: formData.hasOption
+       ? formData.optionType === 'single'
+         ? JSON.stringify(formData.singleOptions)
+         : JSON.stringify(formData.options)
+       : null,
+     limitedEditionNumber: formData.limitedEditionNumber || null,
+     limitedReleaseDate: formData.limitedReleaseDate || null,
+     allowMessageOption: formData.allowMessageOption,
+     stock: null, // 재고 있으면 숫자 넣기
+   };
+
+   try {
+     const data = new FormData();
+
+     // dto 전체를 JSON 문자열로 넣기
+     data.append('dto', JSON.stringify(dto));
+
+     // 이미지 파일 추가
+     if (formData.representativeImage) {
+       data.append('representativeImage', formData.representativeImage);
+     }
+     formData.additionalImages.forEach((file) => {
+       data.append('additionalImages', file); // 서버에 따라 'additionalImages' 또는 'additionalImages[]' 다르게 쓸 수 있음
+     });
+
+     const response = await fetch('/api/products/upload', {
+       method: 'POST',
+       body: data,
+     });
+
+     if (!response.ok) {
+       const errorData = await response.json();
+       throw new Error(`서버 오류 발생: ${JSON.stringify(errorData)}`);
+     }
+
+     const result = await response.json();
+     console.log('서버 응답:', result);
+     alert('폼 제출 완료!');
+
+     // 필요 시 초기화 작업 등
+
+   } catch (error) {
+     console.error('폼 제출 실패:', error);
+     alert('폼 제출 실패, 다시 시도해주세요.');
+   }
+ };
+
+
 
   return (
-      <form className={styles.registerForm} onSubmit={handleSubmit}>
-        <h2 className={styles.title}>일반 상품 등록</h2>
+    <form className={styles.registerForm} onSubmit={handleSubmit}>
+      <h2 className={styles.title}>일반 상품 등록</h2>
+      <input type="hidden" name="productType" value={formData.productType} />
 
+      <label className={styles.label}>
+        상품 유형
+        <select name="category" value={formData.category} onChange={handleChange} className={styles.select} required>
+          <option value="">선택하세요</option>
+          <option value="인형">인형</option>
+          <option value="문구">문구</option>
+          <option value="가전">가전</option>
+          <option value="패션">패션</option>
+        </select>
+      </label>
+
+      <label className={styles.label}>
+        상품명
+        <input type="text" name="name" value={formData.name} onChange={handleChange} className={styles.input} required />
+      </label>
+
+      <label className={styles.label}>
+        가격
+        <input type="number" name="price" value={formData.price} onChange={handleChange} className={styles.input} min="0" required />
+      </label>
+
+      <label className={`${styles.label} ${styles.checkboxLabel}`}>
+        <input type="checkbox" name="hasDiscount" checked={formData.hasDiscount} onChange={handleChange} className={styles.checkbox} />
+        할인 여부
+      </label>
+
+      {formData.hasDiscount && (
         <label className={styles.label}>
-          상품 유형
-          <input type="text" name="productType" value={formData.productType} onChange={handleChange} className={styles.input} required />
+          할인율 (%)
+          <input type="number" name="discountRate" value={formData.discountRate} onChange={handleChange} className={styles.input} min="0" max="100" required />
         </label>
+      )}
 
-        <label className={styles.label}>
-          상품명
-          <input type="text" name="name" value={formData.name} onChange={handleChange} className={styles.input} required />
-        </label>
+      <label className={`${styles.label} ${styles.checkboxLabel}`}>
+        <input
+          type="checkbox"
+          name="hasSalePeriod"
+          checked={formData.hasSalePeriod}
+          onChange={handleChange}
+          className={styles.checkbox}
+          disabled={formData.productType === 'limited'}
+        />
+        판매 기간 설정
+      </label>
 
-        <label className={styles.label}>
-          가격
-          <input type="number" name="price" value={formData.price} onChange={handleChange} className={styles.input} min="0" required />
-        </label>
+      {formData.hasSalePeriod && (
+        <>
+          <label className={styles.label}>
+            판매 시작일
+            <input type="date" name="saleStartDate" value={formData.saleStartDate} onChange={handleChange} className={styles.input} required />
+          </label>
+          <label className={styles.label}>
+            판매 종료일
+            <input type="date" name="saleEndDate" value={formData.saleEndDate} onChange={handleChange} className={styles.input} required />
+          </label>
+        </>
+      )}
 
-        <label className={`${styles.label} ${styles.checkboxLabel}`}>
-          <input type="checkbox" name="hasDiscount" checked={formData.hasDiscount} onChange={handleChange} className={styles.checkbox} />
-          할인 여부
-        </label>
+      <label className={styles.label}>
+        대표 이미지
+        <input type="file" accept="image/*" onChange={(e) => handleImageChange(e, true)} className={styles.fileInput} required={!formData.repPreview} />
+      </label>
 
-        {formData.hasDiscount && (
-            <label className={styles.label}>
-              할인율 (%)
-              <input type="number" name="discountRate" value={formData.discountRate} onChange={handleChange} className={styles.input} min="0" max="100" required />
-            </label>
-        )}
-
-        <label className={`${styles.label} ${styles.checkboxLabel}`}>
-          <input type="checkbox" name="hasSalePeriod" checked={formData.hasSalePeriod} onChange={handleChange} className={styles.checkbox} disabled={formData.productType === 'limited'} />
-          판매 기간 설정
-        </label>
-
-        {formData.hasSalePeriod && (
-            <>
-              <label className={styles.label}>
-                판매 시작일
-                <input type="date" name="saleStartDate" value={formData.saleStartDate} onChange={handleChange} className={styles.input} required />
-              </label>
-              <label className={styles.label}>
-                판매 종료일
-                <input type="date" name="saleEndDate" value={formData.saleEndDate} onChange={handleChange} className={styles.input} required />
-              </label>
-            </>
-        )}
-
-        <label className={styles.label}>
-          대표 이미지
-          <input type="file" accept="image/*" onChange={(e) => handleImageChange(e, true)} className={styles.fileInput} required={!formData.repPreview} />
-        </label>
-
-        {formData.repPreview && (
-            <div className={styles.imagePreview}>
-              <img src={formData.repPreview} alt="대표 이미지" />
-              <button type="button" onClick={handleRemoveRepresentativeImage}>삭제</button>
-            </div>
-        )}
-
-        <label className={styles.label}>
-          추가 이미지 (최대 9장)
-          <input type="file" accept="image/*" multiple onChange={(e) => handleImageChange(e, false)} className={styles.fileInput} />
-        </label>
-
-        <div className={styles.additionalImagesGrid}>
-          {formData.additionalPreviews.map((src, i) => (
-              <div key={i} className={styles.imagePreview}>
-                <img src={src} alt={`추가 이미지 ${i + 1}`} />
-                <button type="button" onClick={() => handleRemoveAdditionalImage(i)}>삭제</button>
-              </div>
-          ))}
+      {formData.repPreview && (
+        <div className={styles.imagePreview}>
+          <img src={formData.repPreview} alt="대표 이미지" />
+          <button type="button" onClick={handleRemoveRepresentativeImage}>삭제</button>
         </div>
+      )}
 
-        <label className={styles.label}>
-          상세 설명
-          <textarea name="detailDescription" value={formData.detailDescription} onChange={handleChange} className={styles.textarea} rows={5} required />
-        </label>
+      <label className={styles.label}>
+        추가 이미지 (최대 9장)
+        <input type="file" accept="image/*" multiple onChange={(e) => handleImageChange(e, false)} className={styles.fileInput} />
+      </label>
 
-        <label className={`${styles.label} ${styles.checkboxLabel}`}>
-          <input
-              type="checkbox"
-              name="hasOption"
-              checked={formData.hasOption}
-              onChange={(e) =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    hasOption: e.target.checked,
-                    optionType: 'single',
-                    singleOptions: [{ name: '', price: '' }],
-                    options: [],
-                  }))
-              }
-              className={styles.checkbox}
-          />
-          옵션 여부
-        </label>
+      <div className={styles.additionalImagesGrid}>
+        {formData.additionalPreviews.map((src, i) => (
+          <div key={i} className={styles.imagePreview}>
+            <img src={src} alt={`추가 이미지 ${i + 1}`} />
+            <button type="button" onClick={() => handleRemoveAdditionalImage(i)}>삭제</button>
+          </div>
+        ))}
+      </div>
 
-        {formData.hasOption && (
+      <label className={styles.label}>
+        상세 설명
+        <textarea name="detailDescription" value={formData.detailDescription} onChange={handleChange} className={styles.textarea} rows={5} required />
+      </label>
+
+      <label className={`${styles.label} ${styles.checkboxLabel}`}>
+        <input
+          type="checkbox"
+          name="hasOption"
+          checked={formData.hasOption}
+          onChange={(e) =>
+            setFormData((prev) => ({
+              ...prev,
+              hasOption: e.target.checked,
+              optionType: 'single',
+              singleOptions: [{ name: '', price: '' }],
+              options: [],
+            }))
+          }
+          className={styles.checkbox}
+        />
+        옵션 여부
+      </label>
+
+      {formData.hasOption && (
+        <>
+          <label className={styles.label}>
+            옵션 유형
+            <select name="optionType" value={formData.optionType} onChange={handleOptionTypeChange} className={styles.select}>
+              <option value="single">단일 옵션</option>
+              <option value="combo">조합 옵션</option>
+            </select>
+          </label>
+
+          {formData.optionType === 'single' && (
             <>
-              <label className={styles.label}>
-                옵션 유형
-                <select name="optionType" value={formData.optionType} onChange={handleOptionTypeChange} className={styles.select}>
-                  <option value="single">단독형</option>
-                  <option value="combo">조합형</option>
-                </select>
-              </label>
-
-              {formData.optionType === 'single' &&
-                  formData.singleOptions.map((opt, idx) => (
-                      <div key={idx} className={styles.optionRow}>
-                        <input type="text" placeholder="옵션명" value={opt.name} onChange={(e) => handleSingleOptionChange(idx, 'name', e.target.value)} className={styles.input} required />
-                        <input type="number" placeholder="가격" value={opt.price} onChange={(e) => handleSingleOptionChange(idx, 'price', e.target.value)} className={styles.input} min="0" required />
-                        <button type="button" onClick={() => removeSingleOption(idx)} className={styles.removeButton}>삭제</button>
-                      </div>
-                  ))}
-              {formData.optionType === 'single' && (
-                  <button type="button" onClick={addSingleOption} className={styles.addButton}>옵션 추가</button>
-              )}
-
-              {formData.optionType === 'combo' &&
-                  formData.options.map((group, gIdx) => (
-                      <div key={gIdx} className={styles.optionGroup}>
-                        <input type="text" placeholder="옵션 그룹명" value={group.group} onChange={(e) => handleOptionGroupChange(gIdx, 'group', e.target.value)} className={styles.input} required />
-                        <button type="button" onClick={() => removeOptionGroup(gIdx)} className={styles.removeButton}>그룹 삭제</button>
-                        {group.values.map((val, vIdx) => (
-                            <div key={vIdx} className={styles.optionRow}>
-                              <input type="text" placeholder="옵션값" value={val.name} onChange={(e) => handleOptionValueChange(gIdx, vIdx, 'name', e.target.value)} className={styles.input} required />
-                              <input type="number" placeholder="가격" value={val.price} onChange={(e) => handleOptionValueChange(gIdx, vIdx, 'price', e.target.value)} className={styles.input} min="0" required />
-                              <button type="button" onClick={() => removeOptionValue(gIdx, vIdx)} className={styles.removeButton}>삭제</button>
-                            </div>
-                        ))}
-                        <button type="button" onClick={() => addOptionValue(gIdx)} className={styles.addButton}>옵션값 추가</button>
-                      </div>
-                  ))}
-              {formData.optionType === 'combo' && (
-                  <button type="button" onClick={addOptionGroup} className={styles.addButton}>옵션 그룹 추가</button>
-              )}
+              {formData.singleOptions.map((opt, idx) => (
+                <div key={idx} className={styles.optionRow}>
+                  <input
+                    type="text"
+                    placeholder="옵션명"
+                    value={opt.name}
+                    onChange={(e) => handleSingleOptionChange(idx, 'name', e.target.value)}
+                    className={styles.input}
+                    required
+                  />
+                  <input
+                    type="number"
+                    placeholder="옵션 가격"
+                    value={opt.price}
+                    onChange={(e) => handleSingleOptionChange(idx, 'price', e.target.value)}
+                    className={styles.input}
+                    min="0"
+                    required
+                  />
+                  {formData.singleOptions.length > 1 && (
+                    <button type="button" onClick={() => removeSingleOption(idx)} className={styles.removeButton}>
+                      삭제
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button type="button" onClick={addSingleOption} className={styles.addButton}>
+                옵션 추가
+              </button>
             </>
-        )}
+          )}
 
-        <button type="submit" className={styles.submitButton}>등록하기</button>
-      </form>
+          {formData.optionType === 'combo' && (
+            <>
+              {formData.options.map((group, groupIndex) => (
+                <div key={groupIndex} className={styles.optionGroup}>
+                  <input
+                    type="text"
+                    placeholder="옵션 그룹명"
+                    value={group.group}
+                    onChange={(e) => handleOptionGroupChange(groupIndex, 'group', e.target.value)}
+                    className={styles.input}
+                    required
+                  />
+                  {group.values.map((val, valIndex) => (
+                    <div key={valIndex} className={styles.optionRow}>
+                      <input
+                        type="text"
+                        placeholder="옵션값명"
+                        value={val.name}
+                        onChange={(e) => handleOptionValueChange(groupIndex, valIndex, 'name', e.target.value)}
+                        className={styles.input}
+                        required
+                      />
+                      <input
+                        type="number"
+                        placeholder="옵션 가격"
+                        value={val.price}
+                        onChange={(e) => handleOptionValueChange(groupIndex, valIndex, 'price', e.target.value)}
+                        className={styles.input}
+                        min="0"
+                        required
+                      />
+                      {group.values.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeOptionValue(groupIndex, valIndex)}
+                          className={styles.removeButton}
+                        >
+                          삭제
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => addOptionValue(groupIndex)} className={styles.addButton}>
+                    옵션값 추가
+                  </button>
+                  {formData.options.length > 1 && (
+                    <button type="button" onClick={() => removeOptionGroup(groupIndex)} className={styles.removeButton}>
+                      그룹 삭제
+                    </button>
+                  )}
+                </div>
+              ))}
+              <button type="button" onClick={addOptionGroup} className={styles.addButton}>
+                옵션 그룹 추가
+              </button>
+            </>
+          )}
+        </>
+      )}
+
+      <button type="submit" className={styles.submitButton}>
+        등록하기
+      </button>
+    </form>
   );
 }
 
