@@ -1,7 +1,8 @@
 package com.WG.WithGoods.controller;
 
-import com.WG.WithGoods.service.ProductService;
 import com.WG.WithGoods.dto.ProductDto;
+import com.WG.WithGoods.dto.ProductRequestDto;
+import com.WG.WithGoods.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,15 +18,17 @@ public class ProductController {
 
     private final ProductService productService;
 
+    // ✅ ProductRequestDto 기반 생성
     @PostMapping
-    public ResponseEntity<ProductDto> create(@RequestBody ProductDto dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(dto));
+    public ResponseEntity<ProductDto> create(@RequestBody ProductRequestDto requestDto) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(productService.createProductFromRequest(requestDto));
     }
 
     @GetMapping
     public ResponseEntity<List<ProductDto>> getAll() {
-        List<ProductDto> products = productService.getAllProducts();
-        return ResponseEntity.ok(products);
+        return ResponseEntity.ok(productService.getAllProducts());
     }
 
     @GetMapping("/limited")
@@ -52,11 +55,11 @@ public class ProductController {
     public ResponseEntity<List<ProductDto>> getActiveAnniversaryProducts() {
         return ResponseEntity.ok(productService.getActiveAnniversaryProducts());
     }
+
     @GetMapping("/custom")
     public ResponseEntity<List<ProductDto>> getCustomProducts() {
         return ResponseEntity.ok(productService.getCustomProducts());
     }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getById(@PathVariable Integer id) {
@@ -73,6 +76,4 @@ public class ProductController {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }
-
 }
-

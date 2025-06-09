@@ -51,4 +51,15 @@ public class Product {
 
     @Column(name = "rating")
     private Double rating = 0.0; // 상품 평점
+
+    @Column(name = "has_discount")
+    private Boolean hasDiscount;  // 할인 여부
+
+    @Column(name = "discount_rate")
+    private Integer discountRate; // 할인 0~100
+
+    // optional: 추가 이미지 JSON 배열 문자열로 저장
+    @Column(name = "additional_images", columnDefinition = "TEXT")
+    private String additionalImagesJson;
+
 }

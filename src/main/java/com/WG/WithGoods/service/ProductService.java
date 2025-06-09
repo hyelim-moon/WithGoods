@@ -1,6 +1,7 @@
 package com.WG.WithGoods.service;
 
 import com.WG.WithGoods.dto.ProductDto;
+import com.WG.WithGoods.dto.ProductRequestDto;
 import com.WG.WithGoods.entity.Product;
 import com.WG.WithGoods.entity.ProductRole;
 import com.WG.WithGoods.repository.ProductRepository;
@@ -17,6 +18,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
 
+    // 상품 생성
     public ProductDto createProduct(ProductDto dto) {
         Product product = Product.builder()
                 .name(dto.getName())
@@ -34,53 +36,21 @@ public class ProductService {
         return toDto(productRepository.save(product));
     }
 
+    // 전체 상품 조회
     public List<ProductDto> getAllProducts() {
         return productRepository.findAll().stream()
                 .map(this::toDto)
                 .toList();
     }
 
-    public List<ProductDto> getLimitedProducts() {
-        return productRepository.findByRole(ProductRole.LIMITED).stream()
-                .map(this::toDto)
-                .toList();
-    }
-
-    public List<ProductDto> getActiveLimitedProducts() {
-        return productRepository.findActiveLimitedProducts(LocalDateTime.now()).stream()
-                .map(this::toDto)
-                .toList();
-    }
-
-    public List<ProductDto> getNormalProducts() {
-        return productRepository.findByRole(ProductRole.NORMAL).stream()
-                .map(this::toDto)
-                .toList();
-    }
-
-    public List<ProductDto> getAnniversaryProducts() {
-        return productRepository.findByRole(ProductRole.ANNIVERSARY).stream()
-                .map(this::toDto)
-                .toList();
-    }
-    public List<ProductDto> getCustomProducts() {
-        return productRepository.findByRole(ProductRole.CUSTOM).stream()
-                .map(this::toDto)
-                .toList();
-    }
-
-    public List<ProductDto> getActiveAnniversaryProducts() {
-        return productRepository.findActiveAnniversaryProducts(LocalDateTime.now()).stream()
-                .map(this::toDto)
-                .toList();
-    }
-
+    // 상품 ID 조회
     public ProductDto getProductById(Integer id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다."));
         return toDto(product);
     }
 
+    // 상품 수정
     public ProductDto updateProduct(Integer id, ProductDto dto) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다."));
@@ -99,8 +69,46 @@ public class ProductService {
         return toDto(productRepository.save(product));
     }
 
+    // 상품 삭제
     public void deleteProduct(Integer id) {
         productRepository.deleteById(id);
+    }
+
+    // 역할별 상품
+    public List<ProductDto> getNormalProducts() {
+        return productRepository.findByRole(ProductRole.NORMAL).stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    public List<ProductDto> getLimitedProducts() {
+        return productRepository.findByRole(ProductRole.LIMITED).stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    public List<ProductDto> getAnniversaryProducts() {
+        return productRepository.findByRole(ProductRole.ANNIVERSARY).stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    public List<ProductDto> getCustomProducts() {
+        return productRepository.findByRole(ProductRole.CUSTOM).stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    public List<ProductDto> getActiveLimitedProducts() {
+        return productRepository.findActiveLimitedProducts(LocalDateTime.now()).stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    public List<ProductDto> getActiveAnniversaryProducts() {
+        return productRepository.findActiveAnniversaryProducts(LocalDateTime.now()).stream()
+                .map(this::toDto)
+                .toList();
     }
 
     private ProductDto toDto(Product product) {
@@ -118,6 +126,29 @@ public class ProductService {
                 .stock(product.getStock())
                 .rating(product.getRating())
                 .build();
+    }
+
+    public ProductDto createProductFromRequest(ProductRequestDto req) {
+        Product product = Product.builder()
+                .name(req.getName())
+                .description(req.getDescription())
+                .price(req.getPrice())
+                .category(req.getCategory())
+                .options(req.getOptions()) // JSON 문자열 그대로 저장
+                .role(ProductRole.valueOf(req.getRole().toUpperCase()))
+                .startDate(parseDate(req.getStartDate()))
+                .endDate(parseDate(req.getEndDate()))
+                .stock(req.getStock())
+                .rating(0.0)
+                .build();
+
+        return toDto(productRepository.save(product));
+    }
+
+    // 문자열 → LocalDateTime 변환 (null-safe)
+    private LocalDateTime parseDate(String dateStr) {
+        if (dateStr == null || dateStr.isEmpty()) return null;
+        return LocalDateTime.parse(dateStr);
     }
 
 }
