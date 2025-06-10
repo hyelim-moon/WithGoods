@@ -112,6 +112,54 @@ public class ProductService {
         return toDto(productRepository.save(product));
     }
 
+    public ProductDto updateProductFromRequest(Integer id,
+                                               ProductRequestDto req,
+                                               MultipartFile representativeImage,
+                                               List<MultipartFile> additionalImages) throws Exception {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다."));
+
+        // 대표 이미지 처리
+        if (representativeImage != null && !representativeImage.isEmpty()) {
+            String imageUrl = saveImageAndGetUrl(representativeImage);
+            product.setImageUrl(imageUrl);
+        }
+
+        // 기타 필드 업데이트
+        product.setName(req.getName());
+        product.setDescription(req.getDescription());
+        product.setPrice(req.getPrice());
+        product.setCategory(req.getCategory());
+        product.setOptions(req.getOptions());
+
+        try {
+            ProductRole role = ProductRole.valueOf(req.getProductType().toUpperCase());
+            product.setRole(role);
+        } catch (Exception e) {
+            product.setRole(ProductRole.NORMAL);
+        }
+
+        product.setStartDate(req.getStartDate());
+        product.setEndDate(req.getEndDate());
+        product.setStock(req.getStock());
+        product.setHasDiscount(req.getHasDiscount());
+        product.setDiscountRate(req.getDiscountRate());
+
+        // 추가 이미지 처리 (필요하면 구현)
+        if (additionalImages != null) {
+            for (MultipartFile file : additionalImages) {
+                if (!file.isEmpty()) {
+                    saveAdditionalImage(product.getProductId(), file);
+                }
+            }
+        }
+
+        Product saved = productRepository.save(product);
+
+        return toDto(saved);
+    }
+
+
     public void deleteProduct(Integer id) {
         productRepository.deleteById(id);
     }

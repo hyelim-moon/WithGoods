@@ -43,6 +43,24 @@ public class ProductController {
                     .body("상품 등록 중 오류가 발생했습니다: " + e.getMessage());
         }
     }
+    
+    // 상품 수정
+    @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ProductDto> updateProduct(
+            @PathVariable Integer id,
+            @RequestPart("dto") String dtoString,
+            @RequestPart(value = "representativeImage", required = false) MultipartFile representativeImage,
+            @RequestPart(value = "additionalImages", required = false) List<MultipartFile> additionalImages
+    ) {
+        try {
+            ProductRequestDto dto = objectMapper.readValue(dtoString, ProductRequestDto.class);
+            ProductDto updated = productService.updateProductFromRequest(id, dto, representativeImage, additionalImages);
+            return ResponseEntity.ok(updated);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 
     // 전체 상품 조회
     @GetMapping

@@ -102,6 +102,7 @@ function AppContent() {
         <Route path="/recent" element={<Recent />} />
         <Route path="/estimatelist" element={<EstimateList />} />
         <Route path="/product/:id" element={<ProductDetail />} />
+        <Route path="/product/edit/:id" element={<GeneralProductForm />} />
         <Route path="/product/:id/stats" element={<ProductStats />} />
         <Route path="/edit-profile" element={<EditProfile />} />
         <Route path="/product-register" element={<ProductRegisterMain />}>

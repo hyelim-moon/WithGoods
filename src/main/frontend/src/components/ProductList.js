@@ -30,13 +30,13 @@ function ProductList() {
 
           return (
             <div
-              key={product.id}
+              key={product.productId}
               className={styles.card}
               role="button"
               tabIndex={0}
-              onClick={() => navigate(`/product/${product.id}`)}
+              onClick={() => navigate(`/product/${product.productId}`)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') navigate(`/product/${product.id}`);
+                if (e.key === 'Enter') navigate(`/product/${product.productId}`);
               }}
             >
               <img
@@ -77,7 +77,7 @@ function ProductList() {
               >
                 <button
                   className={`${styles.button} ${styles.detailBtn}`}
-                  onClick={() => navigate(`/product/${product.id}/stats`)}
+                  onClick={() => navigate(`/product/${product.productId}/stats`)}
                 >
                   상세보기
                 </button>
@@ -85,7 +85,7 @@ function ProductList() {
                   className={`${styles.button} ${styles.editBtn}`}
                   onClick={(e) => {
                     e.stopPropagation();
-                    navigate(`/product/edit/${product.id}`);
+                    navigate(`/product/edit/${product.productId}`);
                   }}
                 >
                   수정
