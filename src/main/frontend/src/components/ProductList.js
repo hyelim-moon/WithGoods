@@ -40,7 +40,7 @@ const dummyProducts = [
     },
 ];
 
-function MyProductList() {
+function ProductList() {
     const navigate = useNavigate();
 
     return (
@@ -118,4 +118,4 @@ function MyProductList() {
     );
 }
 
-export default MyProductList;
+export default ProductList;
