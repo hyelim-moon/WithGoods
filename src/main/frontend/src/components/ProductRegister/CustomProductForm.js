@@ -3,7 +3,8 @@ import styles from '../../assets/styles/CustomProductForm.module.css';
 
 function CustomProductForm() {
     const [formData, setFormData] = useState({
-        productType: '',
+        productType: 'custom',
+        category: '',
         name: '',
         price: '',
         hasDiscount: false,
@@ -16,14 +17,14 @@ function CustomProductForm() {
         additionalImages: [],
         additionalPreviews: [],
         detailDescription: '',
-        hasOption: true,
-        optionType: 'combo',
-        singleOptions: [],
-        options: [{ group: '', values: [{ name: '', price: '' }] }],
+        hasOption: false,
+        optionType: 'single',
+        singleOptions: [{ name: '', price: '' }],
+        options: [],
         limitedEditionNumber: '',
         limitedReleaseDate: '',
         allowMessageOption: false,
-    });
+      });
 
     const handleChange = (e) => {
         const { name, value, type, checked, files } = e.target;
@@ -45,26 +46,30 @@ function CustomProductForm() {
     const handleImageChange = (e, isRepresentative) => {
         const files = e.target.files;
         if (isRepresentative) {
-            if (files.length === 0) return;
-            const file = files[0];
-            setFormData((prev) => ({
-                ...prev,
-                representativeImage: file,
-                repPreview: URL.createObjectURL(file),
-            }));
+          if (files.length === 0) return;
+          const file = files[0];
+          if (formData.repPreview) {
+            URL.revokeObjectURL(formData.repPreview);
+          }
+          setFormData((prev) => ({
+            ...prev,
+            representativeImage: file,
+            repPreview: URL.createObjectURL(file),
+          }));
         } else {
-            const newFiles = Array.from(files);
-            setFormData((prev) => {
-                const combined = [...prev.additionalImages, ...newFiles].slice(0, 9);
-                const combinedPreviews = combined.map((file) => URL.createObjectURL(file));
-                return {
-                    ...prev,
-                    additionalImages: combined,
-                    additionalPreviews: combinedPreviews,
-                };
-            });
+          const newFiles = Array.from(files);
+          formData.additionalPreviews.forEach(URL.revokeObjectURL);
+          setFormData((prev) => {
+            const combined = [...prev.additionalImages, ...newFiles].slice(0, 9);
+            const combinedPreviews = combined.map((file) => URL.createObjectURL(file));
+            return {
+              ...prev,
+              additionalImages: combined,
+              additionalPreviews: combinedPreviews,
+            };
+          });
         }
-    };
+      };
 
     const handleRemoveRepresentativeImage = () => {
         setFormData((prev) => ({
@@ -76,16 +81,18 @@ function CustomProductForm() {
 
     const handleRemoveAdditionalImage = (index) => {
         setFormData((prev) => {
-            const newImages = [...prev.additionalImages];
-            newImages.splice(index, 1);
-            const newPreviews = newImages.map((file) => URL.createObjectURL(file));
-            return {
-                ...prev,
-                additionalImages: newImages,
-                additionalPreviews: newPreviews,
-            };
+          const newImages = [...prev.additionalImages];
+          newImages.splice(index, 1);
+          // 미리보기 URL 재생성
+          formData.additionalPreviews.forEach(URL.revokeObjectURL);
+          const newPreviews = newImages.map((file) => URL.createObjectURL(file));
+          return {
+            ...prev,
+            additionalImages: newImages,
+            additionalPreviews: newPreviews,
+          };
         });
-    };
+      };
 
     const handleSingleOptionChange = (index, key, value) => {
         setFormData((prev) => {
@@ -195,20 +202,83 @@ function CustomProductForm() {
         }));
     };
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        console.log('폼 제출 데이터:', formData);
-        alert('폼 제출 완료! 콘솔을 확인하세요.');
-    };
+    const handleSubmit = async (e) => {
+       e.preventDefault();
+
+       const dto = {
+         productType: formData.productType,
+         category: formData.category,
+         name: formData.name,
+         price: Number(formData.price),
+         hasDiscount: formData.hasDiscount,
+         discountRate: formData.discountRate ? Number(formData.discountRate) : null,
+         hasSalePeriod: formData.hasSalePeriod,
+         startDate: formData.saleStartDate || null,
+         endDate: formData.saleEndDate || null,
+         description: formData.detailDescription,
+         options: formData.hasOption
+           ? formData.optionType === 'single'
+             ? JSON.stringify(formData.singleOptions)
+             : JSON.stringify(formData.options)
+           : null,
+         limitedEditionNumber: formData.limitedEditionNumber || null,
+         limitedReleaseDate: formData.limitedReleaseDate || null,
+         allowMessageOption: formData.allowMessageOption,
+         stock: null, // 재고 있으면 숫자 넣기
+       };
+
+       try {
+         const data = new FormData();
+
+         // dto 전체를 JSON 문자열로 넣기
+         data.append('dto', JSON.stringify(dto));
+
+         // 이미지 파일 추가
+         if (formData.representativeImage) {
+           data.append('representativeImage', formData.representativeImage);
+         }
+         formData.additionalImages.forEach((file) => {
+           data.append('additionalImages', file); // 서버에 따라 'additionalImages' 또는 'additionalImages[]' 다르게 쓸 수 있음
+         });
+
+         const response = await fetch('/api/products/upload', {
+           method: 'POST',
+           body: data,
+         });
+
+         if (!response.ok) {
+           const errorData = await response.json();
+           throw new Error(`서버 오류 발생: ${JSON.stringify(errorData)}`);
+         }
+
+         const result = await response.json();
+         console.log('서버 응답:', result);
+         alert('폼 제출 완료!');
+
+         // 필요 시 초기화 작업 등
+
+       } catch (error) {
+         console.error('폼 제출 실패:', error);
+         alert('폼 제출 실패, 다시 시도해주세요.');
+       }
+     };
 
     return (
         <form className={styles.registerForm} onSubmit={handleSubmit}>
             <h2 className={styles.title}>커스텀 상품 등록</h2>
 
-            <label className={styles.label}>
+             <input type="hidden" name="productType" value={formData.productType} />
+
+              <label className={styles.label}>
                 상품 유형
-                <input type="text" name="productType" value={formData.productType} onChange={handleChange} className={styles.input} required />
-            </label>
+                <select name="category" value={formData.category} onChange={handleChange} className={styles.select} required>
+                  <option value="">선택하세요</option>
+                  <option value="인형">인형</option>
+                  <option value="문구">문구</option>
+                  <option value="가전">가전</option>
+                  <option value="패션">패션</option>
+                </select>
+              </label>
 
             <label className={styles.label}>
                 상품명
@@ -238,17 +308,32 @@ function CustomProductForm() {
             </label>
 
             {formData.hasSalePeriod && (
-                <>
-                    <label className={styles.label}>
-                        판매 시작일
-                        <input type="date" name="saleStartDate" value={formData.saleStartDate} onChange={handleChange} className={styles.input} required />
-                    </label>
-                    <label className={styles.label}>
-                        판매 종료일
-                        <input type="date" name="saleEndDate" value={formData.saleEndDate} onChange={handleChange} className={styles.input} required />
-                    </label>
-                </>
+              <div className="salePeriodInputs">
+                <label className={styles.label}>
+                  판매 시작일
+                  <input
+                    type="date"
+                    name="saleStartDate"
+                    value={formData.saleStartDate}
+                    onChange={handleChange}
+                    className={styles.input}
+                    required
+                  />
+                </label>
+                <label className={styles.label}>
+                  판매 종료일
+                  <input
+                    type="date"
+                    name="saleEndDate"
+                    value={formData.saleEndDate}
+                    onChange={handleChange}
+                    className={styles.input}
+                    required
+                  />
+                </label>
+              </div>
             )}
+
 
             <label className={styles.label}>
                 대표 이미지

@@ -316,17 +316,32 @@ function GeneralProductForm() {
       </label>
 
       {formData.hasSalePeriod && (
-        <>
+        <div className="salePeriodInputs">
           <label className={styles.label}>
             판매 시작일
-            <input type="date" name="saleStartDate" value={formData.saleStartDate} onChange={handleChange} className={styles.input} required />
+            <input
+              type="date"
+              name="saleStartDate"
+              value={formData.saleStartDate}
+              onChange={handleChange}
+              className={styles.input}
+              required
+            />
           </label>
           <label className={styles.label}>
             판매 종료일
-            <input type="date" name="saleEndDate" value={formData.saleEndDate} onChange={handleChange} className={styles.input} required />
+            <input
+              type="date"
+              name="saleEndDate"
+              value={formData.saleEndDate}
+              onChange={handleChange}
+              className={styles.input}
+              required
+            />
           </label>
-        </>
+        </div>
       )}
+
 
       <label className={styles.label}>
         대표 이미지

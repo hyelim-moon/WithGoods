@@ -348,29 +348,33 @@ function LimitedProductForm() {
           판매 기간 설정
         </label>
 
-        <label className={styles.label}>
-          판매 시작일
-          <input
-              type="date"
-              name="saleStartDate"
-              value={formData.saleStartDate}
-              onChange={handleChange}
-              className={styles.input}
-              required
-          />
-        </label>
+        {formData.hasSalePeriod && (
+          <div className="salePeriodInputs">
+            <label className={styles.label}>
+              판매 시작일
+              <input
+                type="date"
+                name="saleStartDate"
+                value={formData.saleStartDate}
+                onChange={handleChange}
+                className={styles.input}
+                required
+              />
+            </label>
+            <label className={styles.label}>
+              판매 종료일
+              <input
+                type="date"
+                name="saleEndDate"
+                value={formData.saleEndDate}
+                onChange={handleChange}
+                className={styles.input}
+                required
+              />
+            </label>
+          </div>
+        )}
 
-        <label className={styles.label}>
-          판매 종료일
-          <input
-              type="date"
-              name="saleEndDate"
-              value={formData.saleEndDate}
-              onChange={handleChange}
-              className={styles.input}
-              required
-          />
-        </label>
 
         <label className={styles.label}>
           대표 이미지
@@ -556,17 +560,19 @@ function LimitedProductForm() {
                 required
             />
           </label>
-          <label className={styles.label}>
-            출시일
-            <input
+          <div className={styles.releaseDate}>
+            <label className={styles.label} style={{ Width: '220px' }}>
+              출시일
+              <input
                 type="date"
                 name="limitedReleaseDate"
                 value={formData.limitedReleaseDate}
                 onChange={handleChange}
                 className={styles.input}
                 required
-            />
-          </label>
+              />
+            </label>
+          </div>
         </>
 
         <button type="submit" className={styles.submitButton}>
