@@ -56,18 +56,22 @@ function OrderHistory() {
 
     // 날짜 포맷 변환 함수
     const formatDate = (dateString) => {
-            const date = new Date(dateString);
-            if (isNaN(date)) {
-                return '유효하지 않은 날짜';
-            }
-            return date.toLocaleDateString('ko-KR', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-        };
+        if (!dateString) return '날짜 정보 없음';
+        
+        const date = new Date(dateString);
+        if (isNaN(date.getTime())) {
+            return '유효하지 않은 날짜';
+        }
+        
+        return new Intl.DateTimeFormat('ko-KR', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            hour12: false
+        }).format(date);
+    };
 
     // 주문 항목 클릭 시 상세 페이지로 이동
     const handleOrderClick = (orderId) => {

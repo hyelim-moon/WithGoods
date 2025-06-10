@@ -6,6 +6,7 @@ import com.WG.WithGoods.entity.PaymentMethod;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,6 +19,7 @@ public class OrderResponseDto {
     private PaymentInfoDto paymentInfo;
     private List<OrderItemDto> orderItems;
     private OrderSummaryDto orderSummary;
+    private LocalDateTime orderDate;
 
     @Getter
     @Builder
@@ -70,6 +72,7 @@ public class OrderResponseDto {
     public static OrderResponseDto from(Order order) {
         return OrderResponseDto.builder()
                 .orderId(order.getOrderId())
+                .orderDate(order.getOrderDate())
                 .ordererInfo(OrdererInfoDto.builder()
                         .name(order.getOrdererName())
                         .phone(order.getOrdererPhone())

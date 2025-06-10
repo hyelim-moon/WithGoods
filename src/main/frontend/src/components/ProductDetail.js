@@ -27,27 +27,37 @@ function ProductDetail() {
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [timeLeft, setTimeLeft] = useState(null);
 
-    // 상품 데이터 불러오기
+    // 상품 데이터와 찜 상태 불러오기
     useEffect(() => {
-        const fetchProduct = async () => {
+        const fetchProductAndWishlist = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`/api/products/${id}`, {
-                    withCredentials: true
-                });
-                console.log('Fetched product:', response.data); // 디버깅용 로그
-                setProduct(response.data);
+                const [productResponse, wishlistResponse] = await Promise.all([
+                    axios.get(`http://localhost:8080/products/${id}`, {
+                        withCredentials: true
+                    }),
+                    axios.get(`http://localhost:8080/api/wishlist/check/${id}`, {
+                        withCredentials: true
+                    })
+                ]);
+                
+                setProduct(productResponse.data);
+                setIsFavorited(wishlistResponse.data);
                 setError(null);
             } catch (err) {
-                console.error('Error fetching product:', err); // 디버깅용 로그
-                setError('상품 정보를 불러오는데 실패했습니다.');
+                console.error('Error fetching data:', err);
+                if (err.response?.status === 401) {
+                    setIsFavorited(false);
+                } else {
+                    setError('상품 정보를 불러오는데 실패했습니다.');
+                }
             } finally {
                 setLoading(false);
             }
         };
 
         if (id) {
-            fetchProduct();
+            fetchProductAndWishlist();
         }
     }, [id]);
 
@@ -122,8 +132,35 @@ function ProductDetail() {
     };
 
     // 즐겨찾기 토글
-    const toggleFavorite = () => {
-        setIsFavorited(!isFavorited);
+    const toggleFavorite = async () => {
+        try {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            if (!isLoggedIn) {
+                alert('로그인이 필요한 서비스입니다.');
+                navigate('/login');
+                return;
+            }
+
+            if (isFavorited) {
+                await axios.delete(`http://localhost:8080/api/wishlist/remove?productId=${id}`, {
+                    withCredentials: true
+                });
+                setIsFavorited(false);
+            } else {
+                await axios.post(`http://localhost:8080/api/wishlist/add?productId=${id}`, null, {
+                    withCredentials: true
+                });
+                setIsFavorited(true);
+            }
+        } catch (error) {
+            console.error('Error toggling wishlist:', error);
+            if (error.response?.status === 401) {
+                alert('로그인이 필요한 서비스입니다.');
+                navigate('/login');
+            } else {
+                alert(isFavorited ? '찜 해제에 실패했습니다.' : '찜하기에 실패했습니다.');
+            }
+        }
     };
 
     const openReportModal = (review) => {

@@ -460,3 +460,35 @@
         font-size: 0.85rem;
     }
 }
+
+.wishButtonContainer {
+    margin-top: 1rem;
+}
+
+.wishButton {
+    padding: 0.8rem 2rem;
+    font-size: 1rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.wishButton:hover {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+}
+
+.wished {
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+    background-color: #fff0f0;
+}
+
+.wished:hover {
+    background-color: #ffe5e5;
+}
