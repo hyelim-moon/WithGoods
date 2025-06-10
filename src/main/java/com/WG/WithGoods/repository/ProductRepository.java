@@ -12,11 +12,11 @@ import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
-    @Query("SELECT p FROM Product p WHERE p.role = 'LIMITED' AND :now BETWEEN p.startDate AND p.endDate")
-    List<Product> findActiveLimitedProducts(@Param("now") LocalDateTime now);
-
     @Query("SELECT p FROM Product p WHERE p.role = 'ANNIVERSARY' AND :now BETWEEN p.startDate AND p.endDate")
-    List<Product> findActiveAnniversaryProducts(@Param("now") LocalDateTime now);
+    List<Product> findActiveAnniversaryProducts(@Param("now") java.time.LocalDate now);
+
+    @Query("SELECT p FROM Product p WHERE p.role = 'LIMITED' AND :now BETWEEN p.startDate AND p.endDate")
+    List<Product> findActiveLimitedProducts(@Param("now") java.time.LocalDate now);
 
     List<Product> findByRole(ProductRole role);
 }

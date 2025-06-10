@@ -190,13 +190,13 @@ public class ProductService {
 
     // 오늘 날짜를 기준으로 한정판 상품 조회 (Repository 메서드가 LocalDate 받도록 구현 필요)
     public List<ProductDto> getActiveLimitedProducts() {
-        return productRepository.findActiveLimitedProducts(LocalDateTime.now()).stream()
+        return productRepository.findActiveLimitedProducts(LocalDate.now()).stream()
                 .map(this::toDto)
                 .toList();
     }
 
     public List<ProductDto> getActiveAnniversaryProducts() {
-        return productRepository.findActiveAnniversaryProducts(LocalDateTime.now()).stream()
+        return productRepository.findActiveAnniversaryProducts(LocalDate.now()).stream()
                 .map(this::toDto)
                 .toList();
     }
