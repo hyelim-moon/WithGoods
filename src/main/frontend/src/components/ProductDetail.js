@@ -11,7 +11,7 @@ function ProductDetail() {
     const navigate = useNavigate();
 
     // 상태 변수들 정의
-    const [selectedOption, setSelectedOption] = useState('');
+    const [selectedOptions, setSelectedOptions] = useState({}); // 선택된 옵션들을 저장
     const [quantity, setQuantity] = useState(1);
     const [selectedImage, setSelectedImage] = useState(0); // 선택된 이미지 인덱스
     const [showMoreInfo, setShowMoreInfo] = useState(false); // 상세 설명 더보기 여부
@@ -96,10 +96,25 @@ function ProductDetail() {
         return stock <= 5 ? `${styles.stockValue} ${styles.urgentStock}` : styles.stockValue;
     };
 
+    // 옵션 선택 처리
+    const handleOptionSelect = (groupName, option) => {
+        setSelectedOptions(prev => ({
+            ...prev,
+            [groupName]: option
+        }));
+    };
+
+    // 모든 필수 옵션이 선택되었는지 확인
+    const areAllOptionsSelected = () => {
+        if (!product?.options) return true;
+        const optionsObj = JSON.parse(product.options);
+        return Object.keys(optionsObj).every(group => selectedOptions[group]);
+    };
+
     // 장바구니에 추가
     const handleAddToCart = async () => {
-        if (!selectedOption && product?.options) {
-            alert('옵션을 선택해주세요.');
+        if (!areAllOptionsSelected()) {
+            alert('모든 옵션을 선택해주세요.');
             return;
         }
 
@@ -107,7 +122,7 @@ function ProductDetail() {
             const cartItem = {
                 productId: product.productId,
                 quantity: quantity,
-                option: selectedOption,
+                options: selectedOptions,
             };
 
             await axios.post('http://localhost:8080/api/cart', cartItem, {
@@ -249,19 +264,24 @@ function ProductDetail() {
                     {/* 옵션 선택 */}
                     {product.options && (
                         <div className={styles.optionSection}>
-                            <label>옵션</label>
-                            <select 
-                                value={selectedOption} 
-                                onChange={(e) => setSelectedOption(e.target.value)}
-                                className={styles.optionSelect}
-                            >
-                                <option value="">옵션을 선택하세요</option>
-                                {product.options.split(',').map((opt, i) => (
-                                    <option key={i} value={opt.trim()}>
-                                        {opt.trim()}
-                                    </option>
-                                ))}
-                            </select>
+                            {Object.entries(JSON.parse(product.options)).map(([groupName, options]) => (
+                                <div key={groupName} className={styles.optionGroup}>
+                                    <div className={styles.optionTitle}>{groupName}</div>
+                                    <div className={styles.optionButtons}>
+                                        {options.map((option) => (
+                                            <button
+                                                key={option}
+                                                className={`${styles.optionButton} ${
+                                                    selectedOptions[groupName] === option ? styles.selected : ''
+                                                }`}
+                                                onClick={() => handleOptionSelect(groupName, option)}
+                                            >
+                                                {option}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
 

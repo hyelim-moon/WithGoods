@@ -8,14 +8,18 @@ import com.WG.WithGoods.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ProductService {
 
     private final ProductRepository productRepository;
@@ -199,6 +203,17 @@ public class ProductService {
         return productRepository.findActiveAnniversaryProducts(LocalDate.now()).stream()
                 .map(this::toDto)
                 .toList();
+    }
+
+    public Map<String, Object> getProductWithOptions(Integer id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다."));
+
+        Map<String, Object> response = new HashMap<>();
+        response.put("product", product);
+        response.put("options", product.getOptionsAsMap());
+        
+        return response;
     }
 
     private ProductDto toDto(Product product) {

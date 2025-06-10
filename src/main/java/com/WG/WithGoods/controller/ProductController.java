@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/products")
@@ -106,8 +107,8 @@ public class ProductController {
 
     // ID로 상품 조회
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDto> getById(@PathVariable Integer id) {
-        return ResponseEntity.ok(productService.getProductById(id));
+    public ResponseEntity<Map<String, Object>> getProductDetail(@PathVariable Integer id) {
+        return ResponseEntity.ok(productService.getProductWithOptions(id));
     }
 
     // 상품 수정
