@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -42,9 +43,11 @@ public class ProductService {
                 .category(req.getCategory())
                 .options(req.getOptions())
                 .role(role)
-                .startDate(parseDate(req.getStartDate()))
-                .endDate(parseDate(req.getEndDate()))
+                .startDate(req.getStartDate())  // LocalDate 사용
+                .endDate(req.getEndDate())
                 .stock(req.getStock())
+                .hasDiscount(req.getHasDiscount())
+                .discountRate(req.getDiscountRate())
                 .imageUrl(imageUrl)
                 .rating(0.0)
                 .build();
@@ -62,7 +65,6 @@ public class ProductService {
         return toDto(savedProduct);
     }
 
-    // 상품 생성 (기존 메서드)
     public ProductDto createProduct(ProductDto dto) {
         Product product = Product.builder()
                 .name(dto.getName())
@@ -138,6 +140,7 @@ public class ProductService {
                 .toList();
     }
 
+    // 오늘 날짜를 기준으로 한정판 상품 조회 (Repository 메서드가 LocalDate 받도록 구현 필요)
     public List<ProductDto> getActiveLimitedProducts() {
         return productRepository.findActiveLimitedProducts(LocalDateTime.now()).stream()
                 .map(this::toDto)
@@ -167,23 +170,12 @@ public class ProductService {
                 .build();
     }
 
-    // 문자열 → LocalDateTime 변환 (null-safe)
-    private LocalDateTime parseDate(String dateStr) {
-        if (dateStr == null || dateStr.isEmpty()) return null;
-        return LocalDateTime.parse(dateStr);
-    }
-
-    // 이미지 저장 (임시 예시)
     private String saveImageAndGetUrl(MultipartFile file) throws Exception {
-        // 실제 저장 로직 필요
-        // 파일명, 저장 위치 결정 후 저장
-        // 저장 후 접근 가능한 URL 리턴
+        // 실제 파일 저장 구현 필요
         return "https://example.com/images/" + file.getOriginalFilename();
     }
 
-    // 추가 이미지 저장 (임시 예시)
     private void saveAdditionalImage(Integer productId, MultipartFile file) {
-        // 추가 이미지 저장 로직 구현
-        // 예: productId와 파일명 연결해서 저장
+        // 추가 이미지 저장 구현 필요
     }
 }

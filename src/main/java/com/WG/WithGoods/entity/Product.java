@@ -2,6 +2,8 @@ package com.WG.WithGoods.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -41,10 +43,10 @@ public class Product {
     private ProductRole role = ProductRole.NORMAL; // 상품 역할 (일반/한정판)
 
     @Column(name = "start_date")
-    private LocalDateTime startDate; // 한정판 판매 시작일
+    private LocalDate startDate; // 한정판 판매 시작일
 
     @Column(name = "end_date")
-    private LocalDateTime endDate; // 한정판 판매 종료일
+    private LocalDate endDate; // 한정판 판매 종료일
 
     @Column(name = "stock")
     private Integer stock; // 한정판 재고

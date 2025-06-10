@@ -1,6 +1,9 @@
 package com.WG.WithGoods.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
+
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -14,13 +17,13 @@ public class ProductRequestDto {
     private String category;
     private String options; // JSON 문자열
     private String productType;
-    private String startDate;
-    private String endDate;
+    private LocalDate startDate;
+    private LocalDate endDate;
     private Integer stock;
     private Boolean hasDiscount;
     private Integer discountRate;
     private Boolean hasSalePeriod;
-    private String limitedEditionNumber;
-    private String limitedReleaseDate;
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate limitedReleaseDate;
     private Boolean allowMessageOption;
 }
