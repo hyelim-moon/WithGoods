@@ -68,33 +68,33 @@ function MainContent() {
 
     // 섹션 정의
     const sections = [
+        {
+            title: '커스텀',
+            icon: '🎨',
+            route: '/customization',
+            emoji: '🧩',
+            products: products.custom
+        },
+        {
+            title: '한정판',
+            icon: '✨',
+            route: '/limited_edition',
+            emoji: '🖌️',
+            products: products.limited
+        },
+        {
+            title: '기념일',
+            icon: '🎉',
+            route: '/anniversary',
+            emoji: '🎈',
+            products: products.anniversary
+        },
         { 
-            title: 'BEST', 
+            title: '일반',
             icon: '⭐', 
             route: '/best', 
             emoji: '🧸',
             products: products.best 
-        },
-        { 
-            title: '기념일', 
-            icon: '🎉', 
-            route: '/anniversary', 
-            emoji: '🎈',
-            products: products.anniversary 
-        },
-        { 
-            title: '커스텀', 
-            icon: '🎨', 
-            route: '/customization', 
-            emoji: '🧩',
-            products: products.custom 
-        },
-        { 
-            title: '한정판', 
-            icon: '✨', 
-            route: '/limited_edition', 
-            emoji: '🖌️',
-            products: products.limited 
         }
     ];
 
