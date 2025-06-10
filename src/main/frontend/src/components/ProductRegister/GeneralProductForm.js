@@ -289,7 +289,7 @@ function GeneralProductForm() {
 
   return (
     <form className={styles.registerForm} onSubmit={handleSubmit}>
-      <h2>{isEditMode ? '상품 수정' : '신규 상품 등록'}</h2>
+      <h2 className={styles.title}>{isEditMode ? '상품 수정' : '일반 상품 등록'}</h2>
       <input type="hidden" name="productType" value={formData.productType} />
 
       <label className={styles.label}>
