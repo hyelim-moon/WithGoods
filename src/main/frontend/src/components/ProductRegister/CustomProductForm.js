@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from '../../assets/styles/CustomProductForm.module.css';
+import styles from '../../assets/styles/GeneralProductForm.module.css';
 
 function CustomProductForm() {
     const [formData, setFormData] = useState({
@@ -17,7 +17,7 @@ function CustomProductForm() {
         additionalImages: [],
         additionalPreviews: [],
         detailDescription: '',
-        hasOption: false,
+        hasOption: true,
         optionType: 'single',
         singleOptions: [{ name: '', price: '' }],
         options: [],
@@ -369,7 +369,7 @@ function CustomProductForm() {
             <label className={`${styles.label} ${styles.checkboxLabel}`}>
                 <input
                     type="checkbox"
-                    name="hasOption"
+                    name="hasOptionDisabled"
                     disabled={true}
                     checked={formData.hasOption}
                     onChange={(e) =>

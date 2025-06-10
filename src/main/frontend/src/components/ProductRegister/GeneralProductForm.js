@@ -375,127 +375,120 @@ function GeneralProductForm() {
       </label>
 
       <label className={`${styles.label} ${styles.checkboxLabel}`}>
-        <input
-          type="checkbox"
-          name="hasOption"
-          checked={formData.hasOption}
-          onChange={(e) =>
-            setFormData((prev) => ({
-              ...prev,
-              hasOption: e.target.checked,
-              optionType: 'single',
-              singleOptions: [{ name: '', price: '' }],
-              options: [],
-            }))
-          }
-          className={styles.checkbox}
-        />
-        옵션 여부
-      </label>
+                <input
+                    type="checkbox"
+                    name="hasOption"
+                    checked={formData.hasOption}
+                    onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          hasOption: e.target.checked,
+                          optionType: 'single',
+                          singleOptions: [{ name: '', price: '' }],
+                          options: [],
+                        }))
+                    }
+                    className={styles.checkbox}
+                />
+                옵션 여부
+              </label>
 
-      {formData.hasOption && (
-        <>
-          <label className={styles.label}>
-            옵션 유형
-            <select name="optionType" value={formData.optionType} onChange={handleOptionTypeChange} className={styles.select}>
-              <option value="single">단일 옵션</option>
-              <option value="combo">조합 옵션</option>
-            </select>
-          </label>
+              {formData.hasOption && (
+                  <>
+                    <label className={styles.label}>
+                      옵션 유형
+                      <select
+                          name="optionType"
+                          value={formData.optionType}
+                          onChange={handleOptionTypeChange}
+                          className={styles.select}
+                      >
+                        <option value="single">단독형</option>
+                        <option value="combo">조합형</option>
+                      </select>
+                    </label>
 
-          {formData.optionType === 'single' && (
-            <>
-              {formData.singleOptions.map((opt, idx) => (
-                <div key={idx} className={styles.optionRow}>
-                  <input
-                    type="text"
-                    placeholder="옵션명"
-                    value={opt.name}
-                    onChange={(e) => handleSingleOptionChange(idx, 'name', e.target.value)}
-                    className={styles.input}
-                    required
-                  />
-                  <input
-                    type="number"
-                    placeholder="옵션 가격"
-                    value={opt.price}
-                    onChange={(e) => handleSingleOptionChange(idx, 'price', e.target.value)}
-                    className={styles.input}
-                    min="0"
-                    required
-                  />
-                  {formData.singleOptions.length > 1 && (
-                    <button type="button" onClick={() => removeSingleOption(idx)} className={styles.removeButton}>
-                      삭제
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button type="button" onClick={addSingleOption} className={styles.addButton}>
-                옵션 추가
-              </button>
-            </>
-          )}
-
-          {formData.optionType === 'combo' && (
-            <>
-              {formData.options.map((group, groupIndex) => (
-                <div key={groupIndex} className={styles.optionGroup}>
-                  <input
-                    type="text"
-                    placeholder="옵션 그룹명"
-                    value={group.group}
-                    onChange={(e) => handleOptionGroupChange(groupIndex, 'group', e.target.value)}
-                    className={styles.input}
-                    required
-                  />
-                  {group.values.map((val, valIndex) => (
-                    <div key={valIndex} className={styles.optionRow}>
-                      <input
-                        type="text"
-                        placeholder="옵션값명"
-                        value={val.name}
-                        onChange={(e) => handleOptionValueChange(groupIndex, valIndex, 'name', e.target.value)}
-                        className={styles.input}
-                        required
-                      />
-                      <input
-                        type="number"
-                        placeholder="옵션 가격"
-                        value={val.price}
-                        onChange={(e) => handleOptionValueChange(groupIndex, valIndex, 'price', e.target.value)}
-                        className={styles.input}
-                        min="0"
-                        required
-                      />
-                      {group.values.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => removeOptionValue(groupIndex, valIndex)}
-                          className={styles.removeButton}
-                        >
-                          삭제
+                    {formData.optionType === 'single' &&
+                        formData.singleOptions.map((opt, idx) => (
+                            <div key={idx} className={styles.optionRow}>
+                              <input
+                                  type="text"
+                                  placeholder="옵션명"
+                                  value={opt.name}
+                                  onChange={(e) => handleSingleOptionChange(idx, 'name', e.target.value)}
+                                  className={styles.input}
+                                  required
+                              />
+                              <input
+                                  type="number"
+                                  placeholder="가격"
+                                  value={opt.price}
+                                  onChange={(e) => handleSingleOptionChange(idx, 'price', e.target.value)}
+                                  className={styles.input}
+                                  min="0"
+                                  required
+                              />
+                              <button type="button" onClick={() => removeSingleOption(idx)} className={styles.removeButton}>
+                                삭제
+                              </button>
+                            </div>
+                        ))}
+                    {formData.optionType === 'single' && (
+                        <button type="button" onClick={addSingleOption} className={styles.addButton}>
+                          옵션 추가
                         </button>
-                      )}
-                    </div>
-                  ))}
-                  <button type="button" onClick={() => addOptionValue(groupIndex)} className={styles.addButton}>
-                    옵션값 추가
-                  </button>
-                  {formData.options.length > 1 && (
-                    <button type="button" onClick={() => removeOptionGroup(groupIndex)} className={styles.removeButton}>
-                      그룹 삭제
-                    </button>
-                  )}
-                </div>
-              ))}
-              <button type="button" onClick={addOptionGroup} className={styles.addButton}>
-                옵션 그룹 추가
-              </button>
-            </>
-          )}
-        </>
-      )}
+                    )}
+
+                    {formData.optionType === 'combo' &&
+                        formData.options.map((group, gIdx) => (
+                            <div key={gIdx} className={styles.optionGroup}>
+                              <input
+                                  type="text"
+                                  placeholder="옵션 그룹명"
+                                  value={group.group}
+                                  onChange={(e) => handleOptionGroupChange(gIdx, 'group', e.target.value)}
+                                  className={styles.input}
+                                  required
+                              />
+                              <button type="button" onClick={() => removeOptionGroup(gIdx)} className={styles.removeButton}>
+                                그룹 삭제
+                              </button>
+                              {group.values.map((val, vIdx) => (
+                                  <div key={vIdx} className={styles.optionRow}>
+                                    <input
+                                        type="text"
+                                        placeholder="옵션값"
+                                        value={val.name}
+                                        onChange={(e) => handleOptionValueChange(gIdx, vIdx, 'name', e.target.value)}
+                                        className={styles.input}
+                                        required
+                                    />
+                                    <input
+                                        type="number"
+                                        placeholder="가격"
+                                        value={val.price}
+                                        onChange={(e) => handleOptionValueChange(gIdx, vIdx, 'price', e.target.value)}
+                                        className={styles.input}
+                                        min="0"
+                                        required
+                                    />
+                                    <button type="button" onClick={() => removeOptionValue(gIdx, vIdx)} className={styles.removeButton}>
+                                      삭제
+                                    </button>
+                                  </div>
+                              ))}
+                              <button type="button" onClick={() => addOptionValue(gIdx)} className={styles.addButton}>
+                                옵션값 추가
+                              </button>
+                            </div>
+                        ))}
+                    {formData.optionType === 'combo' && (
+                        <button type="button" onClick={addOptionGroup} className={styles.addButton}>
+                          옵션 그룹 추가
+                        </button>
+                    )}
+                  </>
+              )}
 
       <button type="submit" className={styles.submitButton}>
         등록하기
