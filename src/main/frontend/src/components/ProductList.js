@@ -21,6 +21,24 @@ function ProductList() {
       });
   }, []);
 
+  // 상품 삭제
+  const handleDelete = (productId) => {
+    if (!window.confirm('정말로 이 상품을 삭제하시겠습니까?')) return;
+
+    fetch(`/api/products/${productId}`, {
+      method: 'DELETE',
+    })
+      .then((res) => {
+        if (!res.ok) throw new Error('삭제 실패');
+        // 삭제 성공 시 상품 목록에서 해당 상품 제외
+        setProducts((prevProducts) => prevProducts.filter(p => p.productId !== productId));
+      })
+      .catch((err) => {
+        console.error(err);
+        alert('상품 삭제 중 오류가 발생했습니다.');
+      });
+  };
+
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>📦 등록된 상품</h1>
@@ -91,9 +109,16 @@ function ProductList() {
                   수정
                 </button>
 
-                <button className={`${styles.button} ${styles.deleteBtn}`}>
+                <button
+                  className={`${styles.button} ${styles.deleteBtn}`}
+                  onClick={(e) => {
+                    e.stopPropagation(); // 부모 onClick 이벤트 막기
+                    handleDelete(product.productId);
+                  }}
+                >
                   삭제
                 </button>
+
               </div>
             </div>
           );
