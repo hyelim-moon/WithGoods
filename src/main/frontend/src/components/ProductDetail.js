@@ -34,20 +34,40 @@ function ProductDetail() {
                 setLoading(true);
                 const [productResponse, wishlistResponse] = await Promise.all([
                     axios.get(`http://localhost:8080/products/${id}`, {
-                        withCredentials: true
+                        withCredentials: true,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
                     }),
                     axios.get(`http://localhost:8080/api/wishlist/check/${id}`, {
                         withCredentials: true
                     })
                 ]);
                 
-                setProduct(productResponse.data);
+                if (productResponse.data) {
+                    console.log('Product Response:', productResponse.data);
+                    // product와 options를 분리해서 저장
+                    const { product, options } = productResponse.data;
+                    setProduct({
+                        ...product,
+                        options: options // options를 product 객체에 포함
+                    });
+                } else {
+                    throw new Error('상품 데이터가 없습니다.');
+                }
+                
                 setIsFavorited(wishlistResponse.data);
                 setError(null);
             } catch (err) {
                 console.error('Error fetching data:', err);
+                if (err.response) {
+                    console.error('Error response:', err.response.data);
+                    console.error('Error status:', err.response.status);
+                }
                 if (err.response?.status === 401) {
                     setIsFavorited(false);
+                    setError('로그인이 필요한 서비스입니다.');
                 } else {
                     setError('상품 정보를 불러오는데 실패했습니다.');
                 }
@@ -107,7 +127,7 @@ function ProductDetail() {
     // 모든 필수 옵션이 선택되었는지 확인
     const areAllOptionsSelected = () => {
         if (!product?.options) return true;
-        const optionsObj = JSON.parse(product.options);
+        const optionsObj = typeof product.options === 'string' ? JSON.parse(product.options) : product.options;
         return Object.keys(optionsObj).every(group => selectedOptions[group]);
     };
 
@@ -264,7 +284,7 @@ function ProductDetail() {
                     {/* 옵션 선택 */}
                     {product.options && (
                         <div className={styles.optionSection}>
-                            {Object.entries(JSON.parse(product.options)).map(([groupName, options]) => (
+                            {Object.entries(typeof product.options === 'string' ? JSON.parse(product.options) : product.options).map(([groupName, options]) => (
                                 <div key={groupName} className={styles.optionGroup}>
                                     <div className={styles.optionTitle}>{groupName}</div>
                                     <div className={styles.optionButtons}>
