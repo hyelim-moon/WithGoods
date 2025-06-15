@@ -56,6 +56,39 @@
     margin-bottom: 10px;
 }
 
+/* 상품 평점 */
+.productRating {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.starRating {
+    display: flex;
+    gap: 2px;
+}
+
+.star {
+    font-size: 20px;
+    color: #ddd;
+}
+
+.star.filled {
+    color: #ffc107;
+}
+
+.ratingText {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+}
+
+.reviewCount {
+    font-size: 14px;
+    color: #666;
+}
+
 /* 상품 가격 */
 .productPrice {
     font-size: 24px;
@@ -250,86 +283,135 @@
 
 /* 리뷰 섹션 */
 .reviewsSection {
-    margin-top: 40px;
-}
-
-.reviewsSection h3 {
-    font-size: 22px;
-    font-weight: bold;
-    margin-bottom: 20px;
-}
-
-.ratingSection {
-    display: flex;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.stars {
-    display: flex;
-    gap: 5px;
-}
-
-.filledStar {
-    color: #f39c12;
-}
-
-.emptyStar {
-    color: #ccc;
-}
-
-.ratingText {
-    margin-left: 10px;
-    font-size: 16px;
-}
-
-.reviewsList {
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-top: 20px;
 }
 
+.reviewsHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+}
+
+.reviewsHeader h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.noReviews {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
+}
+
+.noReviews p {
+    margin: 5px 0;
+    font-size: 1rem;
+}
+
+.reviewsList {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
 .reviewItem {
-    border-bottom: 1px solid #eee;
-    padding: 15px 0;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fafafa;
 }
 
 .reviewHeader {
     display: flex;
     justify-content: space-between;
-    font-size: 14px;
-    color: #777;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
 }
 
-.reviewText {
-    margin-top: 10px;
+.reviewerInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.reviewerName {
+    font-weight: bold;
+    color: #333;
 }
 
 .reviewRating {
-    display: inline-block;
-    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
-.ratingScore {
-    font-size: 16px;
-    color: #555;
-}
-
-.reviewPhoto {
-    margin-top: 10px;
-    width: 100%;
-    max-width: 200px;
-    object-fit: cover;
-    border-radius: 5px;
-}
-
-.reportLabel {
+.reviewRating .star {
     font-size: 14px;
-    color: #8B0000;
-    cursor: pointer;
+    color: #ddd;
+}
+
+.reviewRating .star.filled {
+    color: #ffc107;
+}
+
+.reviewRatingText {
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+}
+
+.reviewDate {
+    color: #666;
+    font-size: 14px;
+}
+
+.reviewContent {
+    color: #333;
+    line-height: 1.6;
+}
+
+.reviewContent p {
+    margin: 0 0 10px 0;
+}
+
+.reviewImage {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 4px;
     margin-top: 10px;
 }
 
-.reportLabel:hover {
-    text-decoration: underline;
+.reviewToggle {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.showMoreReviewsBtn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+}
+
+.showMoreReviewsBtn:hover {
+    background: #0056b3;
 }
 
 /* 리뷰 더보기 버튼 */
@@ -451,7 +533,7 @@
         font-size: 1.1rem;
     }
 
-    .timeLeft, 
+    .timeLeft,
     .stock {
         font-size: 1rem;
     }

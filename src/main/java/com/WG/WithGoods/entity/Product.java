@@ -3,10 +3,13 @@ package com.WG.WithGoods.entity;
 import com.WG.WithGoods.dto.ProductOptionDto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -83,15 +86,19 @@ public class Product {
         }
     }
 
-    public Map<String, List<String>> getOptionsAsMap() {
+    public Map<String, Object> getOptionsAsMap() {
+        if (options == null || options.isEmpty()) {
+            return new HashMap<>();
+        }
+        
         try {
-            if (this.options == null || this.options.isEmpty()) {
-                return new HashMap<>();
-            }
-            return objectMapper.readValue(this.options, 
-                objectMapper.getTypeFactory().constructMapType(
-                    Map.class, String.class, List.class));
-        } catch (JsonProcessingException e) {
+            return new ObjectMapper().readValue(options, new TypeReference<Map<String, Object>>() {});
+        } catch (JsonParseException e) {
+            // 단순 문자열인 경우 기본 맵으로 변환
+            Map<String, Object> defaultMap = new HashMap<>();
+            defaultMap.put("option", options);
+            return defaultMap;
+        } catch (IOException e) {
             throw new RuntimeException("옵션 조회 중 오류가 발생했습니다.", e);
         }
     }

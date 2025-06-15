@@ -37,6 +37,7 @@ function MyPage() {
                     {/*<li><Link to="/myproductlist">내 등록 상품</Link></li>*/}
                     <li><Link to="/cart">장바구니</Link></li>
                     <li><Link to="/orders">결제내역</Link></li>
+                    <li><Link to="/my-reviews">내가 쓴 리뷰</Link></li>
                     <li><Link to="/estimatelist">견적 문의</Link></li>
                     <li><Link to="/wishlist">찜한 상품</Link></li>
                     <li><Link to="/recent">최근 본 상품</Link></li>

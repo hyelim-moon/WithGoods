@@ -36,6 +36,9 @@ import GeneralProductForm from './components/ProductRegister/GeneralProductForm'
 import CustomProductForm from './components/ProductRegister/CustomProductForm';
 import LimitedProductForm from './components/ProductRegister/LimitedProductForm';
 import AnniversaryProductForm from './components/ProductRegister/AnniversaryProductForm';
+import MyReviews from './components/MyReviews';
+import ReviewEdit from './components/ReviewEdit';
+import AdminOrderManagement from './components/AdminOrderManagement';
 
 // Protected Route component
 const ProtectedRoute = ({ children }) => {
@@ -122,7 +125,10 @@ function AppContent() {
         />
         <Route path="/ordercomplete" element={<OrderComplete />} />
         <Route path="/orders" element={<OrderHistory />} />
-        <Route path="/review/write" element={<ReviewWrite />} />
+        <Route path="/review-write/:orderDetailId" element={<ReviewWrite />} />
+        <Route path="/review-edit/:reviewId" element={<ReviewEdit />} />
+        <Route path="/my-reviews" element={<MyReviews />} />
+        <Route path="/admin/orders" element={<AdminOrderManagement />} />
       </Routes>
     </div>
   );

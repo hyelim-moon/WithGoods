@@ -17,7 +17,7 @@ public enum OrderStatus {
     private final String description;
 
     @JsonCreator
-    public static PaymentMethod from(String value) {
-        return PaymentMethod.valueOf(value.toUpperCase());
+    public static OrderStatus from(String value) {
+        return OrderStatus.valueOf(value.toUpperCase());
     }
 } 

@@ -227,3 +227,15 @@
         display: none;
     }
 }
+
+.adminLink {
+    color: #9e4b25;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.adminLink:hover {
+    color: #7c3f1a;
+    text-decoration: underline;
+}

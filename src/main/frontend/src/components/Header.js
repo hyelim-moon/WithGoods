@@ -7,15 +7,18 @@ import styles from '../assets/styles/Header.module.css';
 function Header() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [nickname, setNickname] = useState('');
+    const [isAdmin, setIsAdmin] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
         const savedNickname = localStorage.getItem('nickname');
         const savedIsLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const savedIsAdmin = localStorage.getItem('isAdmin') === 'true';
 
         if (savedIsLoggedIn && savedNickname) {
             setIsLoggedIn(true);
             setNickname(savedNickname);
+            setIsAdmin(savedIsAdmin);
         }
     }, []);
 
@@ -28,9 +31,11 @@ function Header() {
 
         setIsLoggedIn(false);
         setNickname('');
+        setIsAdmin(false);
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('nickname');
         localStorage.removeItem('username');
+        localStorage.removeItem('isAdmin');
         window.dispatchEvent(new Event('storage'));
         navigate('/');
     };
@@ -57,6 +62,14 @@ function Header() {
                                 <Link to="/cart" className={styles.cartLink}>
                                     장바구니
                                 </Link>
+                                {isAdmin && (
+                                    <>
+                                        <div className={styles.divider}></div>
+                                        <Link to="/admin/orders" className={styles.adminLink}>
+                                            주문관리
+                                        </Link>
+                                    </>
+                                )}
                                 <div className={styles.divider}></div>
                                 <button onClick={handleLogout} className={styles.logoutButton}>
                                     로그아웃

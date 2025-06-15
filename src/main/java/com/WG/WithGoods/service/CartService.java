@@ -11,9 +11,12 @@ import com.WG.WithGoods.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +27,7 @@ public class CartService {
     private final CartRepository cartRepository;
     private final MemberRepository memberRepository;
     private final ProductRepository productRepository;
+    private final ObjectMapper objectMapper;
 
     public CartItemResponseDto addToCart(String username, CartItemRequestDto requestDto) {
         Member member = memberRepository.findByUsername(username)
@@ -32,8 +36,21 @@ public class CartService {
         Product product = productRepository.findById(requestDto.getProductId())
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
 
+        // 옵션 문자열 생성
+        String optionString = null;
+        if (requestDto.getOptions() != null && !requestDto.getOptions().isEmpty()) {
+            try {
+                optionString = objectMapper.writeValueAsString(requestDto.getOptions());
+            } catch (Exception e) {
+                // JSON 변환 실패 시 단순 문자열로 처리
+                optionString = requestDto.getOption();
+            }
+        } else if (requestDto.getOption() != null && !requestDto.getOption().trim().isEmpty()) {
+            optionString = requestDto.getOption();
+        }
+
         // 이미 장바구니에 있는 상품인지 확인
-        Cart existingCart = cartRepository.findByMemberAndProductAndProductOption(member, product, requestDto.getOption());
+        Cart existingCart = cartRepository.findByMemberAndProductAndProductOption(member, product, optionString);
         
         Cart cart;
         if (existingCart != null) {
@@ -47,7 +64,7 @@ public class CartService {
                     .member(member)
                     .product(product)
                     .productQuantity(requestDto.getQuantity())
-                    .productOption(requestDto.getOption())
+                    .productOption(optionString)
                     .addedDate(LocalDateTime.now())
                     .totalPrice(product.getPrice() * requestDto.getQuantity())
                     .build();
@@ -107,6 +124,26 @@ public class CartService {
         dto.setPrice(cart.getProduct().getPrice());
         dto.setQuantity(cart.getProductQuantity());
         dto.setOption(cart.getProductOption());
+        
+        // 옵션 문자열을 Map으로 변환
+        if (cart.getProductOption() != null && !cart.getProductOption().trim().isEmpty()) {
+            try {
+                // JSON 형태인지 확인
+                if (cart.getProductOption().startsWith("{") && cart.getProductOption().endsWith("}")) {
+                    Map<String, String> optionsMap = objectMapper.readValue(cart.getProductOption(), new TypeReference<Map<String, String>>() {});
+                    dto.setOptions(optionsMap);
+                } else {
+                    // 단순 문자열인 경우 "옵션: 값" 형태로 변환
+                    Map<String, String> optionsMap = Map.of("옵션", cart.getProductOption());
+                    dto.setOptions(optionsMap);
+                }
+            } catch (Exception e) {
+                // 파싱 실패 시 단순 문자열로 처리
+                Map<String, String> optionsMap = Map.of("옵션", cart.getProductOption());
+                dto.setOptions(optionsMap);
+            }
+        }
+        
         dto.setTotalPrice(cart.getTotalPrice());
         return dto;
     }

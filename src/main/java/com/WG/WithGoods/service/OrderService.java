@@ -50,11 +50,28 @@ public class OrderService {
             Product product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + item.getProductId()));
 
+            // 옵션 정보 처리
+            String productOption = null;
+            if (item.getOptions() != null && !item.getOptions().isEmpty()) {
+                try {
+                    // Map을 JSON 문자열로 변환
+                    com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    productOption = objectMapper.writeValueAsString(item.getOptions());
+                } catch (Exception e) {
+                    // JSON 변환 실패 시 단순 문자열 사용
+                    productOption = item.getProductOption();
+                }
+            } else if (item.getProductOption() != null && !item.getProductOption().trim().isEmpty()) {
+                productOption = item.getProductOption();
+            }
+
             OrderDetail orderDetail = OrderDetail.builder()
                     .product(product)
+                    .productName(product.getName()) // 상품명도 저장
                     .quantity(item.getQuantity())
                     .price(item.getPrice())
                     .discount(item.getDiscount())
+                    .productOption(productOption) // 옵션 정보 저장
                     .build();
 
             order.addOrderDetail(orderDetail);
@@ -73,5 +90,27 @@ public class OrderService {
     public Page<OrderResponseDto> getMemberOrders(Integer memberId, Pageable pageable) {
         return orderRepository.findByMemberIdOrderByOrderDateDesc(memberId, pageable)
                 .map(OrderResponseDto::from);
+    }
+
+    // 모든 주문 목록 조회 (어드민용)
+    public Page<OrderResponseDto> getAllOrders(Pageable pageable) {
+        Page<Order> orders = orderRepository.findAll(pageable);
+        return orders.map(OrderResponseDto::from);
+    }
+
+    // 주문 상태별 필터링
+    public Page<OrderResponseDto> getOrdersByStatus(OrderStatus status, Pageable pageable) {
+        Page<Order> orders = orderRepository.findByStatus(status, pageable);
+        return orders.map(OrderResponseDto::from);
+    }
+
+    // 주문 상태 변경
+    @Transactional
+    public void updateOrderStatus(Integer orderId, OrderStatus newStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+        
+        order.setStatus(newStatus);
+        orderRepository.save(order);
     }
 } 

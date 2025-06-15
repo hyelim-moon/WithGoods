@@ -24,6 +24,7 @@ function OrderComplete() {
         const response = await axios.get(`${API_BASE_URL}/api/orders/${state.orderId}`, {
           withCredentials: true
         });
+        console.log('주문 상세 데이터:', response.data);
         setOrderInfo(response.data);
       } catch (error) {
         console.error('주문 정보 조회 실패:', error);
@@ -63,9 +64,28 @@ function OrderComplete() {
         <legend>주문 요약</legend>
         {orderInfo.orderItems.map(item => (
           <div key={item.productId} className={styles.cartItem}>
-            <p>
-              <strong>{item.productName}</strong> x {item.quantity} = ₩{(item.price * item.quantity).toLocaleString()}
-            </p>
+            <div className={styles.productInfo}>
+              <p>
+                <strong>{item.productName}</strong> x {item.quantity} = ₩{(item.price * item.quantity).toLocaleString()}
+              </p>
+              {item.options && Object.keys(item.options).length > 0 && (
+                <div className={styles.productOptions}>
+                  {Object.entries(item.options).map(([key, value]) => (
+                    <span key={key} className={styles.optionItem}>
+                      <span className={styles.optionKey}>{key}</span>
+                      <span className={styles.optionValue}>{value}</span>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {item.productOption && !item.options && (
+                <div className={styles.productOptions}>
+                  <span className={styles.optionItem}>
+                    <span className={styles.optionValue}>{item.productOption}</span>
+                  </span>
+                </div>
+              )}
+            </div>
             {item.discount > 0 && <p className={styles.discount}>할인: -₩{item.discount.toLocaleString()}</p>}
           </div>
         ))}
