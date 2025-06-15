@@ -1,5 +1,7 @@
 package com.WG.WithGoods.repository;
 
+import com.WG.WithGoods.dto.ProductDto;
+import com.WG.WithGoods.entity.Product;
 import com.WG.WithGoods.entity.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 

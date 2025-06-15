@@ -12,6 +12,7 @@ import java.util.List;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
+
     @Query("SELECT p FROM Product p WHERE p.role = 'LIMITED' AND :now BETWEEN p.startDate AND p.endDate")
     List<Product> findActiveLimitedProducts(@Param("now") LocalDateTime now);
 
@@ -19,5 +20,6 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     List<Product> findActiveAnniversaryProducts(@Param("now") LocalDateTime now);
 
     List<Product> findByRole(ProductRole role);
-}
 
+    List<Product> findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String nameKeyword, String descriptionKeyword);
+}

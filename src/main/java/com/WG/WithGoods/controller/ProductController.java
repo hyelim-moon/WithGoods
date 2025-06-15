@@ -1,7 +1,7 @@
 package com.WG.WithGoods.controller;
 
-import com.WG.WithGoods.service.ProductService;
 import com.WG.WithGoods.dto.ProductDto;
+import com.WG.WithGoods.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +24,7 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<List<ProductDto>> getAll() {
-        List<ProductDto> products = productService.getAllProducts();
-        return ResponseEntity.ok(products);
+        return ResponseEntity.ok(productService.getAllProducts());
     }
 
     @GetMapping("/limited")
@@ -52,11 +51,11 @@ public class ProductController {
     public ResponseEntity<List<ProductDto>> getActiveAnniversaryProducts() {
         return ResponseEntity.ok(productService.getActiveAnniversaryProducts());
     }
+
     @GetMapping("/custom")
     public ResponseEntity<List<ProductDto>> getCustomProducts() {
         return ResponseEntity.ok(productService.getCustomProducts());
     }
-
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductDto> getById(@PathVariable Integer id) {
@@ -74,5 +73,17 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
-}
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductDto>> searchProducts(@RequestParam("query") String query) {
+        return ResponseEntity.ok(productService.searchProducts(query));
+    }
 
+    @GetMapping("/recommend")
+    public ResponseEntity<List<ProductDto>> getRecommendedProducts() {
+        List<ProductDto> recommended = productService.getRandomRecommendedProducts(5);
+        if (recommended.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(recommended);
+    }
+}

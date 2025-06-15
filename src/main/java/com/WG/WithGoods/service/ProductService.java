@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -35,44 +36,31 @@ public class ProductService {
     }
 
     public List<ProductDto> getAllProducts() {
-        return productRepository.findAll().stream()
-                .map(this::toDto)
-                .toList();
+        return toDtoList(productRepository.findAll());
     }
 
     public List<ProductDto> getLimitedProducts() {
-        return productRepository.findByRole(ProductRole.LIMITED).stream()
-                .map(this::toDto)
-                .toList();
+        return toDtoList(productRepository.findByRole(ProductRole.LIMITED));
     }
 
     public List<ProductDto> getActiveLimitedProducts() {
-        return productRepository.findActiveLimitedProducts(LocalDateTime.now()).stream()
-                .map(this::toDto)
-                .toList();
+        return toDtoList(productRepository.findActiveLimitedProducts(LocalDateTime.now()));
     }
 
     public List<ProductDto> getNormalProducts() {
-        return productRepository.findByRole(ProductRole.NORMAL).stream()
-                .map(this::toDto)
-                .toList();
+        return toDtoList(productRepository.findByRole(ProductRole.NORMAL));
     }
 
     public List<ProductDto> getAnniversaryProducts() {
-        return productRepository.findByRole(ProductRole.ANNIVERSARY).stream()
-                .map(this::toDto)
-                .toList();
+        return toDtoList(productRepository.findByRole(ProductRole.ANNIVERSARY));
     }
+
     public List<ProductDto> getCustomProducts() {
-        return productRepository.findByRole(ProductRole.CUSTOM).stream()
-                .map(this::toDto)
-                .toList();
+        return toDtoList(productRepository.findByRole(ProductRole.CUSTOM));
     }
 
     public List<ProductDto> getActiveAnniversaryProducts() {
-        return productRepository.findActiveAnniversaryProducts(LocalDateTime.now()).stream()
-                .map(this::toDto)
-                .toList();
+        return toDtoList(productRepository.findActiveAnniversaryProducts(LocalDateTime.now()));
     }
 
     public ProductDto getProductById(Integer id) {
@@ -103,6 +91,20 @@ public class ProductService {
         productRepository.deleteById(id);
     }
 
+    public List<ProductDto> searchProducts(String query) {
+        return toDtoList(productRepository
+                .findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query));
+    }
+
+    public List<ProductDto> getRandomRecommendedProducts(int count) {
+        List<Product> allProducts = productRepository.findAll();
+        if (allProducts.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Collections.shuffle(allProducts);
+        return toDtoList(allProducts.subList(0, Math.min(count, allProducts.size())));
+    }
+
     private ProductDto toDto(Product product) {
         return ProductDto.builder()
                 .productId(product.getProductId())
@@ -120,4 +122,7 @@ public class ProductService {
                 .build();
     }
 
+    private List<ProductDto> toDtoList(List<Product> products) {
+        return products.stream().map(this::toDto).toList();
+    }
 }
