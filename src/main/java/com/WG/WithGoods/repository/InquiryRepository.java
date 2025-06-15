@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
-    /** (기존) 공개글만 */
-    List<Inquiry> findBySecretFalseOrderByCreatedAtDesc();
     /** (신규) 모든 글을 날짜 내림차순으로 */
     List<Inquiry> findAllByOrderByCreatedAtDesc();
     List<Inquiry> findByWriterUsernameOrderByCreatedAtDesc(String username);

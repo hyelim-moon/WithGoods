@@ -29,7 +29,7 @@ public class InquiryController {
     /** 전체 목록 (공개/비공개 모두) */
     @GetMapping
     public List<InquiryResponseDto> list() {
-        return inquiryService.findAllForListing();
+        return inquiryService.findAllInquiries();
     }
 
     /** 관리자 전체 조회 */
@@ -53,7 +53,7 @@ public class InquiryController {
     /** 상세 조회 → 비밀글이면 비밀번호 검사(작성자·ADMIN 제외) */
     @GetMapping("/{id}")
     public ResponseEntity<?> detail(
-            @PathVariable Long id,
+            @PathVariable(value = "id") Long id,
             @RequestParam(value = "password", required = false) String pw,
             HttpSession session
     ) {
@@ -89,7 +89,7 @@ public class InquiryController {
 
     @PostMapping("/{id}/check-password")
     public ResponseEntity<?> checkPassword(
-            @PathVariable Long id,
+            @PathVariable(value = "id") Long id,
             @RequestBody PasswordCheckRequest req
     ) {
         return ResponseEntity.ok(inquiryService.checkPassword(id, req.getPassword()));
@@ -98,7 +98,7 @@ public class InquiryController {
     @Transactional
     @PutMapping("/{id}")
     public ResponseEntity<?> update(
-            @PathVariable Long id,
+            @PathVariable(value = "id") Long id,
             @RequestBody InquiryRequestDto dto,
             HttpSession session
     ) {
@@ -109,7 +109,7 @@ public class InquiryController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<?> delete(
-            @PathVariable Long id,
+            @PathVariable(value = "id") Long id,
             HttpSession session
     ) {
         String user = (String) session.getAttribute("username");
@@ -119,7 +119,7 @@ public class InquiryController {
 
     @PostMapping("/{id}/answer")
     public ResponseEntity<?> answer(
-            @PathVariable Long id,
+            @PathVariable(value = "id") Long id,
             @RequestBody InquiryAnswerRequest req,
             HttpSession session
     ) {

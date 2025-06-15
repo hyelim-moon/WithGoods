@@ -44,9 +44,9 @@ public class InquiryService {
     }
 
     /** (기존) 공개글만 */
-    public List<InquiryResponseDto> findAllPublic() {
+    public List<InquiryResponseDto> findAllInquiries() {
         return inquiryRepository
-                .findBySecretFalseOrderByCreatedAtDesc()
+                .findAllByOrderByCreatedAtDesc()
                 .stream()
                 .map(this::toDto)
                 .toList();
