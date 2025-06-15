@@ -1,5 +1,6 @@
 package com.WG.WithGoods.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +16,10 @@ public class InquiryResponseDto {
     private boolean secret;
     private String writer;
     private String writerUsername;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "Asia/Seoul")
     private LocalDateTime createdAt;
     private String answer;
+    private Integer views;
+    private Long prevId;
+    private Long nextId;
 }

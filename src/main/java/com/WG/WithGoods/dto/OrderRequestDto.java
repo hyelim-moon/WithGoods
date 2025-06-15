@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -50,6 +51,8 @@ public class OrderRequestDto {
         private Integer quantity;
         private Integer price;
         private Integer discount;
+        private String productOption;
+        private Map<String, String> options;
     }
 
     @Getter

@@ -1,107 +1,120 @@
-import { useLocation, useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import styles from "../assets/styles/InquiryDetail.module.css";
-import { useAuth } from '../context/AuthContext';
 
 function InquiryDetail() {
     const { id } = useParams();
-    const location = useLocation();
     const navigate = useNavigate();
-    const { user } = useAuth();
+    const [inquiry, setInquiry] = useState(null);
 
-    const [inquiry, setInquiry] = useState(location.state?.data || null);
-    const [currentNickname, setCurrentNickname] = useState("");
-    const [role, setRole] = useState("");
-    const [answerText, setAnswerText] = useState("");
-    const [showAnswerForm, setShowAnswerForm] = useState(false);
-    const currentUsername = localStorage.getItem("username");
+    // 모달 상태
+    const [showPwdModal, setShowPwdModal] = useState(false);
+    const [password, setPassword] = useState("");
+    const [pwdError, setPwdError] = useState("");
 
     useEffect(() => {
-        if (!inquiry) {
-            axios.get(`http://localhost:8080/inquiries/${id}`, {
-                withCredentials: true,
-            })
-                .then((res) => setInquiry(res.data))
-                .catch((err) => console.error(err));
-        }
+        // 처음엔 모달 띄워서 비밀번호 확인
+        setPassword("");
+        setPwdError("");
+        setInquiry(null);
+        setShowPwdModal(true);
+    }, [id]);
 
-        setCurrentNickname(sessionStorage.getItem("nickname"));
-        setRole(sessionStorage.getItem("role"));
-    }, [id, inquiry]);
-
-    const handleEdit = () => navigate(`/inquiry/edit/${id}`);
-
-    const handleDelete = async () => {
-        if (window.confirm("정말 삭제하시겠습니까?")) {
-            try {
-                await axios.delete(`http://localhost:8080/inquiries/${id}`, {
-                    withCredentials: true,
-                });
-                alert("삭제 완료");
-                navigate("/inquiry");
-            } catch (err) {
-                alert("삭제 실패");
-            }
-        }
+    const handlePwdCancel = () => {
+        setShowPwdModal(false);
+        navigate("/inquiry");
     };
 
-    const handleAnswerSubmit = async () => {
+    const handlePwdSubmit = async () => {
         try {
-            await axios.post(`http://localhost:8080/inquiries/${id}/answer`, {
-                answer: answerText,
-            }, { withCredentials: true });
-
-            alert("답변 등록 완료");
-
-            // ✅ 다시 상세조회해서 상태 갱신
-            const res = await axios.get(`http://localhost:8080/inquiries/${id}`, {
-                withCredentials: true
-            });
+            const res = await axios.get(
+                `http://localhost:8080/inquiries/${id}?password=${password}`,
+                { withCredentials: true }
+            );
             setInquiry(res.data);
-            setAnswerText("");
+            setShowPwdModal(false);
         } catch (err) {
-            console.error("답변 실패", err);
-            alert("답변 등록 중 오류가 발생했습니다.");
+            setPwdError("비밀번호가 일치하지 않습니다.");
         }
     };
 
-    if (!inquiry) return <div>로딩 중...</div>;
+    if (showPwdModal) {
+        return (
+            <div className={styles.modalOverlay}>
+                <div className={styles.modalContainer}>
+                    <h3 className={styles.modalTitle}>비밀글입니다</h3>
+                    <p className={styles.modalMessage}>비밀번호를 입력하세요:</p>
+                    <input
+                        type="password"
+                        value={password}
+                        autoFocus
+                        onChange={(e) => {
+                            setPassword(e.target.value);
+                            if (pwdError) setPwdError("");
+                        }}
+                        className={styles.modalInput}
+                    />
+                    {pwdError && <div className={styles.modalError}>{pwdError}</div>}
+                    <div className={styles.modalButtons}>
+                        <button
+                            onClick={handlePwdCancel}
+                            className={`${styles.modalButton} ${styles.cancelButton}`}
+                        >
+                            취소
+                        </button>
+                        <button
+                            onClick={handlePwdSubmit}
+                            className={`${styles.modalButton} ${styles.confirmButton}`}
+                        >
+                            확인
+                        </button>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    if (!inquiry) {
+        return <div className={styles.loading}>로딩 중…</div>;
+    }
+
+    const { prevId, nextId, title, writer, createdAt, views, content } = inquiry;
+    const formattedDate = createdAt
+        .slice(0, 16)
+        .replace("T", " ");
 
     return (
         <div className={styles.container}>
-            <h2 className={styles.title}>{inquiry.title}</h2>
+            <h2 className={styles.title}>{title}</h2>
             <div className={styles.meta}>
-                <span>작성자: {inquiry.writer}</span> ·{" "}
-                <span>{inquiry.createdAt?.slice(0, 10)}</span>
+                <span className={styles.metaItem}>{writer}</span>
+                <span className={styles.dot}>&#183;</span>
+                <span className={styles.metaItem}>{formattedDate}</span>
+                <span className={styles.dot}>&#183;</span>
+                <span className={styles.metaItem}>조회 {views}</span>
             </div>
-            <div className={styles.content}>{inquiry.content}</div>
-
-            {inquiry.answer ? (
-                <div className={styles.answer}>
-                    <hr />
-                    <strong>답변:</strong>
-                    <p>{inquiry.answer}</p>
-                </div>
-            ) : (
-                role === "ADMIN" && (
-                    <div className={styles.answerForm}>
-                        <textarea
-                            value={answerText}
-                            onChange={(e) => setAnswerText(e.target.value)}
-                            placeholder="답변을 입력하세요"
-                        />
-                        <button onClick={handleAnswerSubmit}>답변 등록</button>
-                    </div>
-                )
-            )}
-
-            {inquiry.writer === user?.nickname && (
-                <div className={styles.buttons}>
-                    <button className={styles.editBtn} onClick={handleEdit}>수정</button>
-                    <button className={styles.deleteBtn} onClick={handleDelete}>삭제</button>
-                </div>
-            )}
+            <hr className={styles.separator} />
+            <div className={styles.content}>
+                {content.split("\n").map((line, i) => <p key={i}>{line}</p>)}
+            </div>
+            <div className={styles.navLinks}>
+        <span
+            className={styles.navItem}
+            onClick={() => prevId ? navigate(`/inquiry/${prevId}`) : alert("이전 문의가 없습니다.")}
+        >
+          &lt; 이전
+        </span>
+                <span className={styles.navItem} onClick={() => navigate("/inquiry")}>
+          목록
+        </span>
+                <span
+                    className={styles.navItem}
+                    onClick={() => nextId ? navigate(`/inquiry/${nextId}`) : alert("다음 문의가 없습니다.")}
+                >
+          다음 &gt;
+        </span>
+            </div>
         </div>
     );
 }

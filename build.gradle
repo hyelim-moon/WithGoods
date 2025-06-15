@@ -18,22 +18,35 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
+	// Spring Boot starters
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.projectlombok:lombok'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
-	testImplementation 'org.springframework.security:spring-security-test'
-	annotationProcessor 'org.projectlombok:lombok'
-	testImplementation 'org.springframework.boot:spring-boot-starter-test'
-	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	// MySQL
 	implementation 'mysql:mysql-connector-java:8.0.33'
+
+	// Lombok
+	implementation 'org.projectlombok:lombok'
+	annotationProcessor 'org.projectlombok:lombok'
+
+	// Test
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'org.springframework.security:spring-security-test'
+	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
 }
 
+// ⚠️ 파라미터 이름 유지 설정 추가 (Spring @PathVariable 등 오류 방지)
+tasks.withType(JavaCompile) {
+	options.compilerArgs += '-parameters'
+}
+
+// ✅ React 프론트 빌드 연동
 def frontendDir = "$projectDir/src/main/frontend"
 
 sourceSets {
@@ -53,11 +66,8 @@ tasks.register("installReact", Exec) {
 	inputs.dir(frontendDir)
 	group = BasePlugin.BUILD_GROUP
 
-	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-		commandLine "cmd", "/c", "npm install"
-	} else {
-		commandLine "sh", "-c", "npm install"
-	}
+	commandLine = System.getProperty("os.name").toLowerCase().contains("windows") ?
+			["cmd", "/c", "npm install"] : ["sh", "-c", "npm install"]
 }
 
 tasks.register("buildReact", Exec) {
@@ -66,11 +76,8 @@ tasks.register("buildReact", Exec) {
 	inputs.dir(frontendDir)
 	group = BasePlugin.BUILD_GROUP
 
-	if (System.getProperty('os.name').toLowerCase(Locale.ROOT).contains('windows')) {
-		commandLine "cmd", "/c", "npm run build"
-	} else {
-		commandLine "sh", "-c", "npm run build"
-	}
+	commandLine = System.getProperty("os.name").toLowerCase().contains("windows") ?
+			["cmd", "/c", "npm run build"] : ["sh", "-c", "npm run build"]
 }
 
 tasks.register("copyReactBuildFiles", Copy) {

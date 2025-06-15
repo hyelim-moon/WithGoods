@@ -1,78 +1,308 @@
-.reviewContainer {
-  max-width: 600px;
-  margin: 40px auto;
-  font-family: 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
-  padding: 20px;
-  background-color: #fef7e6;
-  border-radius: 20px;
-  box-shadow: 0 4px 10px rgba(158, 75, 37, 0.1);
-  color: #5c3c23;
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: Arial, sans-serif;
 }
 
-.reviewTitle {
-  text-align: center;
-  color: #9e4b25;
-  margin-bottom: 30px;
+.title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 30px;
+    color: #333;
+    text-align: center;
 }
 
-.reviewForm label {
-  display: block;
-  margin-bottom: 20px;
-  font-weight: 600;
+.productInfo {
+    display: flex;
+    gap: 20px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    margin-bottom: 30px;
 }
 
-.stars {
-  font-size: 28px;
-  color: #d5b8a1;
-  cursor: pointer;
+.productImage {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
 }
 
-.star {
-  margin-right: 6px;
-  user-select: none;
+.productDetails {
+    flex: 1;
 }
 
-.filled {
-  color: #9e4b25;
+.productDetails h3 {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #333;
 }
 
-.reviewTextarea {
-  width: 100%;
-  border: 2px solid #9e4b25;
-  border-radius: 12px;
-  padding: 10px;
-  font-size: 15px;
-  resize: vertical;
-  font-family: inherit;
-  color: #5c3c23;
+.productDetails p {
+    margin: 5px 0;
+    color: #666;
+    font-size: 14px;
 }
 
-.reviewButton {
-  display: block;
-  width: 100%;
-  padding: 14px;
-  background-color: #9e4b25;
-  color: white;
-  font-size: 16px;
-  font-weight: bold;
-  border: none;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.reviewForm {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-.reviewButton:hover:not(:disabled) {
-  background-color: #7c3f1a;
+.formGroup {
+    margin-bottom: 20px;
 }
 
-.reviewButton:disabled {
-  background-color: #d5b8a1;
-  cursor: not-allowed;
-  color: #fff0e6;
+.formGroup label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+}
+
+.textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    resize: vertical;
+    min-height: 120px;
+}
+
+.textarea:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.buttonGroup {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 30px;
+}
+
+.cancelButton {
+    padding: 12px 24px;
+    border: 1px solid #ddd;
+    background-color: white;
+    color: #666;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s ease;
+}
+
+.cancelButton:hover {
+    background-color: #f8f9fa;
+    border-color: #ccc;
+}
+
+.submitButton {
+    padding: 12px 24px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: all 0.2s ease;
+}
+
+.submitButton:hover {
+    background-color: #0056b3;
+}
+
+.loading {
+    text-align: center;
+    padding: 40px;
+    font-size: 16px;
+    color: #666;
 }
 
 .error {
-  color: #e57373;
-  margin-bottom: 16px;
-  font-weight: 600;
+    text-align: center;
+    padding: 40px;
+    font-size: 16px;
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    margin: 20px 0;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .container {
+        padding: 15px;
+    }
+
+    .productInfo {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .productImage {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto;
+    }
+
+    .buttonGroup {
+        flex-direction: column;
+    }
+
+    .cancelButton,
+    .submitButton {
+        width: 100%;
+    }
+}
+
+.productOptions {
+    margin: 8px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.optionItem {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #495057;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.optionItem:hover {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+.optionKey {
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 11px;
+}
+
+.optionValue {
+    color: #495057;
+    font-weight: 500;
+}
+
+.fileInput {
+    width: 100%;
+    padding: 8px;
+    border: 2px dashed #dee2e6;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.fileInput:hover {
+    border-color: #9e4b25;
+    background-color: #fef7e6;
+}
+
+.fileInfo {
+    display: block;
+    margin-top: 4px;
+    color: #6c757d;
+    font-size: 12px;
+}
+
+.imagePreview {
+    margin-top: 12px;
+    position: relative;
+    display: inline-block;
+}
+
+.previewImage {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    border: 2px solid #dee2e6;
+}
+
+.removeImage {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease;
+}
+
+.removeImage:hover {
+    background: #c82333;
+}
+
+.ratingContainer {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.rating {
+    display: flex;
+    gap: 5px;
+}
+
+.star {
+    font-size: 24px;
+    color: #ddd;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.star:hover {
+    color: #ffc107;
+    transform: scale(1.1);
+}
+
+.star.filled {
+    color: #ffc107;
+}
+
+.ratingText {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
 }

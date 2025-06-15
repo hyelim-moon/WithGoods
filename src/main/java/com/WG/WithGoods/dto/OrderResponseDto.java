@@ -5,8 +5,12 @@ import com.WG.WithGoods.entity.OrderDetail;
 import com.WG.WithGoods.entity.PaymentMethod;
 import lombok.Builder;
 import lombok.Getter;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Getter
@@ -18,6 +22,8 @@ public class OrderResponseDto {
     private PaymentInfoDto paymentInfo;
     private List<OrderItemDto> orderItems;
     private OrderSummaryDto orderSummary;
+    private LocalDateTime orderDate;
+    private String status;
 
     @Getter
     @Builder
@@ -50,9 +56,11 @@ public class OrderResponseDto {
     @Getter
     @Builder
     public static class OrderItemDto {
+        private Integer orderDetailId;
         private Integer productId;
         private String productName;
         private String productOption;
+        private Map<String, String> options;
         private Integer quantity;
         private Integer price;
         private Integer discount;
@@ -68,8 +76,11 @@ public class OrderResponseDto {
     }
 
     public static OrderResponseDto from(Order order) {
+        ObjectMapper objectMapper = new ObjectMapper();
+        
         return OrderResponseDto.builder()
                 .orderId(order.getOrderId())
+                .orderDate(order.getOrderDate())
                 .ordererInfo(OrdererInfoDto.builder()
                         .name(order.getOrdererName())
                         .phone(order.getOrdererPhone())
@@ -90,14 +101,34 @@ public class OrderResponseDto {
                         .accountNumber(order.getAccountNumber())
                         .build())
                 .orderItems(order.getOrderDetails().stream()
-                        .map(orderDetail -> OrderItemDto.builder()
-                                .productId(orderDetail.getProduct().getProductId())
-                                .productName(orderDetail.getProductName())
-                                .productOption(orderDetail.getProductOption())
-                                .quantity(orderDetail.getQuantity())
-                                .price(orderDetail.getPrice())
-                                .discount(orderDetail.getDiscount())
-                                .build())
+                        .map(orderDetail -> {
+                            Map<String, String> optionsMap = null;
+                            if (orderDetail.getProductOption() != null && !orderDetail.getProductOption().trim().isEmpty()) {
+                                try {
+                                    // JSON 형태인지 확인
+                                    if (orderDetail.getProductOption().startsWith("{") && orderDetail.getProductOption().endsWith("}")) {
+                                        optionsMap = objectMapper.readValue(orderDetail.getProductOption(), new TypeReference<Map<String, String>>() {});
+                                    } else {
+                                        // 단순 문자열인 경우 "옵션: 값" 형태로 변환
+                                        optionsMap = Map.of("옵션", orderDetail.getProductOption());
+                                    }
+                                } catch (Exception e) {
+                                    // 파싱 실패 시 단순 문자열로 처리
+                                    optionsMap = Map.of("옵션", orderDetail.getProductOption());
+                                }
+                            }
+                            
+                            return OrderItemDto.builder()
+                                    .orderDetailId(orderDetail.getOrderDetailId())
+                                    .productId(orderDetail.getProduct().getProductId())
+                                    .productName(orderDetail.getProductName())
+                                    .productOption(orderDetail.getProductOption())
+                                    .options(optionsMap)
+                                    .quantity(orderDetail.getQuantity())
+                                    .price(orderDetail.getPrice())
+                                    .discount(orderDetail.getDiscount())
+                                    .build();
+                        })
                         .collect(Collectors.toList()))
                 .orderSummary(OrderSummaryDto.builder()
                         .totalPrice(order.getTotalPrice())
@@ -105,6 +136,7 @@ public class OrderResponseDto {
                         .shippingFee(order.getShippingFee())
                         .finalAmount(order.getPaymentAmount())
                         .build())
+                .status(order.getStatus().name())
                 .build();
     }
 } 

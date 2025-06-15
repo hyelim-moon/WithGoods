@@ -213,6 +213,18 @@
   background-color: var(--button-hover-bg);
 }
 
+.salePeriodInputs {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+  max-width: 500px; /* 원하는 최대 너비로 조절 */
+}
+
+.salePeriodInputs .label {
+  flex: 1;
+  max-width: 240px; /* 개별 input 크기 제한 */
+}
+
 .submitButton {
   width: 100%;
   margin-top: 36px;

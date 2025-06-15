@@ -94,9 +94,11 @@ public class Order {
     private List<OrderDetail> orderDetails = new ArrayList<>();
 
     @PrePersist
-    public void prePersist() {
+    protected void onCreate() {
         this.orderDate = LocalDateTime.now();
-        this.status = OrderStatus.PENDING;
+        if (this.status == null) {
+            this.status = OrderStatus.PENDING;
+        }
     }
 
     public void addOrderDetail(OrderDetail orderDetail) {

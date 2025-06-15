@@ -266,7 +266,9 @@ function Checkout() {
             productId: item.productId,
             quantity: item.quantity,
             price: item.price,
-            discount: item.discount || 0
+            discount: item.discount || 0,
+            productOption: item.option,
+            options: item.options
           })),
           orderSummary: {
             totalPrice: cartData.summary.totalPrice,
@@ -487,7 +489,17 @@ function Checkout() {
                   <img src={item.imageUrl} alt={item.productName} className={styles.productImage} />
                   <div>
                     <h4>{item.productName}</h4>
-                    {item.option && <p className={styles.option}>{item.option}</p>}
+                    {item.options && Object.keys(item.options).length > 0 && (
+                      <div className={styles.productOptions}>
+                        {Object.entries(item.options).map(([key, value]) => (
+                          <span key={key} className={styles.optionItem}>
+                            <span className={styles.optionKey}>{key}</span>
+                            <span className={styles.optionValue}>{value}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {item.option && !item.options && <p className={styles.option}>{item.option}</p>}
                     <p className={styles.quantity}>수량: {item.quantity}개</p>
                   </div>
                 </div>

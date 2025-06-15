@@ -1,121 +1,171 @@
+/* InquiryDetail.module.css */
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/* 1) 컨테이너: 최대 너비 800px, 중앙 정렬                                        */
+/* ───────────────────────────────────────────────────────────────────────── */
 .container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 24px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    max-width: 80%;    /* 필요 시 900px 이상으로 늘려도 됩니다 */
+    margin: 40px auto;   /* 상단 여백 40px, 좌우 중앙 정렬 */
+    padding: 0 20px;     /* 좌우 패딩 20px */
+    box-sizing: border-box;
+    font-family: 'Noto Sans KR', sans-serif;
+    color: #333;
 }
 
+/* 로딩 중 표시 */
+.loading {
+    text-align: center;
+    font-size: 1rem;
+    margin-top: 60px;
+}
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/* 2) 제목 (Title)                                                             */
+/* ───────────────────────────────────────────────────────────────────────── */
 .title {
-    font-size: 1.8rem;
-    font-weight: bold;
-    margin-bottom: 12px;
+    font-size: 1.6rem;
+    font-weight: 600;
+    text-align: left;   /* 왼쪽 정렬 */
+    margin: 0 0 12px 0; /* 아래쪽 12px 여백 */
     color: #222;
 }
 
+/* ───────────────────────────────────────────────────────────────────────── */
+/* 3) 사용자 · 작성날짜 · 조회수 (Meta)                                          */
+/* ───────────────────────────────────────────────────────────────────────── */
 .meta {
     display: flex;
-    gap: 20px;
+    align-items: center;
     font-size: 0.9rem;
-    color: #666;
-    margin-bottom: 16px;
+    color: #777;
+    margin-bottom: 16px;   /* 아래쪽 여백 */
 }
 
+.metaItem {
+    margin-right: 6px;
+}
+
+.dot {
+    margin: 0 4px;
+    color: #999;
+}
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/* 4) 구분선 (Separator)                                                        */
+/* ───────────────────────────────────────────────────────────────────────── */
+.separator {
+    border: none;
+    border-top: 1px solid #ccc;
+    margin: 0 0 24px 0;  /* 아래쪽 24px 여백 */
+}
+
+/* ───────────────────────────────────────────────────────────────────────── */
+/* 5) 본문 내용 (Content)                                                       */
+/* ───────────────────────────────────────────────────────────────────────── */
 .content {
     font-size: 1rem;
     line-height: 1.6;
-    color: #333;
-    margin-bottom: 24px;
+    word-break: keep-all;
+    color: #444;
+    margin: 0rem 0rem 2rem 1rem;   /* 아래쪽 여백 */
 }
 
-.answerSection {
-    padding: 16px;
-    background-color: #f9f9f9;
-    border-left: 4px solid #4CAF50;
-    margin-top: 20px;
+.content p {
+    font-weight: 300 !important;
 }
-
-.answerSection h4 {
-    margin: 0 0 8px;
-    font-weight: bold;
-    color: #2e7d32;
-}
-
-.loading {
-    text-align: center;
-    font-size: 1.2rem;
-    padding: 40px;
-    color: #888;
-}
-
-.container {
-    max-width: 700px;
-    margin: auto;
-    padding: 30px;
-}
-
-.meta {
-    color: gray;
-    margin-bottom: 20px;
-    font-size: 14px;
-}
-
-.content {
-    white-space: pre-wrap;
-    font-size: 16px;
-    margin-bottom: 20px;
-}
-
-.answer {
-    background: #f9f9f9;
-    padding: 20px;
-    margin-top: 20px;
-    border-left: 4px solid #007bff;
-}
-
-.buttons {
-    margin-top: 30px;
+/* ───────────────────────────────────────────────────────────────────────── */
+/* 6) 이전 · 목록 · 다음 네비게이션 링크                                          */
+/* ───────────────────────────────────────────────────────────────────────── */
+.navLinks {
     display: flex;
-    gap: 10px;
+    justify-content: center;  /* 중앙 정렬 */
+    gap: 32px;                /* 아이템 사이 간격 */
+    font-size: 0.9rem;
+    color: #555;
+    margin-bottom: 60px;      /* 화면 최하단 여백 */
 }
 
-.editBtn,
-.deleteBtn {
-    padding: 8px 16px;
-    border: none;
+.navItem {
     cursor: pointer;
-    border-radius: 4px;
 }
 
-.editBtn {
-    background-color: #007bff;
-    color: white;
+.navItem:hover {
+    color: #000;
 }
 
-.deleteBtn {
-    background-color: #dc3545;
-    color: white;
+/* ───────────────────────────────────────────────────────────────────────── */
+/* 7) 비밀번호 입력 모달                                             */
+/* ───────────────────────────────────────────────────────────────────────── */
+.modalOverlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.4);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
 }
 
-.answerForm {
-    margin-top: 30px;
+.modalContainer {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    width: 90vw;
+    max-width: 600px;
+    box-sizing: border-box;
+    font-size: 1.125rem;
 }
 
-.answerForm textarea {
+.modalTitle {
+    margin: 0 0 1rem;
+    font-size: 1.5rem;
+    color: #944c21;
+}
+
+.modalMessage {
+    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.modalInput {
     width: 100%;
-    height: 120px;
-    padding: 10px;
-    font-size: 14px;
-    margin-bottom: 10px;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
 }
 
-.answerForm button {
-    background-color: #28a745;
-    color: white;
-    padding: 8px 16px;
+.modalError {
+    color: #d32f2f;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+}
+
+.modalButtons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.modalButton {
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
     border: none;
-    cursor: pointer;
     border-radius: 4px;
+    cursor: pointer;
+}
+
+.cancelButton {
+    background: #eee;
+}
+
+.confirmButton {
+    background: #944c21;
+    color: white;
 }

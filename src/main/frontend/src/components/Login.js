@@ -32,6 +32,7 @@ function Login() {
             localStorage.setItem('nickname', response.data.nickname);
             localStorage.setItem('role', response.data.role);
             localStorage.setItem('username', response.data.username);
+            localStorage.setItem('isAdmin', response.data.role === 'ADMIN' ? 'true' : 'false');
 
             // ✅ 세션 스토리지 저장
             sessionStorage.setItem("nickname", response.data.nickname);

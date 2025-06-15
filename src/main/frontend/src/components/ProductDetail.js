@@ -1,17 +1,18 @@
-import { useNavigate } from 'react-router-dom';
-import styles from '../assets/styles/ProductDetail.module.css';
+import { useNavigate, useParams } from 'react-router-dom';
 import { FaHeart, FaCartPlus, FaShoppingCart } from 'react-icons/fa'; // 아이콘 가져오기
-import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import ProductBadge from './ProductBadge';
+import styles from '../assets/styles/ProductDetail.module.css';
 
 function ProductDetail() {
     const { id } = useParams(); // URL에서 id 파라미터 가져오기
     const navigate = useNavigate();
+    const { user, loading: authLoading } = useAuth();
 
     // 상태 변수들 정의
-    const [selectedOption, setSelectedOption] = useState('');
+    const [selectedOptions, setSelectedOptions] = useState({}); // 선택된 옵션들을 저장
     const [quantity, setQuantity] = useState(1);
     const [selectedImage, setSelectedImage] = useState(0); // 선택된 이미지 인덱스
     const [showMoreInfo, setShowMoreInfo] = useState(false); // 상세 설명 더보기 여부
@@ -26,30 +27,87 @@ function ProductDetail() {
     const [reportDetail, setReportDetail] = useState('');
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [timeLeft, setTimeLeft] = useState(null);
+    const [reviews, setReviews] = useState([]);
+    const [reviewsLoading, setReviewsLoading] = useState(false);
 
-    // 상품 데이터 불러오기
+    // 상품 데이터와 찜 상태 불러오기
     useEffect(() => {
-        const fetchProduct = async () => {
+        const fetchProductAndWishlist = async () => {
             try {
                 setLoading(true);
-                const response = await axios.get(`/api/products/${id}`, {
-                    withCredentials: true
-                });
-                console.log('Fetched product:', response.data); // 디버깅용 로그
-                setProduct(response.data);
+                const [productResponse, wishlistResponse] = await Promise.all([
+                    axios.get(`http://localhost:8080/products/${id}`, {
+                        withCredentials: true,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
+                    }),
+                    axios.get(`http://localhost:8080/api/wishlist/check/${id}`, {
+                        withCredentials: true
+                    })
+                ]);
+                
+                if (productResponse.data) {
+                    console.log('Product Response:', productResponse.data);
+                    const { product, options } = productResponse.data;
+                    setProduct({
+                        ...product,
+                        options: options
+                    });
+                } else {
+                    throw new Error('상품 데이터가 없습니다.');
+                }
+                
+                setIsFavorited(wishlistResponse.data);
                 setError(null);
             } catch (err) {
-                console.error('Error fetching product:', err); // 디버깅용 로그
-                setError('상품 정보를 불러오는데 실패했습니다.');
+                console.error('Error fetching data:', err);
+                if (err.response) {
+                    console.error('Error response:', err.response.data);
+                    console.error('Error status:', err.response.status);
+                }
+                if (err.response?.status === 401) {
+                    setIsFavorited(false);
+                    setError('로그인이 필요한 서비스입니다.');
+                } else {
+                    setError('상품 정보를 불러오는데 실패했습니다.');
+                }
             } finally {
                 setLoading(false);
             }
         };
 
         if (id) {
-            fetchProduct();
+            fetchProductAndWishlist();
         }
     }, [id]);
+
+    // 리뷰 데이터 불러오기
+    useEffect(() => {
+        const fetchReviews = async () => {
+            if (!product?.productId) return;
+
+            try {
+                setReviewsLoading(true);
+                const response = await axios.get(`http://localhost:8080/api/reviews/product/${parseInt(product.productId)}`, {
+                    withCredentials: true
+                });
+                setReviews(response.data);
+            } catch (err) {
+                console.error('Error fetching reviews:', err);
+            } finally {
+                setReviewsLoading(false);
+            }
+        };
+
+        fetchReviews();
+    }, [product?.productId]);
+
+    // 날짜 포맷팅
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('ko-KR');
+    };
 
     // 남은 시간 계산 함수
     const calculateTimeLeft = (endDate) => {
@@ -86,10 +144,25 @@ function ProductDetail() {
         return stock <= 5 ? `${styles.stockValue} ${styles.urgentStock}` : styles.stockValue;
     };
 
+    // 옵션 선택 처리
+    const handleOptionSelect = (groupName, option) => {
+        setSelectedOptions(prev => ({
+            ...prev,
+            [groupName]: option
+        }));
+    };
+
+    // 모든 필수 옵션이 선택되었는지 확인
+    const areAllOptionsSelected = () => {
+        if (!product?.options) return true;
+        const optionsObj = typeof product.options === 'string' ? JSON.parse(product.options) : product.options;
+        return Object.keys(optionsObj).every(group => selectedOptions[group]);
+    };
+
     // 장바구니에 추가
     const handleAddToCart = async () => {
-        if (!selectedOption && product?.options) {
-            alert('옵션을 선택해주세요.');
+        if (!areAllOptionsSelected()) {
+            alert('모든 옵션을 선택해주세요.');
             return;
         }
 
@@ -97,13 +170,14 @@ function ProductDetail() {
             const cartItem = {
                 productId: product.productId,
                 quantity: quantity,
-                option: selectedOption,
+                option: JSON.stringify(selectedOptions), // JSON 문자열로 변환
+                options: selectedOptions, // Map 형태도 함께 전송
             };
 
             await axios.post('http://localhost:8080/api/cart', cartItem, {
                 withCredentials: true
             });
-            
+
             alert('장바구니에 추가되었습니다.');
         } catch (error) {
             if (error.response?.status === 401) {
@@ -122,8 +196,35 @@ function ProductDetail() {
     };
 
     // 즐겨찾기 토글
-    const toggleFavorite = () => {
-        setIsFavorited(!isFavorited);
+    const toggleFavorite = async () => {
+        try {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            if (!isLoggedIn) {
+                alert('로그인이 필요한 서비스입니다.');
+                navigate('/login');
+                return;
+            }
+
+            if (isFavorited) {
+                await axios.delete(`http://localhost:8080/api/wishlist/remove?productId=${id}`, {
+                    withCredentials: true
+                });
+                setIsFavorited(false);
+            } else {
+                await axios.post(`http://localhost:8080/api/wishlist/add?productId=${id}`, null, {
+                    withCredentials: true
+                });
+                setIsFavorited(true);
+            }
+        } catch (error) {
+            console.error('Error toggling wishlist:', error);
+            if (error.response?.status === 401) {
+                alert('로그인이 필요한 서비스입니다.');
+                navigate('/login');
+            } else {
+                alert(isFavorited ? '찜 해제에 실패했습니다.' : '찜하기에 실패했습니다.');
+            }
+        }
     };
 
     const openReportModal = (review) => {
@@ -144,20 +245,15 @@ function ProductDetail() {
     };
 
     const submitReport = () => {
-        if (reportReasons.length === 0) {
-            alert('신고 사유를 하나 이상 선택해주세요.');
-            return;
-        }
-        // 실제 신고 API 호출 시 여기에 작성
-        alert(
-            `리뷰 ID ${reportTarget.id} 신고가 접수되었습니다.\n사유: ${reportReasons.join(
-                ', '
-            )}\n상세 내용: ${reportDetail}`
-        );
+        // 신고 로직 구현
+        console.log('신고 제출:', {
+            target: reportTarget,
+            reasons: reportReasons,
+            detail: reportDetail,
+        });
         setIsReportModalOpen(false);
     };
 
-    const reviews = product?.reviews || [];
     const qnaList = product?.qna || [];
 
     const averageRating = reviews.length
@@ -177,6 +273,9 @@ function ProductDetail() {
 
     // 상품 이미지 배열 생성 (임시로 같은 이미지 반복)
     const productImages = product.imageUrl ? [product.imageUrl, product.imageUrl, product.imageUrl] : [];
+
+    // 리뷰 표시 개수 제한
+    const displayedReviews = showAllReviews ? reviews : reviews.slice(0, 3);
 
     return (
         <div className={styles.detailContainer}>
@@ -204,27 +303,53 @@ function ProductDetail() {
                 {/* 상품 정보 영역 */}
                 <div className={styles.infoSection}>
                     <h2 className={styles.productName}>{product.name}</h2>
+
+                    {/* 상품 평점 표시 */}
+                    <div className={styles.productRating}>
+                        <div className={styles.starRating}>
+                            {[1, 2, 3, 4, 5].map(star => (
+                                <span
+                                    key={star}
+                                    className={`${styles.star} ${star <= (product.rating || 0) ? styles.filled : ''}`}
+                                >
+                                    ★
+                                </span>
+                            ))}
+                        </div>
+                        <span className={styles.ratingText}>
+                            {product.rating ? `${product.rating.toFixed(1)}점` : '평점 없음'}
+                        </span>
+                        <span className={styles.reviewCount}>
+                            ({reviews.length}개의 리뷰)
+                        </span>
+                    </div>
+
                     <p className={styles.productPrice}>₩{product.price?.toLocaleString()}</p>
-                    
+
                     {/* 한정판/기념일 상품 정보 */}
                     <ProductBadge product={product} />
 
                     {/* 옵션 선택 */}
                     {product.options && (
                         <div className={styles.optionSection}>
-                            <label>옵션</label>
-                            <select 
-                                value={selectedOption} 
-                                onChange={(e) => setSelectedOption(e.target.value)}
-                                className={styles.optionSelect}
-                            >
-                                <option value="">옵션을 선택하세요</option>
-                                {product.options.split(',').map((opt, i) => (
-                                    <option key={i} value={opt.trim()}>
-                                        {opt.trim()}
-                                    </option>
-                                ))}
-                            </select>
+                            {Object.entries(typeof product.options === 'string' ? JSON.parse(product.options) : product.options).map(([groupName, options]) => (
+                                <div key={groupName} className={styles.optionGroup}>
+                                    <div className={styles.optionTitle}>{groupName}</div>
+                                    <div className={styles.optionButtons}>
+                                        {options.map((option) => (
+                                            <button
+                                                key={option}
+                                                className={`${styles.optionButton} ${
+                                                    selectedOptions[groupName] === option ? styles.selected : ''
+                                                }`}
+                                                onClick={() => handleOptionSelect(groupName, option)}
+                                            >
+                                                {option}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            ))}
                         </div>
                     )}
 
@@ -270,7 +395,7 @@ function ProductDetail() {
                     className={`${styles.tab} ${activeTab === 'reviews' ? styles.activeTab : ''}`}
                     onClick={() => setActiveTab('reviews')}
                 >
-                    리뷰
+                    리뷰 ({reviews.length})
                 </div>
                 <div
                     className={`${styles.tab} ${activeTab === 'qa' ? styles.activeTab : ''}`}
@@ -307,72 +432,83 @@ function ProductDetail() {
                 </div>
             )}
 
+            {/* 리뷰 탭 */}
             {activeTab === 'reviews' && (
                 <div className={styles.reviewsSection}>
-                    <h3>전체 리뷰 ({product.reviews.length})</h3>
-                    <div className={styles.ratingSection}>
-                        <div className={styles.stars}>
-                            {[...Array(5)].map((_, i) => (
-                                <span
-                                    key={i}
-                                    className={i < Math.round(averageRating) ? styles.filledStar : styles.emptyStar}
-                                >
-                                    ★
-                                </span>
-                            ))}
-                        </div>
-                        <span className={styles.ratingText}>
-                            평점: {averageRating.toFixed(1)} ({product.reviews.length}명)
-                        </span>
+                    <div className={styles.reviewsHeader}>
+                        <h3>상품 리뷰 ({reviews.length})</h3>
                     </div>
 
-                    <div className={styles.reviewsList}>
-                        {product.reviews
-                            .slice(0, showAllReviews ? product.reviews.length : 3)
-                            .map((review) => (
-                                <div key={review.id} className={styles.reviewItem}>
+                    {reviewsLoading ? (
+                        <div className={styles.loading}>리뷰를 불러오는 중...</div>
+                    ) : reviews.length === 0 ? (
+                        <div className={styles.noReviews}>
+                            <p>아직 작성된 리뷰가 없습니다.</p>
+                            <p>첫 번째 리뷰를 작성해보세요!</p>
+                        </div>
+                    ) : (
+                        <div className={styles.reviewsList}>
+                            {displayedReviews.map((review) => (
+                                <div key={review.reviewId} className={styles.reviewItem}>
                                     <div className={styles.reviewHeader}>
-                                        <span style={{ marginRight: '10px' }}>{review.userId}</span>
-                                        <span>{review.date}</span>
-                                        {/* 신고하기 라벨 - 모달 열기 */}
-                                        <span
-                                            className={styles.reportLabel}
-                                            onClick={() => openReportModal(review)}
-                                            style={{ cursor: 'pointer', color: 'red', fontSize: '0.8rem', marginLeft: 'auto' }}
-                                            title="신고하기"
-                                        >
-                                            신고하기
-                                        </span>
+                                        <div className={styles.reviewerInfo}>
+                                            <span className={styles.reviewerName}>{review.memberNickname}</span>
+                                            <div className={styles.reviewRating}>
+                                                {[1, 2, 3, 4, 5].map(star => (
+                                                    <span
+                                                        key={star}
+                                                        className={`${styles.star} ${star <= (review.rating || 0) ? styles.filled : ''}`}
+                                                    >
+                                                        ★
+                                                    </span>
+                                                ))}
+                                                <span className={styles.reviewRatingText}>
+                                                    {review.rating || 0}점
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <span className={styles.reviewDate}>{formatDate(review.createdAt)}</span>
                                     </div>
-                                    <div className={styles.reviewText}>
-                                        {[...Array(5)].map((_, i) => (
-                                            <span
-                                                key={i}
-                                                className={i < Math.round(review.rating) ? styles.filledStar : styles.emptyStar}
-                                            >
-                                                ★
-                                            </span>
-                                        ))}
-                                        <span className={styles.ratingScore}>({review.rating}점)</span>
-                                        <p>{review.text}</p>
+                                    <div className={styles.reviewContent}>
+                                        <p>{review.content}</p>
+                                        {review.imageUrl && (
+                                            <img
+                                                src={`http://localhost:8080${review.imageUrl}`}
+                                                alt="리뷰 이미지"
+                                                className={styles.reviewImage}
+                                            />
+                                        )}
                                     </div>
                                 </div>
                             ))}
-                    </div>
 
-                    <button className={styles.showMoreBtn} onClick={() => setShowAllReviews(!showAllReviews)}>
-                        {showAllReviews ? '리뷰 간략히 보기' : '리뷰 더보기'}
-                    </button>
+                            {reviews.length > 3 && (
+                                <div className={styles.reviewToggle}>
+                                    <button
+                                        className={styles.showMoreReviewsBtn}
+                                        onClick={() => setShowAllReviews(!showAllReviews)}
+                                    >
+                                        {showAllReviews ? '리뷰 접기' : `리뷰 더보기 (${reviews.length - 3}개 더)`}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
 
             {activeTab === 'qa' && (
                 <div className={styles.reviewsSection}>
                     <div className={styles.qnaHeader}>
-                        <h3>Q&A ({qnaList.length})</h3>
-                        <button className={styles.inquiryBtn} onClick={() => navigate('/inquiry/write')}>
-                            문의하기
-                        </button>
+                        <h3>Q&A ({product.qna?.length || 0})</h3>
+                        {!authLoading && user && (
+                            <button
+                                className={styles.inquiryBtn}
+                                onClick={() => navigate(`/inquiry/write/${product.productId}`)}
+                            >
+                                문의하기
+                            </button>
+                        )}
                     </div>
 
                     {qnaList.length === 0 ? (
@@ -405,13 +541,6 @@ function ProductDetail() {
                         className={styles.productDescription}
                         dangerouslySetInnerHTML={{ __html: product.returnPolicy || '' }}
                     />
-                </div>
-            )}
-
-            {activeTab === 'return' && (
-                <div className={styles.productDetailInfo}>
-                    <h4>반품/교환 안내</h4>
-                    <div className={styles.productDescription} dangerouslySetInnerHTML={{ __html: product.returnPolicy }} />
                 </div>
             )}
 
