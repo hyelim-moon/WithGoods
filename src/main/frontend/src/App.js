@@ -22,8 +22,8 @@ import Cart from './components/Cart';
 import ProductDetail from './components/ProductDetail';
 import MyPage from './components/MyPage';
 import EditProfile from "./components/EditProfile";
-import Registration from "./components/Registration";
-import MyProductList from "./components/MyProductList";
+/*import Registration from "./components/Registration";*/
+import MyProductList from "./components/ProductList";
 import WishList from "./components/WishList";
 import Recent from "./components/Recent";
 import EstimateList from "./components/EstimateList";
@@ -65,7 +65,7 @@ function AppContent() {
           <Route path="/inquiry/write" element={<InquiryForm />} />
           <Route path="/inquiry/estimate" element={<EstimateInquiryForm />} />
           <Route path="/mypage" element={<MyPage />} />
-          <Route path="/myproductlist" element={<MyProductList />} />
+          <Route path="/productlist" element={<MyProductList />} />
           <Route path="/wishlist" element={<WishList />} />
           <Route path="/recent" element={<Recent />} />
           <Route path="/estimatelist" element={<EstimateList />} />

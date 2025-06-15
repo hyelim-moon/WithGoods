@@ -7,7 +7,7 @@ import com.WG.WithGoods.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -44,7 +44,7 @@ public class ProductService {
     }
 
     public List<ProductDto> getActiveLimitedProducts() {
-        return toDtoList(productRepository.findActiveLimitedProducts(LocalDateTime.now()));
+        return toDtoList(productRepository.findActiveLimitedProducts(LocalDate.now()));
     }
 
     public List<ProductDto> getNormalProducts() {
@@ -60,7 +60,7 @@ public class ProductService {
     }
 
     public List<ProductDto> getActiveAnniversaryProducts() {
-        return toDtoList(productRepository.findActiveAnniversaryProducts(LocalDateTime.now()));
+        return toDtoList(productRepository.findActiveAnniversaryProducts(LocalDate.now()));
     }
 
     public ProductDto getProductById(Integer id) {
