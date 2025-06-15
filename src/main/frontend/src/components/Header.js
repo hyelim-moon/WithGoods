@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import logoImg from '../assets/images/logo.png';
 import styles from '../assets/styles/Header.module.css';
@@ -7,20 +7,25 @@ import styles from '../assets/styles/Header.module.css';
 function Header() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [nickname, setNickname] = useState('');
-    const [isAdmin, setIsAdmin] = useState(false);
+    const [searchInput, setSearchInput] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
 
     useEffect(() => {
         const savedNickname = localStorage.getItem('nickname');
         const savedIsLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-        const savedIsAdmin = localStorage.getItem('isAdmin') === 'true';
 
         if (savedIsLoggedIn && savedNickname) {
             setIsLoggedIn(true);
             setNickname(savedNickname);
-            setIsAdmin(savedIsAdmin);
         }
     }, []);
+
+    useEffect(() => {
+        if (!location.pathname.startsWith('/search')) {
+            setSearchInput('');
+        }
+    }, [location.pathname]);
 
     const handleLogout = async () => {
         try {
@@ -31,13 +36,26 @@ function Header() {
 
         setIsLoggedIn(false);
         setNickname('');
-        setIsAdmin(false);
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('nickname');
         localStorage.removeItem('username');
-        localStorage.removeItem('isAdmin');
         window.dispatchEvent(new Event('storage'));
         navigate('/');
+    };
+
+    const handleInputChange = (e) => setSearchInput(e.target.value);
+
+    const handleSearch = () => {
+        const trimmed = searchInput.trim();
+        if (trimmed) {
+            navigate(`/search?keyword=${encodeURIComponent(trimmed)}`);
+        } else {
+            navigate('/search');
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === 'Enter') handleSearch();
     };
 
     return (
@@ -62,14 +80,6 @@ function Header() {
                                 <Link to="/cart" className={styles.cartLink}>
                                     장바구니
                                 </Link>
-                                {isAdmin && (
-                                    <>
-                                        <div className={styles.divider}></div>
-                                        <Link to="/admin/orders" className={styles.adminLink}>
-                                            주문관리
-                                        </Link>
-                                    </>
-                                )}
                                 <div className={styles.divider}></div>
                                 <button onClick={handleLogout} className={styles.logoutButton}>
                                     로그아웃
@@ -81,8 +91,14 @@ function Header() {
                     </div>
 
                     <div className={styles.searchBox}>
-                        <input type="text" placeholder="검색어 입력..." />
-                        <button>검색</button>
+                        <input
+                            type="text"
+                            placeholder="검색어 입력..."
+                            value={searchInput}
+                            onChange={handleInputChange}
+                            onKeyDown={handleKeyDown}
+                        />
+                        <button onClick={handleSearch}>검색</button>
                     </div>
                 </div>
             </div>

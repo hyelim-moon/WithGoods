@@ -1,5 +1,7 @@
 package com.WG.WithGoods.repository;
 
+import com.WG.WithGoods.dto.ProductDto;
+import com.WG.WithGoods.entity.Product;
 import com.WG.WithGoods.entity.Review;
 import com.WG.WithGoods.entity.Member;
 import com.WG.WithGoods.entity.OrderDetail;
