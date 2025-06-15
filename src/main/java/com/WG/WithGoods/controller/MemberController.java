@@ -1,5 +1,6 @@
 package com.WG.WithGoods.controller;
 
+import com.WG.WithGoods.dto.LoginRequestDTO;
 import com.WG.WithGoods.dto.SignupRequest;
 import com.WG.WithGoods.entity.Member;
 import com.WG.WithGoods.service.MemberService;
@@ -26,6 +27,7 @@ public class MemberController {
 
     private final MemberService memberService;
 
+    // ✅ 회원가입
     @PostMapping("/signup")
     public ResponseEntity<?> signup(@Valid @RequestBody SignupRequest request) {
         log.info("회원가입 요청 받음: {}", request.getUsername());
@@ -43,8 +45,9 @@ public class MemberController {
         }
     }
 
+    // ✅ 로그인
     @PostMapping("/login")
-    public ResponseEntity<?> login(@Valid @RequestBody SignupRequest request, HttpSession session) {
+    public ResponseEntity<?> login(@Valid @RequestBody LoginRequestDTO request, HttpSession session) {
         log.info("로그인 요청 받음: {}", request.getUsername());
 
         try {
@@ -54,22 +57,22 @@ public class MemberController {
                 Member member = memberService.findByUsername(request.getUsername())
                         .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+                // Spring Security 세션 설정 (선택적 보안용)
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(request.getUsername(), null, List.of());
 
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
                 context.setAuthentication(authentication);
                 SecurityContextHolder.setContext(context);
-
                 session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, context);
 
-                //  nickname 세션 저장
+                // 세션 저장
                 session.setAttribute("nickname", member.getNickname());
                 session.setAttribute("username", member.getUsername());
                 session.setAttribute("role", member.getRole().name());
                 session.setAttribute("memberId", member.getMemberId());
 
-                //  nickname 응답에도 보내기
+                // 응답 반환
                 Map<String, String> response = new HashMap<>();
                 response.put("message", "로그인 성공");
                 response.put("nickname", member.getNickname());
@@ -90,15 +93,17 @@ public class MemberController {
         }
     }
 
+    // ✅ 로그아웃
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpSession session) {
         session.invalidate();  // 세션 무효화
-        SecurityContextHolder.clearContext();  // 추가! SecurityContext 비우기
+        SecurityContextHolder.clearContext();  // Spring Security context 초기화
         Map<String, String> response = new HashMap<>();
         response.put("message", "로그아웃 되었습니다.");
         return ResponseEntity.ok(response);
     }
 
+    // ✅ 현재 로그인된 사용자 정보
     @GetMapping("/current-user")
     public ResponseEntity<?> getCurrentUser(HttpSession session) {
         String username = (String) session.getAttribute("username");

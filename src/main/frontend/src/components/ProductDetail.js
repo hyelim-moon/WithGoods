@@ -1,14 +1,15 @@
-import { useNavigate } from 'react-router-dom';
-import styles from '../assets/styles/ProductDetail.module.css';
+import { useNavigate, useParams } from 'react-router-dom';
 import { FaHeart, FaCartPlus, FaShoppingCart } from 'react-icons/fa'; // 아이콘 가져오기
-import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import ProductBadge from './ProductBadge';
+import styles from '../assets/styles/ProductDetail.module.css';
 
 function ProductDetail() {
     const { id } = useParams(); // URL에서 id 파라미터 가져오기
     const navigate = useNavigate();
+    const { user, loading: authLoading } = useAuth();
 
     // 상태 변수들 정의
     const [selectedOptions, setSelectedOptions] = useState({}); // 선택된 옵션들을 저장
@@ -86,7 +87,7 @@ function ProductDetail() {
     useEffect(() => {
         const fetchReviews = async () => {
             if (!product?.productId) return;
-            
+
             try {
                 setReviewsLoading(true);
                 const response = await axios.get(`http://localhost:8080/api/reviews/product/${parseInt(product.productId)}`, {
@@ -176,7 +177,7 @@ function ProductDetail() {
             await axios.post('http://localhost:8080/api/cart', cartItem, {
                 withCredentials: true
             });
-            
+
             alert('장바구니에 추가되었습니다.');
         } catch (error) {
             if (error.response?.status === 401) {
@@ -302,7 +303,7 @@ function ProductDetail() {
                 {/* 상품 정보 영역 */}
                 <div className={styles.infoSection}>
                     <h2 className={styles.productName}>{product.name}</h2>
-                    
+
                     {/* 상품 평점 표시 */}
                     <div className={styles.productRating}>
                         <div className={styles.starRating}>
@@ -322,9 +323,9 @@ function ProductDetail() {
                             ({reviews.length}개의 리뷰)
                         </span>
                     </div>
-                    
+
                     <p className={styles.productPrice}>₩{product.price?.toLocaleString()}</p>
-                    
+
                     {/* 한정판/기념일 상품 정보 */}
                     <ProductBadge product={product} />
 
@@ -480,7 +481,7 @@ function ProductDetail() {
                                     </div>
                                 </div>
                             ))}
-                            
+
                             {reviews.length > 3 && (
                                 <div className={styles.reviewToggle}>
                                     <button
@@ -499,10 +500,15 @@ function ProductDetail() {
             {activeTab === 'qa' && (
                 <div className={styles.reviewsSection}>
                     <div className={styles.qnaHeader}>
-                        <h3>Q&A ({qnaList.length})</h3>
-                        <button className={styles.inquiryBtn} onClick={() => navigate('/inquiry/write')}>
-                            문의하기
-                        </button>
+                        <h3>Q&A ({product.qna?.length || 0})</h3>
+                        {!authLoading && user && (
+                            <button
+                                className={styles.inquiryBtn}
+                                onClick={() => navigate(`/inquiry/write/${product.productId}`)}
+                            >
+                                문의하기
+                            </button>
+                        )}
                     </div>
 
                     {qnaList.length === 0 ? (

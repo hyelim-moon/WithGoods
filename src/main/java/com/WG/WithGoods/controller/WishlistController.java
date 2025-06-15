@@ -18,7 +18,7 @@ public class WishlistController {
     private final WishlistService wishlistService;
     
     @GetMapping("/check/{productId}")
-    public ResponseEntity<Boolean> checkWishlist(HttpSession session, @PathVariable Integer productId) {
+    public ResponseEntity<Boolean> checkWishlist(HttpSession session, @PathVariable ("productId") Integer productId) {
         Integer memberId = (Integer) session.getAttribute("memberId");
         if (memberId == null) {
             return ResponseEntity.ok(false);
@@ -29,7 +29,7 @@ public class WishlistController {
     }
     
     @PostMapping("/add")
-    public ResponseEntity<?> add(HttpSession session, @RequestParam Integer productId) {
+    public ResponseEntity<?> add(HttpSession session, @RequestParam("productId") Integer productId) {
         Integer memberId = (Integer) session.getAttribute("memberId");
         if (memberId == null) {
             return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요한 서비스입니다."));
@@ -40,7 +40,7 @@ public class WishlistController {
     }
 
     @DeleteMapping("/remove")
-    public ResponseEntity<?> remove(HttpSession session, @RequestParam Integer productId) {
+    public ResponseEntity<?> remove(HttpSession session, @RequestParam("productId") Integer productId) {
         Integer memberId = (Integer) session.getAttribute("memberId");
         if (memberId == null) {
             return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요한 서비스입니다."));

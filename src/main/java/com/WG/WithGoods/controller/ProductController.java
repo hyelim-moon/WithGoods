@@ -107,19 +107,19 @@ public class ProductController {
 
     // ID로 상품 조회
     @GetMapping("/{id}")
-    public ResponseEntity<Map<String, Object>> getProductDetail(@PathVariable Integer id) {
+    public ResponseEntity<Map<String, Object>> getProductDetail(@PathVariable("id") Integer id) {
         return ResponseEntity.ok(productService.getProductWithOptions(id));
     }
 
     // 상품 수정
     @PutMapping("/{id}")
-    public ResponseEntity<ProductDto> update(@PathVariable Integer id, @RequestBody ProductDto dto) {
+    public ResponseEntity<ProductDto> update(@PathVariable("id") Integer id, @RequestBody ProductDto dto) {
         return ResponseEntity.ok(productService.updateProduct(id, dto));
     }
 
     // 상품 삭제
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Integer id) {
+    public ResponseEntity<Void> delete(@PathVariable("id") Integer id) {
         productService.deleteProduct(id);
         return ResponseEntity.noContent().build();
     }

@@ -71,3 +71,61 @@ select.input {
     color: #fff;
     background-color: #944c21;
 }
+
+/* ✅ 상품 정보 박스 추가 */
+.productInfoBox {
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background-color: #fafafa;
+    margin-bottom: 1.2rem;
+}
+
+.productImage {
+    width: 5rem;
+    height: 5rem;
+    object-fit: cover;
+    margin-right: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.productDetails {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 0.9rem;
+}
+
+.productName {
+    font-weight: 500;
+    font-size: 0.95rem;
+    color: #222;
+}
+
+.productPrice {
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.backToProductButton {
+    margin-top: 0.2rem;
+    padding: 0.3rem 0.5rem;
+    background-color: #fff;
+    border: 1px solid #944c21;
+    border-radius: 5px;
+    color: #944c21;
+    font-size: 0.7rem;
+    font-weight: 500;
+    cursor: pointer;
+    width: fit-content;
+    transition: all 0.25s ease;
+}
+
+.backToProductButton:hover {
+    background-color: #944c21;
+    color: #fff;
+}
+

@@ -44,4 +44,7 @@ public class Inquiry {
 
     @ManyToOne(fetch = FetchType.LAZY)
     private Member answeredBy;
+
+    @Column(name = "views")
+    private Integer views = 0;
 }
