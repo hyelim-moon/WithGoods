@@ -20,6 +20,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final MemberRepository memberRepository;
     private final ProductRepository productRepository;
+    private final MemberCouponService memberCouponService;
 
     @Transactional
     public Integer createOrder(Integer memberId, OrderRequestDto orderRequest) {
@@ -79,6 +80,17 @@ public class OrderService {
 
         // 주문 저장
         Order savedOrder = orderRepository.save(order);
+
+        // 쿠폰 사용 처리
+        if (orderRequest.getUsedCoupon() != null) {
+            try {
+                memberCouponService.useCoupon(orderRequest.getUsedCoupon().getMemberCouponId());
+            } catch (Exception e) {
+                // 쿠폰 사용 처리 실패 시에도 주문은 성공으로 처리
+                System.err.println("쿠폰 사용 처리 실패: " + e.getMessage());
+            }
+        }
+
         return savedOrder.getOrderId();
     }
 

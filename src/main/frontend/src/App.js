@@ -41,6 +41,7 @@ import AnniversaryProductForm from './components/ProductRegister/AnniversaryProd
 import MyReviews from './components/MyReviews';
 import ReviewEdit from './components/ReviewEdit';
 import AdminOrderManagement from './components/AdminOrderManagement';
+import AdminMemberManagement from './components/AdminMemberManagement';
 
 // 새로 추가한 Coupons 컴포넌트 import
 import Coupons from './components/Coupons';
@@ -55,6 +56,25 @@ const ProtectedRoute = ({ children }) => {
 
     if (!user) {
         return <Navigate to="/login" />;
+    }
+
+    return children;
+};
+
+// Admin Protected Route component
+const ProtectedAdminRoute = ({ children }) => {
+    const { user, loading } = useAuth();
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (!user) {
+        return <Navigate to="/login" />;
+    }
+
+    if (user.role !== 'ADMIN') {
+        return <Navigate to="/" />;
     }
 
     return children;
@@ -129,10 +149,11 @@ function AppContent() {
             <Route path="/review-write/:orderDetailId" element={<ReviewWrite />} />
             <Route path="/review-edit/:reviewId" element={<ReviewEdit />} />
             <Route path="/my-reviews" element={<MyReviews />} />
-            <Route path="/admin/orders" element={<AdminOrderManagement />} />
+            <Route path="/admin/orders" element={<ProtectedAdminRoute><AdminOrderManagement /></ProtectedAdminRoute>} />
             <Route path="/coupons" element={<Coupons />} />
             <Route path="/search" element={<Search />} />
           <Route path="/search/:category" element={<Search />} />
+          <Route path="/admin/members" element={<ProtectedAdminRoute><AdminMemberManagement /></ProtectedAdminRoute>} />
         </Routes>
       </div>
   );

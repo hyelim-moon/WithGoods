@@ -5,6 +5,7 @@ import styles from '../assets/styles/AdminOrderManagement.module.css';
 const API_BASE_URL = 'http://localhost:8080';
 
 function AdminOrderManagement() {
+    const [allOrders, setAllOrders] = useState([]);
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -13,6 +14,7 @@ function AdminOrderManagement() {
     const [selectedStatus, setSelectedStatus] = useState('ALL');
     const [selectedOrder, setSelectedOrder] = useState(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
+    const ordersPerPage = 6;
 
     const orderStatuses = [
         { value: 'ALL', label: '전체' },
@@ -25,24 +27,31 @@ function AdminOrderManagement() {
     ];
 
     useEffect(() => {
-        fetchOrders();
-    }, [currentPage, selectedStatus]);
+        fetchAllOrders();
+    }, [selectedStatus]);
 
-    const fetchOrders = async () => {
+    useEffect(() => {
+        updatePagedOrders();
+    }, [allOrders, currentPage]);
+
+    const fetchAllOrders = async () => {
         try {
             setLoading(true);
-            let url = `${API_BASE_URL}/api/admin/orders?page=${currentPage}&size=20`;
+            let url = `${API_BASE_URL}/api/admin/orders?page=0&size=1000`; // 큰 사이즈로 전체 데이터 가져오기
             
             if (selectedStatus !== 'ALL') {
-                url = `${API_BASE_URL}/api/admin/orders/status/${selectedStatus}?page=${currentPage}&size=20`;
+                url = `${API_BASE_URL}/api/admin/orders/status/${selectedStatus}?page=0&size=1000`;
             }
 
             const response = await axios.get(url, {
                 withCredentials: true
             });
 
-            setOrders(response.data.content);
-            setTotalPages(response.data.totalPages);
+            // 주문번호 기준으로 내림차순 정렬 (최근 주문이 먼저)
+            const sortedOrders = response.data.content.sort((a, b) => b.orderId - a.orderId);
+            
+            setAllOrders(sortedOrders);
+            setCurrentPage(0); // 상태 변경 시 첫 페이지로 이동
             setError(null);
         } catch (error) {
             console.error('주문 목록 조회 실패:', error);
@@ -50,6 +59,15 @@ function AdminOrderManagement() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const updatePagedOrders = () => {
+        const startIndex = currentPage * ordersPerPage;
+        const endIndex = startIndex + ordersPerPage;
+        const pagedOrders = allOrders.slice(startIndex, endIndex);
+        
+        setOrders(pagedOrders);
+        setTotalPages(Math.ceil(allOrders.length / ordersPerPage));
     };
 
     const handleStatusChange = async (orderId, newStatus) => {
@@ -61,7 +79,7 @@ function AdminOrderManagement() {
             });
 
             alert('주문 상태가 성공적으로 변경되었습니다.');
-            fetchOrders(); // 목록 새로고침
+            fetchAllOrders(); // 목록 새로고침
         } catch (error) {
             console.error('주문 상태 변경 실패:', error);
             alert('주문 상태 변경에 실패했습니다.');
@@ -130,20 +148,25 @@ function AdminOrderManagement() {
 
             {/* 필터 섹션 */}
             <div className={styles.filterSection}>
-                <select 
-                    value={selectedStatus} 
-                    onChange={(e) => {
-                        setSelectedStatus(e.target.value);
-                        setCurrentPage(0);
-                    }}
-                    className={styles.statusFilter}
-                >
-                    {orderStatuses.map(status => (
-                        <option key={status.value} value={status.value}>
-                            {status.label}
-                        </option>
-                    ))}
-                </select>
+                <div className={styles.filterControls}>
+                    <select 
+                        value={selectedStatus} 
+                        onChange={(e) => {
+                            setSelectedStatus(e.target.value);
+                            setCurrentPage(0);
+                        }}
+                        className={styles.statusFilter}
+                    >
+                        {orderStatuses.map(status => (
+                            <option key={status.value} value={status.value}>
+                                {status.label}
+                            </option>
+                        ))}
+                    </select>
+                </div>
+                <div className={styles.orderCount}>
+                    총 <strong>{allOrders.length}</strong>개의 주문
+                </div>
             </div>
 
             {/* 주문 목록 */}

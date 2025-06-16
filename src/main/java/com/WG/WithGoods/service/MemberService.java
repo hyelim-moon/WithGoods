@@ -2,16 +2,16 @@ package com.WG.WithGoods.service;
 
 import com.WG.WithGoods.dto.MemberDTO;
 import com.WG.WithGoods.dto.SignupRequest;
-import com.WG.WithGoods.entity.Coupon;
 import com.WG.WithGoods.entity.Member;
-import com.WG.WithGoods.repository.CouponRepository;
 import com.WG.WithGoods.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -40,7 +40,6 @@ public class MemberService {
         member.setNickname(request.getNickname());
         member.setGender(request.getGender());
         member.setAddress(request.getAddress());
-        member.setCoupon(null);
         member.setRole(Member.Role.USER);
 
         memberRepository.save(member);
@@ -72,5 +71,61 @@ public class MemberService {
             throw new IllegalArgumentException("Email already exists");
         }
         return memberRepository.save(member);
+    }
+
+    // 어드민용 회원 관리 메서드들
+    public List<MemberDTO> getAllMembers() {
+        return memberRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public MemberDTO getMemberById(Integer id) {
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+        return convertToDTO(member);
+    }
+
+    @Transactional
+    public MemberDTO updateMember(Integer id, MemberDTO dto) {
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+        
+        member.setNickname(dto.getNickname());
+        member.setName(dto.getName());
+        member.setEmail(dto.getEmail());
+        member.setPhoneNumber(dto.getPhoneNumber());
+        member.setGender(dto.getGender());
+        member.setAddress(dto.getAddress());
+        member.setRole(dto.getRole());
+        
+        Member updatedMember = memberRepository.save(member);
+        return convertToDTO(updatedMember);
+    }
+
+    @Transactional
+    public void deleteMember(Integer id) {
+        if (!memberRepository.existsById(id)) {
+            throw new IllegalArgumentException("Member not found");
+        }
+        memberRepository.deleteById(id);
+    }
+
+    // Member 엔티티를 MemberDTO로 변환하는 메서드
+    private MemberDTO convertToDTO(Member member) {
+        return MemberDTO.builder()
+                .memberId(member.getMemberId())
+                .username(member.getUsername())
+                .nickname(member.getNickname())
+                .name(member.getName())
+                .email(member.getEmail())
+                .phoneNumber(member.getPhoneNumber())
+                .gender(member.getGender())
+                .birthDate(member.getBirthDate())
+                .address(member.getAddress())
+                .role(member.getRole())
+                .createdAt(member.getCreatedAt())
+                .updatedAt(member.getUpdatedAt())
+                .build();
     }
 }

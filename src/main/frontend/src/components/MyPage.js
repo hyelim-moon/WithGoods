@@ -1,38 +1,16 @@
 import { Link, useNavigate } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import styles from '../assets/styles/MyPage.module.css';
 
 const API_BASE_URL = 'http://localhost:8080';
 
 function MyPage() {
-    const [nickname, setNickname] = useState('');
-    const [isAdmin, setIsAdmin] = useState(false);
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+    const { user, setUser } = useAuth();
     const [wishList, setWishList] = useState([]);
     const [recentProducts, setRecentProducts] = useState([]);
-    const [couponCount, setCouponCount] = useState(5); // 더미 쿠폰 수
     const navigate = useNavigate();
-
-    useEffect(() => {
-        const savedNickname = localStorage.getItem('nickname');
-        const savedIsLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-
-        if (savedIsLoggedIn && savedNickname) {
-            setIsLoggedIn(true);
-            setNickname(savedNickname);
-        }
-
-        const checkAdmin = () => {
-            const username = localStorage.getItem('username');
-            setIsAdmin(username === 'admin');
-        };
-
-        checkAdmin();
-        window.addEventListener('storage', checkAdmin);
-
-        return () => window.removeEventListener('storage', checkAdmin);
-    }, []);
 
     useEffect(() => {
         const fetchWishlist = async () => {
@@ -89,6 +67,12 @@ function MyPage() {
     const showMoreWish = wishList.length > 5;
     const showMoreRecent = recentProducts.length > 5;
 
+    const handleLogout = () => {
+        setUser(null);
+        localStorage.clear();
+        window.location.href = '/';
+    };
+
     return (
         <div className={styles.myPageLayout}>
             <aside className={styles.sidebar}>
@@ -97,38 +81,24 @@ function MyPage() {
                     <li><Link to="/edit-profile">내 정보 수정</Link></li>
                     <li><Link to="/cart">장바구니</Link></li>
                     <li><Link to="/orders">결제내역</Link></li>
+                    <li><Link to="/coupons">내 쿠폰</Link></li>
                     <li><Link to="/my-reviews">내가 쓴 리뷰</Link></li>
                     <li><Link to="/estimatelist">견적 문의</Link></li>
                     <li><Link to="/wishlist">찜한 상품</Link></li>
                     <li><Link to="/recent">최근 본 상품</Link></li>
-                    {isAdmin && <li><Link to="/productlist">등록된 상품</Link></li>}
+                    {user && user.role === 'ADMIN' && <li><Link to="/productlist">등록된 상품</Link></li>}
                 </ul>
             </aside>
 
             <main className={styles.mainContent}>
                 <div className={styles.profileBox}>
-                    <div className={styles.greeting}><strong>{nickname || '사용자'}님, 안녕하세요!</strong></div>
+                    <div className={styles.greeting}><strong>{user?.nickname || '사용자'}님, 안녕하세요!</strong></div>
                     <button
                         className={styles.logoutButton}
-                        onClick={() => {
-                            localStorage.clear();
-                            window.location.href = '/';
-                        }}
+                        onClick={handleLogout}
                     >
                         로그아웃
                     </button>
-                </div>
-
-                <div className={styles.statusCard}>
-                    {/* 쿠폰 카드 클릭 시 쿠폰 페이지 이동 */}
-                    <div
-                        className={styles.statusCardItem}
-                        style={{ cursor: 'pointer' }}
-                        onClick={() => navigate('/coupons')}
-                    >
-                        <strong>{couponCount}장</strong><br />쿠폰
-                    </div>
-                    <div className={styles.statusCardItem}><strong>0P</strong><br />마일리지</div>
                 </div>
 
                 {/* MY WISH 섹션 */}

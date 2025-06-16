@@ -49,5 +49,6 @@ public class Inquiry {
     private Member answeredBy;
 
     @Column(name = "views")
+    @Builder.Default
     private Integer views = 0;
 }

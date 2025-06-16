@@ -1,0 +1,282 @@
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #fef7e6;
+    border-radius: 12px;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #9e4b25;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+}
+
+.createCouponBtn,
+.issueCouponBtn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.createCouponBtn {
+    background-color: #28a745;
+    color: white;
+}
+
+.createCouponBtn:hover {
+    background-color: #218838;
+}
+
+.issueCouponBtn {
+    background-color: #9e4b25;
+    color: white;
+}
+
+.issueCouponBtn:hover:not(:disabled) {
+    background-color: #7c3b1d;
+}
+
+.issueCouponBtn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.memberList {
+    background-color: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.listHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #eee;
+}
+
+.selectAll {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    color: #9e4b25;
+    cursor: pointer;
+}
+
+.selectAll input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.memberTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.memberTable th,
+.memberTable td {
+    padding: 0.8rem;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+}
+
+.memberTable th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #9e4b25;
+}
+
+.memberTable tbody tr:hover {
+    background-color: #f8f9fa;
+}
+
+.memberTable input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+}
+
+.deleteBtn {
+    padding: 0.4rem 0.8rem;
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.deleteBtn:hover {
+    background-color: #c82333;
+}
+
+/* 모달 스타일 */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background-color: white;
+    padding: 2rem;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 500px;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.modalContent h3 {
+    margin: 0 0 1.5rem 0;
+    color: #9e4b25;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.modalContent p {
+    margin-bottom: 1.5rem;
+    color: #666;
+    line-height: 1.5;
+}
+
+.modalContent label {
+    display: block;
+    margin-bottom: 1rem;
+    font-weight: 500;
+    color: #333;
+}
+
+.modalContent label span {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.modalContent input,
+.modalContent select {
+    width: 100%;
+    padding: 0.7rem;
+    border: 1.5px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.modalContent input:focus,
+.modalContent select:focus {
+    border-color: #9e4b25;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(158, 75, 37, 0.1);
+}
+
+.modalButtons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    justify-content: flex-end;
+}
+
+.confirmBtn,
+.cancelBtn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.confirmBtn {
+    background-color: #9e4b25;
+    color: white;
+}
+
+.confirmBtn:hover {
+    background-color: #7c3b1d;
+}
+
+.cancelBtn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.cancelBtn:hover {
+    background-color: #5a6268;
+}
+
+.loading {
+    text-align: center;
+    padding: 3rem;
+    color: #666;
+    font-size: 1.2rem;
+}
+
+.error {
+    text-align: center;
+    padding: 3rem;
+    color: #dc3545;
+    font-size: 1.2rem;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 768px) {
+    .container {
+        margin: 1rem;
+        padding: 1rem;
+    }
+
+    .actionButtons {
+        flex-direction: column;
+    }
+
+    .memberTable {
+        font-size: 0.8rem;
+    }
+
+    .memberTable th,
+    .memberTable td {
+        padding: 0.5rem;
+    }
+
+    .modalContent {
+        width: 95%;
+        padding: 1.5rem;
+    }
+
+    .modalButtons {
+        flex-direction: column;
+    }
+} 
