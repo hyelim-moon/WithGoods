@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import axios from "axios";
 
@@ -81,6 +81,9 @@ const ProtectedAdminRoute = ({ children }) => {
 };
 
 function AppContent() {
+    const location = useLocation();
+    const hideLayout = ['/login', '/signup', '/Forgot'].includes(location.pathname);
+
     const [hello, setHello] = React.useState('');
     const [error, setError] = React.useState('');
 
@@ -95,8 +98,8 @@ function AppContent() {
     }, []);
   return (
       <div className="App">
-        <Header />
-        <Navbar />
+          {!hideLayout && <Header />}
+          {!hideLayout && <Navbar />}
         <Routes>
             <Route path="/" element={
                 <>
