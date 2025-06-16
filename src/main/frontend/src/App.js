@@ -15,6 +15,7 @@ import All from './components/All';
 import Anniversary from './components/Anniversary';
 import Customization from './components/Customization';
 import Limited_Edition from './components/Limited_Edition';
+import Search from './components/Search';
 import InquiryPage from "./components/InquiryPage";
 import InquiryForm from "./components/InquiryForm";
 import InquiryDetail from "./components/InquiryDetail";
@@ -110,6 +111,8 @@ function AppContent() {
                 />
                 <Route path="/recent" element={<Recent />} />
                 <Route path="/estimatelist" element={<EstimateList />} />
+                <Route path="/search" element={<Search />} />
+
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/product/edit/:id" element={<GeneralProductForm />} />
                 <Route path="/product/:id/stats" element={<ProductStats />} />
