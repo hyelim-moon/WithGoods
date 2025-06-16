@@ -10,14 +10,17 @@ function Header() {
     const [searchInput, setSearchInput] = useState('');
     const navigate = useNavigate();
     const location = useLocation();
+    const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
         const savedNickname = localStorage.getItem('nickname');
         const savedIsLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+        const savedIsAdmin = localStorage.getItem('isAdmin') === 'true';
 
         if (savedIsLoggedIn && savedNickname) {
             setIsLoggedIn(true);
             setNickname(savedNickname);
+            setIsAdmin(savedIsAdmin);
         }
     }, []);
 
@@ -80,6 +83,14 @@ function Header() {
                                 <Link to="/cart" className={styles.cartLink}>
                                     장바구니
                                 </Link>
+                                {isAdmin && (
+                                    <>
+                                        <div className={styles.divider}></div>
+                                        <Link to="/admin/orders" className={styles.adminLink}>
+                                            주문관리
+                                        </Link>
+                                    </>
+                                )}
                                 <div className={styles.divider}></div>
                                 <button onClick={handleLogout} className={styles.logoutButton}>
                                     로그아웃

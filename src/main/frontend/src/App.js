@@ -15,6 +15,7 @@ import All from './components/All';
 import Anniversary from './components/Anniversary';
 import Customization from './components/Customization';
 import Limited_Edition from './components/Limited_Edition';
+import Search from './components/Search';
 import InquiryPage from "./components/InquiryPage";
 import InquiryForm from "./components/InquiryForm";
 import InquiryDetail from "./components/InquiryDetail";
@@ -23,8 +24,7 @@ import Cart from './components/Cart';
 import ProductDetail from './components/ProductDetail';
 import MyPage from './components/MyPage';
 import EditProfile from "./components/EditProfile";
-/*import Registration from "./components/Registration";*/
-import MyProductList from "./components/ProductList";
+import ProductList from "./components/ProductList";
 import WishList from "./components/WishList";
 import Recent from "./components/Recent";
 import EstimateList from "./components/EstimateList";
@@ -38,22 +38,52 @@ import GeneralProductForm from './components/ProductRegister/GeneralProductForm'
 import CustomProductForm from './components/ProductRegister/CustomProductForm';
 import LimitedProductForm from './components/ProductRegister/LimitedProductForm';
 import AnniversaryProductForm from './components/ProductRegister/AnniversaryProductForm';
-import Search from './components/Search';
+import MyReviews from './components/MyReviews';
+import ReviewEdit from './components/ReviewEdit';
+import AdminOrderManagement from './components/AdminOrderManagement';
 
+// 새로 추가한 Coupons 컴포넌트 import
+import Coupons from './components/Coupons';
+
+// Protected Route component
 const ProtectedRoute = ({ children }) => {
-  const { user, loading } = useAuth();
-  if (loading) return <div>Loading...</div>;
-  if (!user) return <Navigate to="/login" />;
-  return children;
+    const { user, loading } = useAuth();
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
+
+    if (!user) {
+        return <Navigate to="/login" />;
+    }
+
+    return children;
 };
 
 function AppContent() {
+    const [hello, setHello] = React.useState('');
+    const [error, setError] = React.useState('');
+
+    React.useEffect(() => {
+        axios.get('http://localhost:8080/api/test')
+            .then((res) => {
+                setHello(res.data);
+            })
+            .catch((err) => {
+                setError(err.message);
+            });
+    }, []);
   return (
       <div className="App">
         <Header />
         <Navbar />
         <Routes>
-          <Route path="/" element={<><Banner /><MainContent /></>} />
+            <Route path="/" element={
+                <>
+                    <Banner />
+                    <MainContent />
+                </>
+            } />
           <Route path="/best" element={<Best />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<SignUp />} />
@@ -70,10 +100,20 @@ function AppContent() {
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/productlist" element={<MyProductList />} />
           <Route path="/wishlist" element={<WishList />} />
-          <Route path="/recent" element={<Recent />} />
+            <Route
+                path="/cart"
+                element={
+                    <ProtectedRoute>
+                        <Cart />
+                    </ProtectedRoute>
+                }
+            />
+            <Route path="/recent" element={<Recent />} />
           <Route path="/estimatelist" element={<EstimateList />} />
-          <Route path="/product/:id" element={<ProductDetail />} />
-          <Route path="/product/:id/stats" element={<ProductStats />} />
+            <Route path="/search" element={<Search />} />
+            <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/product/edit/:id" element={<GeneralProductForm />} />
+            <Route path="/product/:id/stats" element={<ProductStats />} />
           <Route path="/edit-profile" element={<EditProfile />} />
           <Route path="/product-register" element={<ProductRegisterMain />}>
             <Route index element={<GeneralProductForm />} />
@@ -86,7 +126,12 @@ function AppContent() {
           <Route path="/ordercomplete" element={<OrderComplete />} />
           <Route path="/orders" element={<OrderHistory />} />
           <Route path="/review/write" element={<ReviewWrite />} />
-          <Route path="/search" element={<Search />} />
+            <Route path="/review-write/:orderDetailId" element={<ReviewWrite />} />
+            <Route path="/review-edit/:reviewId" element={<ReviewEdit />} />
+            <Route path="/my-reviews" element={<MyReviews />} />
+            <Route path="/admin/orders" element={<AdminOrderManagement />} />
+            <Route path="/coupons" element={<Coupons />} />
+            <Route path="/search" element={<Search />} />
           <Route path="/search/:category" element={<Search />} />
         </Routes>
       </div>
@@ -94,13 +139,13 @@ function AppContent() {
 }
 
 function App() {
-  return (
-      <Router>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </Router>
-  );
+    return (
+        <Router>
+            <AuthProvider>
+                <AppContent />
+            </AuthProvider>
+        </Router>
+    );
 }
 
 export default App;
