@@ -11,6 +11,7 @@ function MyPage() {
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [wishList, setWishList] = useState([]);
     const [recentProducts, setRecentProducts] = useState([]);
+    const [couponCount, setCouponCount] = useState(5); // 더미 쿠폰 수
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -58,7 +59,6 @@ function MyPage() {
     }, []);
 
     useEffect(() => {
-        // 최근 본 상품은 로컬스토리지에서 불러오기
         let stored = localStorage.getItem('recentProducts');
         if (!stored) {
             stored = localStorage.getItem('recentlyViewed');
@@ -120,7 +120,14 @@ function MyPage() {
                 </div>
 
                 <div className={styles.statusCard}>
-                    <div className={styles.statusCardItem}><strong>5장</strong><br />쿠폰</div>
+                    {/* 쿠폰 카드 클릭 시 쿠폰 페이지 이동 */}
+                    <div
+                        className={styles.statusCardItem}
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => navigate('/coupons')}
+                    >
+                        <strong>{couponCount}장</strong><br />쿠폰
+                    </div>
                     <div className={styles.statusCardItem}><strong>0P</strong><br />마일리지</div>
                 </div>
 
@@ -156,7 +163,7 @@ function MyPage() {
                     )}
                 </div>
 
-                {/* 최근 본 상품 섹션 (MY WISH 스타일 동일) */}
+                {/* 최근 본 상품 섹션 */}
                 <div className={styles.section}>
                     <div className={styles.sectionHeader}>
                         <h2 className={styles.sectionTitle}>최근 본 상품</h2>
