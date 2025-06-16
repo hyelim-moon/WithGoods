@@ -343,6 +343,21 @@
     border: 1px solid rgba(158, 75, 37, 0.2);
 }
 
+.continueShopping {
+    display: inline-block;          /* 블록 수준 인라인 요소로 */
+    padding: 0.75rem 1.5rem;        /* 위아래 0.75rem, 좌우 1.5rem */
+    background-color: #944c21;      /* 브랜드 컬러 배경 */
+    color: #fff;                    /* 흰색 글자 */
+    text-decoration: none;          /* 밑줄 제거 */
+    border-radius: 8px;             /* 둥근 모서리 */
+    font-weight: 600;               /* 약간 볼드체 */
+    transition: background-color 0.2s ease;
+}
+
+.continueShopping:hover {
+    background-color: #7a3f18;      /* 호버 시 조금 더 진한 색 */
+}
+
 /* 반응형 */
 @media (max-width: 768px) {
     .cartContentWrapper {
