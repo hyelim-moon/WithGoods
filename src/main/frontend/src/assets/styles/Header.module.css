@@ -229,10 +229,15 @@
 }
 
 .adminLink {
+    background-color: transparent;
     color: #9e4b25;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.3s ease;
+    padding: 0.3rem 0.6rem;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-weight: bold;
 }
 
 .adminLink:hover {
