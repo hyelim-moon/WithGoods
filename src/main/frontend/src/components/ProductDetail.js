@@ -40,6 +40,25 @@ function ProductDetail() {
             .catch(err => console.error('Q&A 불러오기 실패:', err));
     }, [id]);
 
+    useEffect(() => {
+        if (product) {
+            const recent = JSON.parse(localStorage.getItem('recentProducts')) || [];
+            const filtered = recent.filter(p => p.productId !== product.productId);
+            const updated = [
+                {
+                    productId: product.productId,
+                    name: product.name,
+                    price: product.price,
+                    discountRate: product.discountRate || 0,
+                    image: product.imageUrl || product.mainImage,
+                },
+                ...filtered,
+            ].slice(0, 20);
+            localStorage.setItem('recentProducts', JSON.stringify(updated));
+        }
+    }, [product]);
+
+
     // 상품 데이터와 찜 상태 불러오기
     useEffect(() => {
         const fetchProductAndWishlist = async () => {

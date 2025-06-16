@@ -10,6 +10,7 @@ function MyPage() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [wishList, setWishList] = useState([]);
+    const [recentProducts, setRecentProducts] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -56,9 +57,37 @@ function MyPage() {
         fetchWishlist();
     }, []);
 
+    useEffect(() => {
+        // 최근 본 상품은 로컬스토리지에서 불러오기
+        let stored = localStorage.getItem('recentProducts');
+        if (!stored) {
+            stored = localStorage.getItem('recentlyViewed');
+        }
+        if (stored) {
+            try {
+                const parsed = JSON.parse(stored);
+                const formatted = parsed.map(item => ({
+                    productId: item.productId || item.id,
+                    name: item.name,
+                    price: item.price,
+                    discountRate: item.discountRate || 0,
+                    image: item.image || item.imageUrl || item.mainImage
+                }));
+                setRecentProducts(formatted);
+            } catch (error) {
+                console.error('최근 본 상품 데이터 파싱 실패:', error);
+                setRecentProducts([]);
+            }
+        } else {
+            setRecentProducts([]);
+        }
+    }, []);
+
     // 5개까지만 보여주기
     const displayedWishlist = wishList.slice(0, 5);
-    const showMoreButton = wishList.length > 5;
+    const displayedRecent = recentProducts.slice(0, 5);
+    const showMoreWish = wishList.length > 5;
+    const showMoreRecent = recentProducts.length > 5;
 
     return (
         <div className={styles.myPageLayout}>
@@ -79,10 +108,15 @@ function MyPage() {
             <main className={styles.mainContent}>
                 <div className={styles.profileBox}>
                     <div className={styles.greeting}><strong>{nickname || '사용자'}님, 안녕하세요!</strong></div>
-                    <button className={styles.logoutButton} onClick={() => {
-                        localStorage.clear();
-                        window.location.href = '/';
-                    }}>로그아웃</button>
+                    <button
+                        className={styles.logoutButton}
+                        onClick={() => {
+                            localStorage.clear();
+                            window.location.href = '/';
+                        }}
+                    >
+                        로그아웃
+                    </button>
                 </div>
 
                 <div className={styles.statusCard}>
@@ -90,10 +124,11 @@ function MyPage() {
                     <div className={styles.statusCardItem}><strong>0P</strong><br />마일리지</div>
                 </div>
 
+                {/* MY WISH 섹션 */}
                 <div className={styles.section}>
                     <div className={styles.sectionHeader}>
                         <h2 className={styles.sectionTitle}>MY WISH</h2>
-                        {showMoreButton && (
+                        {showMoreWish && (
                             <button className={styles.moreBtn} onClick={() => navigate('/wishlist')}>
                                 더보기
                             </button>
@@ -121,9 +156,36 @@ function MyPage() {
                     )}
                 </div>
 
+                {/* 최근 본 상품 섹션 (MY WISH 스타일 동일) */}
                 <div className={styles.section}>
-                    <h2 className={styles.sectionTitle}>최근 본 상품</h2>
-                    <div className={styles.card}>최근 본 상품이 없습니다.</div>
+                    <div className={styles.sectionHeader}>
+                        <h2 className={styles.sectionTitle}>최근 본 상품</h2>
+                        {showMoreRecent && (
+                            <button className={styles.moreBtn} onClick={() => navigate('/recent')}>
+                                더보기
+                            </button>
+                        )}
+                    </div>
+                    {recentProducts.length === 0 ? (
+                        <div className={styles.card}>최근 본 상품이 없습니다.</div>
+                    ) : (
+                        <div className={styles.wishGrid}>
+                            {displayedRecent.map(product => (
+                                <div
+                                    key={product.productId}
+                                    className={styles.wishItem}
+                                    onClick={() => navigate(`/product/${product.productId}`)}
+                                >
+                                    <img
+                                        src={product.image}
+                                        alt={product.name}
+                                        className={styles.wishImage}
+                                    />
+                                    <div className={styles.wishName} title={product.name}>{product.name}</div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
             </main>
         </div>
