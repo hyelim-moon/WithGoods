@@ -29,6 +29,16 @@ function ProductDetail() {
     const [timeLeft, setTimeLeft] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [reviewsLoading, setReviewsLoading] = useState(false);
+    const [qnaList, setQnaList] = useState([]);
+
+    useEffect(() => {
+        if (!id) return;
+        axios.get(`http://localhost:8080/inquiries?productId=${id}`, {
+            withCredentials: true
+        })
+            .then(res => setQnaList(res.data))
+            .catch(err => console.error('Q&A 불러오기 실패:', err));
+    }, [id]);
 
     // 상품 데이터와 찜 상태 불러오기
     useEffect(() => {
@@ -47,18 +57,20 @@ function ProductDetail() {
                         withCredentials: true
                     })
                 ]);
-                
+
                 if (productResponse.data) {
                     console.log('Product Response:', productResponse.data);
-                    const { product, options } = productResponse.data;
+                    const dto = productResponse.data;
                     setProduct({
-                        ...product,
-                        options: options
+                        ...dto,
+                        options: typeof dto.options === 'string'
+                            ? JSON.parse(dto.options)
+                            : dto.options
                     });
                 } else {
                     throw new Error('상품 데이터가 없습니다.');
                 }
-                
+
                 setIsFavorited(wishlistResponse.data);
                 setError(null);
             } catch (err) {
@@ -253,8 +265,6 @@ function ProductDetail() {
         });
         setIsReportModalOpen(false);
     };
-
-    const qnaList = product?.qna || [];
 
     const averageRating = reviews.length
         ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
@@ -500,7 +510,7 @@ function ProductDetail() {
             {activeTab === 'qa' && (
                 <div className={styles.reviewsSection}>
                     <div className={styles.qnaHeader}>
-                        <h3>Q&A ({product.qna?.length || 0})</h3>
+                        <h3>Q&A ({product.length})</h3>
                         {!authLoading && user && (
                             <button
                                 className={styles.inquiryBtn}
