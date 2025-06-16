@@ -27,6 +27,7 @@ function Search() {
     const [searchTerm, setSearchTerm] = useState('');
     const [results, setResults] = useState([]);
     const [selectedTab, setSelectedTab] = useState('커스텀');
+    const [isEmptySearch, setIsEmptySearch] = useState(false);
 
     const categoryMap = {
         '커스텀': 'CUSTOM',
@@ -40,8 +41,18 @@ function Search() {
         const keyword = params.get('keyword') || '';
         setSearchTerm(keyword);
 
-        if (!keyword.trim()) return;
+        if (!keyword.trim()) {
+            setIsEmptySearch(true);
+            axios
+                .get('http://localhost:8080/products/recommend')
+                .then((res) => {
+                    setResults(res.data || []);
+                })
+                .catch((err) => console.error('랜덤 추천 실패:', err));
+            return;
+        }
 
+        setIsEmptySearch(false);
         axios
             .get(`http://localhost:8080/products/search?query=${encodeURIComponent(keyword)}`)
             .then((res) => {
@@ -93,23 +104,29 @@ function Search() {
     return (
         <div className={styles.container}>
             <div className={styles.titleRow}>
-                <h1 className={styles.title}>“{searchTerm}” 검색 결과</h1>
                 <button className={styles.backButton} onClick={() => navigate(-1)}>← 뒤로가기</button>
+                <h1 className={styles.title}>
+                    {isEmptySearch ? '검색어를 입력하지 않으셨네요! 이런 상품은 어떠세요?' : `“${searchTerm}” 검색 결과`}
+                </h1>
+                {/* 오른쪽 빈 div로 flex 공간 채움 */}
+                <div style={{ width: '60px' }} />
             </div>
 
-            <div className={styles.tabContainer}>
-                {tabList.map(tab => (
-                    <button
-                        key={tab}
-                        className={`${styles.tabButton} ${selectedTab === tab ? styles.activeTab : ''}`}
-                        onClick={() => setSelectedTab(tab)}
-                    >
-                        {tab}
-                    </button>
-                ))}
-            </div>
+            {!isEmptySearch && (
+                <div className={styles.tabContainer}>
+                    {tabList.map(tab => (
+                        <button
+                            key={tab}
+                            className={`${styles.tabButton} ${selectedTab === tab ? styles.activeTab : ''}`}
+                            onClick={() => setSelectedTab(tab)}
+                        >
+                            {tab}
+                        </button>
+                    ))}
+                </div>
+            )}
 
-            <ProductList items={filterByCategory(selectedTab)} />
+            <ProductList items={isEmptySearch ? results : filterByCategory(selectedTab)} />
         </div>
     );
 }

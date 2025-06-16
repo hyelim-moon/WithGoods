@@ -96,14 +96,29 @@ public class ProductService {
                 .findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query));
     }
 
-    public List<ProductDto> getRandomRecommendedProducts(int count) {
+/*    public List<ProductDto> getRandomRecommendedProducts(int count) {
         List<Product> allProducts = productRepository.findAll();
         if (allProducts.isEmpty()) {
             return Collections.emptyList();
         }
         Collections.shuffle(allProducts);
         return toDtoList(allProducts.subList(0, Math.min(count, allProducts.size())));
+    }*/
+
+    public List<ProductDto> getRandomRecommendedProducts(int count) {
+        List<Product> allProducts = productRepository.findAll();
+        System.out.println("총 상품 수: " + allProducts.size()); // 로그 찍기
+
+        if (allProducts.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        Collections.shuffle(allProducts);
+        List<Product> subList = allProducts.subList(0, Math.min(count, allProducts.size()));
+        System.out.println("추천된 상품 수: " + subList.size());
+        return toDtoList(subList);
     }
+
 
     private ProductDto toDto(Product product) {
         return ProductDto.builder()
