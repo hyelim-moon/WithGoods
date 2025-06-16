@@ -24,7 +24,7 @@ import Cart from './components/Cart';
 import ProductDetail from './components/ProductDetail';
 import MyPage from './components/MyPage';
 import EditProfile from "./components/EditProfile";
-import ProductList from "./components/ProductList";
+import MyProductList from "./components/ProductList";
 import WishList from "./components/WishList";
 import Recent from "./components/Recent";
 import EstimateList from "./components/EstimateList";
