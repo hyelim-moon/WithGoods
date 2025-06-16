@@ -73,14 +73,16 @@
     margin-top: 2rem;
 }
 
+.footerButtonWrapper {
+    text-align: right;      /* 오른쪽으로 붙이고 싶다면 */
+    margin: 16px 0;         /* 상하 여백 */
+}
+
 /* “문의하기” 버튼 */
 .inquiryButton {
     background-color: #ffffff;
     color: #333;
     font-weight: bold;
-    position: absolute;
-    bottom: 1rem;
-    right: 1rem;
     padding: 1rem 1.3rem;
     border: 1px solid #000;
     border-radius: 6px;
@@ -189,6 +191,37 @@
     color: white;
     font-size: 0.7rem;
     border-radius: 3px;
+}
+
+/* 페이지네이션 버튼 묶음 */
+.pagination {
+    text-align: center;
+    margin: 16px 0;
+}
+
+.pagination button {
+    margin: 0 4px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+}
+
+.pagination button:hover {
+    background: #f5f5f5;
+}
+
+.pagination .activePage {
+    font-weight: bold;
+    border-color: #9e4b25;
+    color: #9e4b25;
+}
+
+/* footer 문의하기 버튼 우측 정렬 */
+.footerButtonWrapper {
+    text-align: right;
+    margin-top: 8px;
+    margin-bottom: 16px;
 }
 
 /* 반응형: 화면 좁아질 때 */

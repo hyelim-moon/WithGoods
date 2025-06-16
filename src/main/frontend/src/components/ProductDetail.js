@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaHeart, FaCartPlus, FaShoppingCart } from 'react-icons/fa'; // 아이콘 가져오기
+import { FaHeart, FaCartPlus, FaShoppingCart, FaLock} from 'react-icons/fa'; // 아이콘 가져오기
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -29,6 +29,43 @@ function ProductDetail() {
     const [timeLeft, setTimeLeft] = useState(null);
     const [reviews, setReviews] = useState([]);
     const [reviewsLoading, setReviewsLoading] = useState(false);
+    const [qnaList, setQnaList] = useState([]);
+    const [pwInputs, setPwInputs] = useState({});
+    const [unlocked, setUnlocked] = useState({});
+    const [expandedSecret, setExpandedSecret] = useState(null);
+
+    useEffect(() => {
+        if (!id) return;
+        axios.get(`http://localhost:8080/inquiries/product/${id}`, {
+            withCredentials: true
+        })
+            .then(res => setQnaList(res.data))
+            .catch(err => console.error('Q&A 불러오기 실패:', err));
+    }, [id]);
+
+    const maskName = (name) => {
+        if (!name) return '';
+        return name[0] + '*'.repeat(Math.max(0, name.length - 1));
+    };
+
+    // 비밀번호 확인 API 호출
+    const checkPassword = async (qId) => {
+        try {
+            const ok = await axios.post(
+                `http://localhost:8080/inquiries/${qId}/check-password`,
+                { password: pwInputs[qId] },
+                { withCredentials: true }
+            ).then(r => r.data);
+
+            if (ok) {
+                navigate(`/inquiry/${qId}`);
+            } else {
+                alert('비밀번호가 틀렸습니다.');
+            }
+        } catch {
+            alert('서버 오류, 다시 시도해 주세요.');
+        }
+    };
 
     // 상품 데이터와 찜 상태 불러오기
     useEffect(() => {
@@ -47,18 +84,20 @@ function ProductDetail() {
                         withCredentials: true
                     })
                 ]);
-                
+
                 if (productResponse.data) {
                     console.log('Product Response:', productResponse.data);
-                    const { product, options } = productResponse.data;
+                    const dto = productResponse.data;
                     setProduct({
-                        ...product,
-                        options: options
+                        ...dto,
+                        options: typeof dto.options === 'string'
+                            ? JSON.parse(dto.options)
+                            : dto.options
                     });
                 } else {
                     throw new Error('상품 데이터가 없습니다.');
                 }
-                
+
                 setIsFavorited(wishlistResponse.data);
                 setError(null);
             } catch (err) {
@@ -150,6 +189,10 @@ function ProductDetail() {
             ...prev,
             [groupName]: option
         }));
+    };
+
+    const handleSecretToggle = (qId) => {
+        setExpandedSecret(prev => (prev === qId ? null : qId));
     };
 
     // 모든 필수 옵션이 선택되었는지 확인
@@ -253,8 +296,6 @@ function ProductDetail() {
         });
         setIsReportModalOpen(false);
     };
-
-    const qnaList = product?.qna || [];
 
     const averageRating = reviews.length
         ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
@@ -500,37 +541,70 @@ function ProductDetail() {
             {activeTab === 'qa' && (
                 <div className={styles.reviewsSection}>
                     <div className={styles.qnaHeader}>
-                        <h3>Q&A ({product.qna?.length || 0})</h3>
+                        <h3>Q&A ({qnaList.length})</h3>
                         {!authLoading && user && (
                             <button
                                 className={styles.inquiryBtn}
-                                onClick={() => navigate(`/inquiry/write/${product.productId}`)}
+                                onClick={() => navigate(`/inquiry/write/${id}`)}
                             >
                                 문의하기
                             </button>
                         )}
                     </div>
 
-                    {qnaList.length === 0 ? (
-                        <p className={styles.noInquiry}>등록된 문의가 없습니다.</p>
-                    ) : (
-                        <ul className={styles.reviewsList}>
-                            {qnaList.map((q) => (
-                                <li key={q.id} className={styles.reviewItem}>
-                                    <div className={styles.reviewHeader}>
-                                        <span>{q.userId}</span>
-                                        <span>{q.date}</span>
+                    {qnaList.length === 0 && <p>등록된 문의가 없습니다.</p>}
+
+                    <ul className={styles.qnaList}>
+                        {qnaList.map(q => (
+                            <li
+                                key={q.id}
+                                className={`${styles.qnaItem} ${expandedSecret === q.id ? styles.open : ''}`}
+                            >
+                                <div
+                                    className={styles.qnaTitleRow}
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => {
+                                        if (!q.secret) {
+                                            navigate(`/inquiry/${q.id}`);
+                                        } else {
+                                            handleSecretToggle(q.id);
+                                        }
+                                    }}
+                                >
+                                    {q.secret && <FaLock className={styles.lockIcon} />}
+                                    <span className={styles.qnaTitle}>{q.title}</span>
+                                    <span className={styles.meta}>
+                                        {maskName(q.writerUsername)} · {formatDate(q.createdAt)}
+                                    </span>
+                                </div>
+
+                                {/* ── 본문 혹은 비밀번호 입력 ── */}
+                                {q.secret && expandedSecret === q.id && !unlocked[q.id] ? (
+                                    <div className={styles.secretPrompt}>
+                                        <p>이 글은 비밀글입니다. 비밀번호를 입력해주세요.</p>
+                                        <input
+                                            type="password"
+                                            value={pwInputs[q.id] || ''}
+                                            onChange={e =>
+                                                setPwInputs(p => ({ ...p, [q.id]: e.target.value }))
+                                            }
+                                            className={styles.pwInput}
+                                        />
+                                        <button
+                                            onClick={() => checkPassword(q.id)}
+                                            className={styles.pwCheckBtn}
+                                        >
+                                            확인
+                                        </button>
                                     </div>
-                                    <p>
-                                        <strong>Q:</strong> {q.question}
-                                    </p>
-                                    <p>
-                                        <strong>A:</strong> {q.answer}
-                                    </p>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+                                ) : (
+                                    <div className={styles.qnaContent}>
+                                        <p><strong>Q:</strong> {q.content}</p>
+                                    </div>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             )}
 

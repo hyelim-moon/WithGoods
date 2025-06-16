@@ -49,7 +49,7 @@ public class ReviewController {
 
     // 상품별 리뷰 조회
     @GetMapping("/product/{productId}")
-    public ResponseEntity<List<ReviewDto>> getReviewsByProduct(@PathVariable Long productId) {
+    public ResponseEntity<List<ReviewDto>> getReviewsByProduct(@PathVariable("productId") Long productId) {
         try {
             List<ReviewDto> reviews = reviewService.getReviewsForProduct(productId.intValue());
             return ResponseEntity.ok(reviews);
@@ -88,7 +88,7 @@ public class ReviewController {
 
     // 특정 주문상세에 대한 리뷰 조회
     @GetMapping("/order-detail/{orderDetailId}")
-    public ResponseEntity<ReviewDto> getReviewByOrderDetail(@PathVariable Integer orderDetailId) {
+    public ResponseEntity<ReviewDto> getReviewByOrderDetail(@PathVariable("orderDetailId") Integer orderDetailId) {
         ReviewDto review = reviewService.getReviewByOrderDetail(orderDetailId);
         if (review == null) {
             return ResponseEntity.notFound().build();
@@ -98,7 +98,7 @@ public class ReviewController {
 
     // 단일 리뷰 조회
     @GetMapping("/{reviewId}")
-    public ResponseEntity<ReviewDto> getReview(@PathVariable Integer reviewId) {
+    public ResponseEntity<ReviewDto> getReview(@PathVariable("reviewId") Integer reviewId) {
         try {
             ReviewDto review = reviewService.getReviewById(reviewId);
             if (review == null) {
@@ -138,7 +138,7 @@ public class ReviewController {
     // 리뷰 삭제
     @DeleteMapping("/{reviewId}")
     public ResponseEntity<Map<String, String>> deleteReview(
-            @PathVariable Integer reviewId,
+            @PathVariable("reviewId") Integer reviewId,
             HttpSession session
     ) {
         String username = (String) session.getAttribute("username");

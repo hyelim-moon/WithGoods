@@ -25,7 +25,7 @@ const InquiryForm = () => {
             axios.get(`http://localhost:8080/products/${productId}`)
                 .then(res => {
                     const { product } = res.data;
-                    setProduct(product);
+                    setProduct(res.data);
                 })
                 .catch(err => console.error('상품 정보 조회 실패:', err));
         }
@@ -58,7 +58,11 @@ const InquiryForm = () => {
             });
 
             alert("문의가 등록되었습니다.");
-            navigate('/inquiry');
+            if (productId) {
+                navigate(`/product/${productId}`);
+            } else {
+                navigate('/inquiry');
+            }
         } catch (err) {
             console.error("문의 등록 실패:", err);
             alert("오류가 발생했습니다.");

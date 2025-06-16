@@ -20,7 +20,10 @@ public class InquiryController {
     private final InquiryRepository inquiryRepository;
 
     @PostMapping
-    public ResponseEntity<?> create(@RequestBody InquiryRequestDto dto, HttpSession session) {
+    public ResponseEntity<String> create(
+            @RequestBody InquiryRequestDto dto,
+            HttpSession session
+    ) {
         String user = (String) session.getAttribute("username");
         inquiryService.create(dto, user);
         return ResponseEntity.ok("문의가 등록되었습니다.");
@@ -28,8 +31,13 @@ public class InquiryController {
 
     /** 전체 목록 (공개/비공개 모두) */
     @GetMapping
-    public List<InquiryResponseDto> list() {
-        return inquiryService.findAllInquiries();
+    public List<InquiryResponseDto> list(
+            @RequestParam(value="productId", required=false) Long productId
+    ) {
+        if (productId != null) {
+            return inquiryService.findByProduct(productId);
+        }
+        return inquiryService.findAllForListing();
     }
 
     /** 관리자 전체 조회 */
@@ -50,10 +58,13 @@ public class InquiryController {
         return inquiryService.findByUser(user);
     }
 
-    /** 상세 조회 → 비밀글이면 비밀번호 검사(작성자·ADMIN 제외) */
+    /**
+     * 상세 조회
+     * → 비밀글이면 비밀번호 검사 (작성자도 우회 없이, ADMIN 만 무조건 통과)
+     */
     @GetMapping("/{id}")
     public ResponseEntity<?> detail(
-            @PathVariable(value = "id") Long id,
+            @PathVariable("id") Long id,
             @RequestParam(value = "password", required = false) String pw,
             HttpSession session
     ) {
@@ -62,12 +73,12 @@ public class InquiryController {
                     .orElseThrow(() -> new IllegalArgumentException("문의글을 찾을 수 없습니다."));
 
             if (i.isSecret()) {
-                String me   = (String) session.getAttribute("username");
+                // ADMIN 만 비밀번호 없이 통과
                 String role = (String) session.getAttribute("role");
-                boolean isOwner = i.getWriter() != null && i.getWriter().getUsername().equals(me);
                 boolean isAdmin = "ADMIN".equals(role);
 
-                if (!isOwner && !isAdmin) {
+                if (!isAdmin) {
+                    // password 가 없거나, 틀리면 403
                     if (pw == null || !i.getPassword().equals(pw)) {
                         return ResponseEntity.status(HttpStatus.FORBIDDEN)
                                 .body("비밀번호가 일치하지 않습니다.");
@@ -79,7 +90,8 @@ public class InquiryController {
             return ResponseEntity.ok(dto);
 
         } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(ex.getMessage());
         } catch (Exception ex) {
             ex.printStackTrace();
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -87,18 +99,21 @@ public class InquiryController {
         }
     }
 
+    /** 비밀번호 체크 API (front 에서 확인 후 /inquiry/{id}?password=xxx 로 redirect 처리) */
     @PostMapping("/{id}/check-password")
-    public ResponseEntity<?> checkPassword(
-            @PathVariable(value = "id") Long id,
+    public ResponseEntity<Boolean> checkPassword(
+            @PathVariable("id") Long id,
             @RequestBody PasswordCheckRequest req
     ) {
-        return ResponseEntity.ok(inquiryService.checkPassword(id, req.getPassword()));
+        boolean ok = inquiryService.checkPassword(id, req.getPassword());
+        return ResponseEntity.ok(ok);
     }
 
+    /** 수정 */
     @Transactional
     @PutMapping("/{id}")
-    public ResponseEntity<?> update(
-            @PathVariable(value = "id") Long id,
+    public ResponseEntity<String> update(
+            @PathVariable("id") Long id,
             @RequestBody InquiryRequestDto dto,
             HttpSession session
     ) {
@@ -107,9 +122,10 @@ public class InquiryController {
         return ResponseEntity.ok("수정되었습니다.");
     }
 
+    /** 삭제 */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> delete(
-            @PathVariable(value = "id") Long id,
+    public ResponseEntity<String> delete(
+            @PathVariable("id") Long id,
             HttpSession session
     ) {
         String user = (String) session.getAttribute("username");
@@ -117,14 +133,23 @@ public class InquiryController {
         return ResponseEntity.ok("삭제되었습니다.");
     }
 
+    /** 답변 등록 (ADMIN 전용) */
     @PostMapping("/{id}/answer")
-    public ResponseEntity<?> answer(
-            @PathVariable(value = "id") Long id,
+    public ResponseEntity<String> answer(
+            @PathVariable("id") Long id,
             @RequestBody InquiryAnswerRequest req,
             HttpSession session
     ) {
         String user = (String) session.getAttribute("username");
         inquiryService.answer(id, user, req.getAnswer());
         return ResponseEntity.ok("답변이 등록되었습니다.");
+    }
+
+    /** 특정 상품의 Q&A 목록 */
+    @GetMapping("/product/{productId}")
+    public List<InquiryResponseDto> listByProduct(
+            @PathVariable("productId") Long productId
+    ) {
+        return inquiryService.findByProduct(productId);
     }
 }

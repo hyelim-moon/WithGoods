@@ -2,11 +2,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import styles from '../assets/styles/InquiryDetail.module.css';
 
 function InquiryDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
+    const { user } = useAuth();
     const [inquiry, setInquiry] = useState(null);
     const [loading, setLoading] = useState(true);
 
@@ -66,6 +68,26 @@ function InquiryDetail() {
         }
     };
 
+    const handleDelete = async () => {
+        if (!window.confirm('정말 이 문의를 삭제하시겠습니까?')) return;
+
+        try {
+            await axios.delete(
+                `http://localhost:8080/inquiries/${id}`,
+                { withCredentials: true }
+            );
+            alert('삭제되었습니다.');
+            navigate(-1);
+        } catch (err) {
+            console.error(err);
+            alert(
+                err.response?.status === 403
+                    ? '본인 글만 삭제할 수 있습니다.'
+                    : '삭제에 실패했습니다.'
+            );
+        }
+    };
+
     // 로딩 중
     if (loading) {
         return <div className={styles.loading}>로딩 중...</div>;
@@ -76,7 +98,16 @@ function InquiryDetail() {
     }
 
     // inquiry가 들어왔을 때만 디테일 화면을 렌더링
-    const { prevId, nextId, title, writer, createdAt, views, content } = inquiry || {};
+    const {
+        prevId,
+        nextId,
+        title,
+        writer,
+        writerUsername,
+        createdAt,
+        views,
+        content,
+    } = inquiry || {};
     const formattedDate = createdAt?.slice(0, 16).replace('T', ' ');
 
     return (
@@ -85,17 +116,30 @@ function InquiryDetail() {
             {inquiry && (
                 <>
                     <h2 className={styles.title}>{title}</h2>
-                    <div className={styles.meta}>
-                        <span className={styles.metaItem}>{writer || '익명'}</span>
-                        <span className={styles.dot}>&#183;</span>
-                        <span className={styles.metaItem}>{formattedDate}</span>
-                        <span className={styles.dot}>&#183;</span>
-                        <span className={styles.metaItem}>조회 {views}</span>
+                    <div className={styles.metaRow}>
+                        <div className={styles.meta}>
+                            <span className={styles.metaItem}>{writer || '익명'}</span>
+                            <span className={styles.dot}>&#183;</span>
+                            <span className={styles.metaItem}>{formattedDate}</span>
+                            <span className={styles.dot}>&#183;</span>
+                            <span className={styles.metaItem}>조회 {views}</span>
+                        </div>
+                        {user?.username === writerUsername && (
+                            <button
+                                onClick={handleDelete}
+                                className={styles.deleteButton}
+                            >
+                                삭제
+                            </button>
+                        )}
                     </div>
                     <hr className={styles.separator} />
                     <div className={styles.content}>
-                        {content.split('\n').map((line, i) => <p key={i}>{line}</p>)}
+                        {content.split('\n').map((line, i) => (
+                            <p key={i}>{line}</p>
+                        ))}
                     </div>
+
                     <div className={styles.navLinks}>
                         {prevId && (
                             <span

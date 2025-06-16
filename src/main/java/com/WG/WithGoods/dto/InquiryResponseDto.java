@@ -12,6 +12,7 @@ public class InquiryResponseDto {
     private Long id;
     private String title;
     private String type;
+    private Long productId;
     private String content;
     private boolean secret;
     private String writer;
@@ -22,4 +23,5 @@ public class InquiryResponseDto {
     private Integer views;
     private Long prevId;
     private Long nextId;
+
 }
