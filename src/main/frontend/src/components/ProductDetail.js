@@ -445,8 +445,18 @@ function ProductDetail() {
                         <div className={styles.quantityControls}>
                             <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
                             <span>{quantity}</span>
-                            <button onClick={() => setQuantity(quantity + 1)}>+</button>
+                            <button 
+                                onClick={() => setQuantity(product.stock === null ? quantity + 1 : Math.min(product.stock, quantity + 1))}
+                                disabled={product.stock === 0 || (product.stock !== null && quantity >= product.stock)}
+                            >
+                                +
+                            </button>
                         </div>
+                        {product.stock !== null && product.stock > 0 && (
+                            <span className={styles.stockInfo}>
+                                (재고: {product.stock}개)
+                            </span>
+                        )}
                     </div>
 
                     {/* 총 상품 금액 */}
@@ -459,10 +469,18 @@ function ProductDetail() {
                         <button className={styles.favoriteBtn} onClick={toggleFavorite}>
                             <FaHeart color={isFavorited ? 'red' : 'gray'} />
                         </button>
-                        <button className={styles.addToCartBtn} onClick={handleAddToCart}>
+                        <button 
+                            className={styles.addToCartBtn} 
+                            onClick={handleAddToCart}
+                            disabled={product.stock === 0}
+                        >
                             <FaCartPlus /> 장바구니에 담기
                         </button>
-                        <button className={styles.purchaseBtn} onClick={handlePurchase}>
+                        <button 
+                            className={styles.purchaseBtn} 
+                            onClick={handlePurchase}
+                            disabled={product.stock === 0}
+                        >
                             <FaShoppingCart /> 바로 구매하기
                         </button>
                     </div>
