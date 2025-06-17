@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { FaBell } from "react-icons/fa";
 import logoImg from '../assets/images/logo.png';
 import styles from '../assets/styles/Header.module.css';
 
@@ -170,7 +171,7 @@ function Header() {
                                 {/* 알림 아이콘 */}
                                 <div className={styles.notificationContainer}>
                                     <div className={styles.notificationIcon} onClick={toggleNotificationList}>
-                                        <span className={styles.bellIcon}>🔔</span>
+                                        <FaBell size={24} color="#9e4b25" />
                                         {unreadCount > 0 && (
                                             <span className={styles.badge}>{unreadCount > 99 ? '99+' : unreadCount}</span>
                                         )}

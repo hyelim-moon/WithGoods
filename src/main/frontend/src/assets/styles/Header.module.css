@@ -262,9 +262,8 @@
     color: white;
 }
 
-.bellIcon {
-    font-size: 16px;
-    color: inherit;
+.notificationIcon:hover svg {
+    color: white !important;
 }
 
 .badge {
