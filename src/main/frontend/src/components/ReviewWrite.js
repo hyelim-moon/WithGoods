@@ -31,7 +31,6 @@ function ReviewWrite() {
                     setError('리뷰 작성 가능한 상품이 아닙니다.');
                 }
             } catch (err) {
-                console.error('Error fetching reviewable items:', err);
                 setError('상품 정보를 불러오는데 실패했습니다.');
             } finally {
                 setLoading(false);
@@ -189,6 +188,10 @@ function ReviewWrite() {
                     )}
                     <p>수량: {orderItem.quantity}개</p>
                     <p>가격: ₩{orderItem.price?.toLocaleString()}</p>
+                    {orderItem.discount && orderItem.discount > 0 && (
+                        <p>할인: -₩{orderItem.discount.toLocaleString()}</p>
+                    )}
+                    <p>최종 금액: ₩{orderItem.finalAmount?.toLocaleString()}</p>
                     <p>주문일: {new Date(orderItem.orderDate).toLocaleDateString()}</p>
                 </div>
             </div>

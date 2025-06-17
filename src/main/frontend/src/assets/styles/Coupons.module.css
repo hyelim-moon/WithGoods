@@ -19,6 +19,12 @@
     font-size: 1.1rem;
 }
 
+.error {
+    text-align: center;
+    color: #e74c3c;
+    font-size: 1.1rem;
+}
+
 .couponList {
     list-style: none;
     padding: 0;
@@ -71,6 +77,42 @@
     padding: 3px 8px;
     border-radius: 8px;
 }
+
+.availableBadge {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    background: #27ae60;
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 3px 8px;
+    border-radius: 8px;
+}
+
 .used {
     opacity: 0.5;
 }
+
+.deleteButton {
+    position: absolute;
+    bottom: 12px;
+    right: 15px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.deleteButton:hover {
+    background: #c0392b;
+}
+
+.deleteButton:active {
+    transform: translateY(1px);
+} 

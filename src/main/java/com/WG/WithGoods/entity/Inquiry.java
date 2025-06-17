@@ -23,6 +23,9 @@ public class Inquiry {
     @Enumerated(EnumType.STRING)
     private InquiryType type;
 
+    @Column(name = "product_id")
+    private Long productId;
+
     @Lob
     @Column(columnDefinition = "TEXT")
     private String content;
@@ -46,5 +49,6 @@ public class Inquiry {
     private Member answeredBy;
 
     @Column(name = "views")
+    @Builder.Default
     private Integer views = 0;
 }

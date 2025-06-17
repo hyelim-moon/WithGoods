@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import styles from '../assets/styles/EditProfile.module.css';
 import mypageStyles from '../assets/styles/MyPage.module.css';
 
@@ -8,10 +8,6 @@ function EditProfile() {
 
     const [form, setForm] = useState({
         name: '',
-        year: '',
-        month: '',
-        day: '',
-        calendarType: 'solar',
         phone1: '010',  // 전화번호 앞자리 (select)
         phone2: '',     // 중간 번호
         phone3: '',     // 끝 번호
@@ -23,10 +19,41 @@ function EditProfile() {
     });
 
     useEffect(() => {
+        // 저장된 모든 정보 불러오기
+        const savedName = localStorage.getItem('name');
+        const savedPhone = localStorage.getItem('phone');
+        const savedZipcode = localStorage.getItem('zipcode');
+        const savedAddress = localStorage.getItem('address');
+        const savedDetailAddress = localStorage.getItem('detailAddress');
         const savedNickname = localStorage.getItem('nickname');
-        if (savedNickname) {
-            setForm((prev) => ({ ...prev, nickname: savedNickname }));
+        const savedEmail = localStorage.getItem('email');
+
+        // 전화번호 분리
+        let phone1 = '010';
+        let phone2 = '';
+        let phone3 = '';
+        if (savedPhone) {
+            const phoneParts = savedPhone.split('-');
+            if (phoneParts.length === 3) {
+                phone1 = phoneParts[0];
+                phone2 = phoneParts[1];
+                phone3 = phoneParts[2];
+            }
         }
+
+        // 저장된 정보가 있으면 폼에 설정
+        setForm(prev => ({
+            ...prev,
+            name: savedName || '',
+            phone1: phone1,
+            phone2: phone2,
+            phone3: phone3,
+            zipcode: savedZipcode || '',
+            address: savedAddress || '',
+            detailAddress: savedDetailAddress || '',
+            nickname: savedNickname || '',
+            email: savedEmail || '',
+        }));
     }, []);
 
     const handleChange = (e) => {
@@ -35,9 +62,18 @@ function EditProfile() {
     };
 
     const handleSave = () => {
-        // 전화번호 합쳐서 처리 가능
+        // 전화번호 합쳐서 처리
         const fullPhone = `${form.phone1}-${form.phone2}-${form.phone3}`;
+        
+        // 모든 정보를 localStorage에 저장
+        localStorage.setItem('name', form.name);
+        localStorage.setItem('phone', fullPhone);
+        localStorage.setItem('zipcode', form.zipcode);
+        localStorage.setItem('address', form.address);
+        localStorage.setItem('detailAddress', form.detailAddress);
         localStorage.setItem('nickname', form.nickname);
+        localStorage.setItem('email', form.email);
+
         alert(`정보가 저장되었습니다.\n전화번호: ${fullPhone}`);
         navigate('/mypage');
     };
@@ -69,22 +105,19 @@ function EditProfile() {
         }).open();
     };
 
-    // 연도 select options 생성
-    const years = Array.from({ length: 100 }, (_, i) => 2025 - i);
-    const months = Array.from({ length: 12 }, (_, i) => i + 1);
-    const days = Array.from({ length: 31 }, (_, i) => i + 1);
-
     return (
         <div className={mypageStyles.myPageLayout}>
             <aside className={mypageStyles.sidebar}>
                 <div className={mypageStyles.sidebarTitle}>MY</div>
                 <ul className={mypageStyles.sidebarMenu}>
-                    <li><a href="/edit-profile">내 정보 수정</a></li>
-                    <li><a href="/my-products">내 등록 상품</a></li>
-                    <li><a href="/cart">장바구니</a></li>
-                    <li><a href="/wishlist">찜한 상품</a></li>
-                    <li><a href="/recent">최근 본 상품</a></li>
-                    <li><a href="/quotes">내 견적 문의</a></li>
+                    <li><Link to="/edit-profile">내 정보 수정</Link></li>
+                    <li><Link to="/cart">장바구니</Link></li>
+                    <li><Link to="/orders">결제내역</Link></li>
+                    <li><Link to="/coupons">내 쿠폰</Link></li>
+                    <li><Link to="/my-reviews">내가 쓴 리뷰</Link></li>
+                    <li><Link to="/estimatelist">견적 문의</Link></li>
+                    <li><Link to="/wishlist">찜한 상품</Link></li>
+                    <li><Link to="/recent">최근 본 상품</Link></li>
                 </ul>
             </aside>
 
@@ -94,55 +127,6 @@ function EditProfile() {
                 <div className={styles.formGroup}>
                     <label className={styles.label}>이름</label>
                     <input type="text" name="name" value={form.name} onChange={handleChange} className={styles.input} />
-                </div>
-
-                <div className={styles.formGroup}>
-                    <label className={styles.label}>생년월일</label>
-                    <div className={styles.birthGroup}>
-                        <select name="year" value={form.year} onChange={handleChange} className={styles.birthSelect}>
-                            <option value="">년</option>
-                            {years.map((year) => (
-                                <option key={year} value={year}>{year}</option>
-                            ))}
-                        </select>
-
-                        <select name="month" value={form.month} onChange={handleChange} className={styles.birthSelect}>
-                            <option value="">월</option>
-                            {months.map((month) => (
-                                <option key={month} value={month}>{month}</option>
-                            ))}
-                        </select>
-
-                        <select name="day" value={form.day} onChange={handleChange} className={styles.birthSelect}>
-                            <option value="">일</option>
-                            {days.map((day) => (
-                                <option key={day} value={day}>{day}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className={styles.radioGroup}>
-                        <label>
-                            <input
-                                type="radio"
-                                name="calendarType"
-                                value="solar"
-                                checked={form.calendarType === 'solar'}
-                                onChange={handleChange}
-                            />
-                            양력
-                        </label>
-                        <label>
-                            <input
-                                type="radio"
-                                name="calendarType"
-                                value="lunar"
-                                checked={form.calendarType === 'lunar'}
-                                onChange={handleChange}
-                            />
-                            음력
-                        </label>
-                    </div>
                 </div>
 
                 <div className={styles.formGroup}>

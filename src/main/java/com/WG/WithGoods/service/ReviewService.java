@@ -150,6 +150,8 @@ public class ReviewService {
                             .options(parseProductOptions(orderDetail.getProductOption()))
                             .quantity(orderDetail.getQuantity())
                             .price(orderDetail.getPrice())
+                            .discount(orderDetail.getDiscount())
+                            .finalAmount(orderDetail.getFinalAmount())
                             .orderDate(orderDetail.getOrder().getOrderDate())
                             .deliveredDate(orderDetail.getOrder().getOrderDate()) // 실제로는 배송완료 날짜가 필요
                             .hasReview(hasReview)

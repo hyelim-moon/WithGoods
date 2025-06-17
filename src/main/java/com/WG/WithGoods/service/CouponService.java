@@ -6,7 +6,9 @@ import com.WG.WithGoods.repository.CouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -15,27 +17,42 @@ public class CouponService {
     private final CouponRepository couponRepository;
 
     // Create
-    public Coupon createCoupon(CouponDTO dto) {
+    public CouponDTO createCoupon(CouponDTO dto) {
         Coupon coupon = Coupon.builder()
                 .name(dto.getName())
                 .event(dto.getEvent())
                 .expiryDate(dto.getExpiryDate())
+                .couponType(dto.getCouponType())
                 .discountAmount(dto.getDiscountAmount())
+                .discountPercentage(dto.getDiscountPercentage())
+                .minOrderAmount(dto.getMinOrderAmount())
+                .maxDiscountAmount(dto.getMaxDiscountAmount())
+                .usageLimit(dto.getUsageLimit())
+                .isActive(dto.getIsActive())
                 .build();
-        return couponRepository.save(coupon);
+        
+        Coupon savedCoupon = couponRepository.save(coupon);
+        return CouponDTO.fromEntity(savedCoupon);
     }
 
     // Update
-    public Coupon updateCoupon(Integer id, CouponDTO dto) {
+    public CouponDTO updateCoupon(Integer id, CouponDTO dto) {
         Coupon coupon = couponRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("쿠폰을 찾을 수 없습니다: " + id));
 
         coupon.setName(dto.getName());
         coupon.setEvent(dto.getEvent());
         coupon.setExpiryDate(dto.getExpiryDate());
+        coupon.setCouponType(dto.getCouponType());
         coupon.setDiscountAmount(dto.getDiscountAmount());
+        coupon.setDiscountPercentage(dto.getDiscountPercentage());
+        coupon.setMinOrderAmount(dto.getMinOrderAmount());
+        coupon.setMaxDiscountAmount(dto.getMaxDiscountAmount());
+        coupon.setUsageLimit(dto.getUsageLimit());
+        coupon.setIsActive(dto.getIsActive());
 
-        return couponRepository.save(coupon);
+        Coupon updatedCoupon = couponRepository.save(coupon);
+        return CouponDTO.fromEntity(updatedCoupon);
     }
 
     // Delete
@@ -46,14 +63,47 @@ public class CouponService {
         couponRepository.deleteById(id);
     }
 
-    // Read by ID
-    public Coupon getCouponById(Integer id) {
+    // Read by ID (DTO 반환)
+    public CouponDTO getCouponById(Integer id) {
+        Coupon coupon = couponRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("쿠폰을 찾을 수 없습니다: " + id));
+        return CouponDTO.fromEntity(coupon);
+    }
+
+    // Read by ID (Entity 반환) - 내부 서비스용
+    public Coupon getCouponEntityById(Integer id) {
         return couponRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("쿠폰을 찾을 수 없습니다: " + id));
     }
 
     // 전체 목록 조회 (선택)
-    public List<Coupon> getAllCoupons() {
-        return couponRepository.findAll();
+    public List<CouponDTO> getAllCoupons() {
+        return couponRepository.findAll().stream()
+                .map(CouponDTO::fromEntity)
+                .collect(Collectors.toList());
+    }
+
+    // 쿠폰 유효성 검사
+    public boolean isValidCoupon(Coupon coupon) {
+        if (coupon == null) {
+            return false;
+        }
+        
+        // 쿠폰이 활성화되어 있는지 확인
+        if (!Boolean.TRUE.equals(coupon.getIsActive())) {
+            return false;
+        }
+        
+        // 쿠폰 만료일 확인
+        if (coupon.getExpiryDate() != null && coupon.getExpiryDate().isBefore(LocalDateTime.now())) {
+            return false;
+        }
+        
+        // 사용 제한 확인
+        if (coupon.getUsageLimit() != null && coupon.getUsageLimit() <= 0) {
+            return false;
+        }
+        
+        return true;
     }
 }

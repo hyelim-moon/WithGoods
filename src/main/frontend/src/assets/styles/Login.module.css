@@ -1,21 +1,10 @@
 .container {
     display: flex;
-    justify-content: center; /* 수평 중앙 정렬 */
+    flex-direction: column;
     align-items: center; /* 수직 중앙 정렬 */
-    margin: 0;
+    margin-top: 3.8rem;
     padding: 0;
     box-sizing: border-box;
-}
-
-.loginBox {
-    background-color: #fff;
-    padding: 2.5rem;
-    border-radius: 1rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 400px;
-    box-sizing: border-box;
-    text-align: center;
 }
 
 .logo {
@@ -26,6 +15,32 @@
     font-family: 'Pretendard', sans-serif;
 }
 
+/* container 바로 아래에 들어가는 로고용 링크 */
+.logoLink {
+    display: block;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+/* 로고 이미지 스타일 */
+.logoImage {
+    width: 13rem;     /* 원하시는 크기로 조정 */
+    height: auto;
+    cursor: pointer;  /* 클릭 가능한 커서 */
+}
+
+.loginBox {
+    background-color: #fff;
+    margin-top: 2rem;
+    padding: 2.5rem;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 30rem;
+    box-sizing: border-box;
+    text-align: center;
+}
+
 .form {
     display: flex;
     flex-direction: column;
@@ -33,7 +48,7 @@
 }
 
 .input {
-    padding: 1rem;
+    padding: 1.3rem;
     border: 1px solid #e0c5b6;
     border-radius: 0.75rem;
     font-size: 1rem;
@@ -51,16 +66,17 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-size: 0.9rem;
     color: #888;
-    margin-top: 0.5rem;
 }
 
 .checkbox {
     display: flex;
     align-items: center;
+    flex-direction: row;
     gap: 0.4rem;
+    margin-top: 1.2rem;
 }
+
 
 .link {
     color: #9e4b25;
@@ -82,7 +98,6 @@
     border-radius: 0.75rem;
     cursor: pointer;
     transition: background-color 0.3s ease, transform 0.2s ease;
-    margin-top: 1.5rem;
 }
 
 .button:hover {

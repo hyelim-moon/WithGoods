@@ -1,25 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import logoImg from '../assets/images/logo.png';
 import styles from '../assets/styles/Header.module.css';
 
 function Header() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
-    const [nickname, setNickname] = useState('');
+    const { user, setUser } = useAuth();
     const [searchInput, setSearchInput] = useState('');
     const navigate = useNavigate();
     const location = useLocation();
-
-    useEffect(() => {
-        const savedNickname = localStorage.getItem('nickname');
-        const savedIsLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-
-        if (savedIsLoggedIn && savedNickname) {
-            setIsLoggedIn(true);
-            setNickname(savedNickname);
-        }
-    }, []);
 
     useEffect(() => {
         if (!location.pathname.startsWith('/search')) {
@@ -34,11 +24,12 @@ function Header() {
             console.error('서버 로그아웃 실패:', error);
         }
 
-        setIsLoggedIn(false);
-        setNickname('');
+        setUser(null);
         localStorage.removeItem('isLoggedIn');
         localStorage.removeItem('nickname');
         localStorage.removeItem('username');
+        localStorage.removeItem('role');
+        localStorage.removeItem('isAdmin');
         window.dispatchEvent(new Event('storage'));
         navigate('/');
     };
@@ -71,15 +62,27 @@ function Header() {
 
                 <div className={styles.rightGroup}>
                     <div className={styles.login}>
-                        {isLoggedIn ? (
+                        {user ? (
                             <div className={styles.userBox}>
                                 <Link to="/mypage" className={styles.nicknameLink}>
-                                    {nickname}님
+                                    {user.nickname}님
                                 </Link>
                                 <div className={styles.divider}></div>
                                 <Link to="/cart" className={styles.cartLink}>
                                     장바구니
                                 </Link>
+                                {user.role === 'ADMIN' && (
+                                    <>
+                                        <div className={styles.divider}></div>
+                                        <Link to="/admin/orders" className={styles.adminLink}>
+                                            주문관리
+                                        </Link>
+                                        <div className={styles.divider}></div>
+                                        <Link to="/admin/members" className={styles.adminLink}>
+                                            회원관리
+                                        </Link>
+                                    </>
+                                )}
                                 <div className={styles.divider}></div>
                                 <button onClick={handleLogout} className={styles.logoutButton}>
                                     로그아웃

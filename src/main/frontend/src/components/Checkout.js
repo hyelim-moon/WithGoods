@@ -5,15 +5,23 @@ import axios from 'axios';
 
 const API_BASE_URL = 'http://localhost:8080';
 
-const availableCoupons = [
-  { code: 'SAVE10', name: '10% 할인', type: 'percent', amount: 10 },
-  { code: 'OFF5000', name: '₩5,000 할인', type: 'amount', amount: 5000 },
-];
-
 function Checkout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const cartData = location.state || { products: [], summary: { totalPrice: 0, discountAmount: 0, shippingFee: 0, finalAmount: 0 } };
+  
+  // location.state에서 전달받은 데이터 처리
+  const receivedData = location.state || { 
+    products: [], 
+    summary: { 
+      totalPrice: 0, 
+      discountAmount: 0, 
+      shippingFee: 0, 
+      finalAmount: 0 
+    } 
+  };
+  
+  const cartData = receivedData;
+  const isDirectPurchase = receivedData.isDirectPurchase || false;
 
   const [orderInfos, setOrderInfos] = useState([]); // 저장된 주문 정보 목록
   const [selectedOrderInfo, setSelectedOrderInfo] = useState(null); // 선택된 주문 정보
@@ -32,11 +40,22 @@ function Checkout() {
   const [cartItems, setCartItems] = useState(cartData.products || []);
   const [isNewAddress, setIsNewAddress] = useState(true);
   const [loading, setLoading] = useState(true);
+  const [userCoupons, setUserCoupons] = useState([]);
+  const [selectedCoupon, setSelectedCoupon] = useState(null);
+  const [couponLoading, setCouponLoading] = useState(false);
 
   // 회원 기본 정보와 저장된 주문 정보 불러오기
   useEffect(() => {
+    // 바로 구매로 넘어온 경우 상품 정보가 있는지 확인
+    if (isDirectPurchase && (!cartItems || cartItems.length === 0)) {
+      alert('상품 정보가 없습니다. 상품 상세페이지로 돌아갑니다.');
+      navigate('/');
+      return;
+    }
+    
     fetchMemberDefaultInfo();
-  }, []);
+    fetchUserCoupons();
+  }, [isDirectPurchase, cartItems, navigate]);
 
   const fetchMemberDefaultInfo = async () => {
     try {
@@ -81,6 +100,26 @@ function Checkout() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchUserCoupons = async () => {
+    try {
+      setCouponLoading(true);
+      const response = await axios.get(`${API_BASE_URL}/api/coupons/my`, {
+        withCredentials: true
+      });
+      
+      // 사용 가능한 쿠폰만 필터링 (사용되지 않은 쿠폰)
+      const availableCoupons = response.data.filter(coupon => 
+        !coupon.isUsed && coupon.isAvailable
+      );
+      setUserCoupons(availableCoupons);
+    } catch (error) {
+      console.error('쿠폰 조회 실패:', error);
+      setUserCoupons([]);
+    } finally {
+      setCouponLoading(false);
     }
   };
 
@@ -146,34 +185,60 @@ function Checkout() {
   };
 
   // 쿠폰 적용 함수
-  const applyCoupon = (itemId, couponCode) => {
-    const coupon = availableCoupons.find(c => c.code === couponCode);
+  const applyCoupon = (memberCouponId) => {
+    const coupon = userCoupons.find(c => c.memberCouponId === memberCouponId);
     if (!coupon) {
       alert('유효하지 않은 쿠폰입니다.');
       return;
     }
 
-    setCartItems(items =>
-      items.map(item => {
-        if (item.id !== itemId) return item;
-        let discount = 0;
-        if (coupon.type === 'percent') {
-          discount = Math.floor(item.price * item.quantity * (coupon.amount / 100));
-        } else if (coupon.type === 'amount') {
-          discount = Math.min(coupon.amount, item.price * item.quantity);
-        }
-        return { ...item, discount, appliedCoupon: coupon.code };
-      })
-    );
+    // 최소 주문 금액 확인
+    const totalPrice = cartData.summary.totalPrice;
+    if (coupon.minOrderAmount && totalPrice < coupon.minOrderAmount) {
+      alert(`최소 주문 금액 ${coupon.minOrderAmount.toLocaleString()}원 이상 구매 시 사용 가능합니다.`);
+      return;
+    }
+
+    // 할인 금액 계산
+    let discountAmount = 0;
+    if (coupon.couponType === 'FIXED_AMOUNT') {
+      discountAmount = Math.min(coupon.discountAmount, totalPrice);
+    } else if (coupon.couponType === 'PERCENTAGE') {
+      discountAmount = Math.floor(totalPrice * (coupon.discountPercentage / 100));
+      if (coupon.maxDiscountAmount) {
+        discountAmount = Math.min(discountAmount, coupon.maxDiscountAmount);
+      }
+    }
+
+    setSelectedCoupon(coupon);
+    
+    // 할인 금액을 cartData에 반영
+    const newSummary = {
+      ...cartData.summary,
+      discountAmount: discountAmount,
+      finalAmount: totalPrice - discountAmount + cartData.summary.shippingFee
+    };
+    
+    // cartData 업데이트 (실제로는 state로 관리해야 함)
+    cartData.summary = newSummary;
+    
+    alert(`${coupon.couponName} 쿠폰이 적용되었습니다. (할인: ${discountAmount.toLocaleString()}원)`);
   };
 
   // 쿠폰 제거 함수
-  const removeCoupon = (itemId) => {
-    setCartItems(items =>
-      items.map(item =>
-        item.id === itemId ? { ...item, discount: 0, appliedCoupon: null } : item
-      )
-    );
+  const removeCoupon = () => {
+    setSelectedCoupon(null);
+    
+    // 할인 금액 제거
+    const newSummary = {
+      ...cartData.summary,
+      discountAmount: 0,
+      finalAmount: cartData.summary.totalPrice + cartData.summary.shippingFee
+    };
+    
+    cartData.summary = newSummary;
+    
+    alert('쿠폰이 제거되었습니다.');
   };
 
   // 유효성 검사 함수들은 그대로 유지
@@ -268,14 +333,21 @@ function Checkout() {
             price: item.price,
             discount: item.discount || 0,
             productOption: item.option,
-            options: item.options
+            options: item.selectedOptions || item.options || null
           })),
           orderSummary: {
             totalPrice: cartData.summary.totalPrice,
             discountAmount: cartData.summary.discountAmount,
             shippingFee: cartData.summary.shippingFee,
             finalAmount: cartData.summary.finalAmount
-          }
+          },
+          // 사용된 쿠폰 정보 추가
+          usedCoupon: selectedCoupon ? {
+            memberCouponId: selectedCoupon.memberCouponId,
+            couponId: selectedCoupon.couponId,
+            couponName: selectedCoupon.couponName,
+            discountAmount: cartData.summary.discountAmount
+          } : null
         };
 
         // 주문 생성 API 호출
@@ -413,6 +485,129 @@ function Checkout() {
           </div>
         </fieldset>
 
+        {/* 주문 상품 정보 */}
+        <fieldset className={`${styles.section} ${styles.cart}`}>
+          <legend>주문 상품 정보</legend>
+          <div className={styles.orderSummary}>
+            {cartItems.map((item, index) => (
+              <div key={item.cartId || `direct-${index}`} className={styles.cartItem}>
+                <div className={styles.productInfo}>
+                  <img src={item.imageUrl} alt={item.name || item.productName} className={styles.productImage} />
+                  <div>
+                    <h4>{item.name || item.productName}</h4>
+                    {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
+                      <div className={styles.productOptions}>
+                        {Object.entries(item.selectedOptions).map(([key, value]) => (
+                          <span key={key} className={styles.optionItem}>
+                            <span className={styles.optionKey}>{key}</span>
+                            <span className={styles.optionValue}>{value}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {item.options && Object.keys(item.options).length > 0 && (
+                      <div className={styles.productOptions}>
+                        {Object.entries(item.options).map(([key, value]) => (
+                          <span key={key} className={styles.optionItem}>
+                            <span className={styles.optionKey}>{key}</span>
+                            <span className={styles.optionValue}>{value}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {item.option && !item.options && !item.selectedOptions && <p className={styles.option}>{item.option}</p>}
+                    <p className={styles.quantity}>수량: {item.quantity}개</p>
+                  </div>
+                </div>
+                <div className={styles.priceInfo}>
+                  <p className={styles.price}>₩{(item.price * item.quantity).toLocaleString()}</p>
+                </div>
+              </div>
+            ))}
+
+            <div className={styles.totalSummary}>
+              <div className={styles.summaryRow}>
+                <span>상품 금액</span>
+                <span>₩{cartData.summary.totalPrice.toLocaleString()}</span>
+              </div>
+              <div className={styles.summaryRow}>
+                <span>할인 금액</span>
+                <span>-₩{cartData.summary.discountAmount.toLocaleString()}</span>
+              </div>
+              <div className={styles.summaryRow}>
+                <span>배송비</span>
+                <span>
+                  {cartData.summary.shippingFee === 0 
+                    ? '무료 배송' 
+                    : `₩${cartData.summary.shippingFee.toLocaleString()}`}
+                </span>
+              </div>
+              <div className={`${styles.summaryRow} ${styles.finalAmount}`}>
+                <span>최종 결제 금액</span>
+                <span>₩{cartData.summary.finalAmount.toLocaleString()}</span>
+              </div>
+            </div>
+
+            <button 
+              type="button" 
+              onClick={handleSubmit} 
+              className={styles.submitButton}
+              disabled={loading}
+            >
+              ₩{cartData.summary.finalAmount.toLocaleString()}원 결제하기
+            </button>
+          </div>
+        </fieldset>
+
+        {/* 쿠폰 선택 */}
+        <fieldset className={`${styles.section} ${styles.coupons}`}>
+          <legend>쿠폰 선택</legend>
+          {couponLoading ? (
+            <p>쿠폰을 불러오는 중...</p>
+          ) : userCoupons.length === 0 ? (
+            <p>사용 가능한 쿠폰이 없습니다.</p>
+          ) : (
+            <div className={styles.couponSelection}>
+              <select 
+                value={selectedCoupon ? selectedCoupon.memberCouponId : ''} 
+                onChange={(e) => {
+                  const couponId = e.target.value;
+                  if (couponId) {
+                    applyCoupon(parseInt(couponId));
+                  } else {
+                    removeCoupon();
+                  }
+                }}
+                className={styles.couponSelect}
+              >
+                <option value="">쿠폰을 선택하세요</option>
+                {userCoupons.map(coupon => (
+                  <option key={coupon.memberCouponId} value={coupon.memberCouponId}>
+                    {coupon.couponName} - {coupon.couponType === 'FIXED_AMOUNT' 
+                      ? `${coupon.discountAmount.toLocaleString()}원 할인`
+                      : `${coupon.discountPercentage}% 할인`
+                    }
+                    {coupon.minOrderAmount && ` (${coupon.minOrderAmount.toLocaleString()}원 이상)`}
+                  </option>
+                ))}
+              </select>
+              
+              {selectedCoupon && (
+                <div className={styles.selectedCoupon}>
+                  <p>선택된 쿠폰: {selectedCoupon.couponName}</p>
+                  <button 
+                    type="button" 
+                    onClick={removeCoupon}
+                    className={styles.removeCouponBtn}
+                  >
+                    쿠폰 제거
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </fieldset>
+
         {/* 결제 정보 */}
         <fieldset className={`${styles.section} ${styles.payment}`}>
           <legend>결제 정보</legend>
@@ -478,65 +673,6 @@ function Checkout() {
             </>
           )}
         </fieldset>
-
-        {/* 주문 상품 정보 */}
-        <fieldset className={`${styles.section} ${styles.cart}`}>
-          <legend>주문 상품 정보</legend>
-          <div className={styles.orderSummary}>
-            {cartItems.map(item => (
-              <div key={item.cartId} className={styles.cartItem}>
-                <div className={styles.productInfo}>
-                  <img src={item.imageUrl} alt={item.productName} className={styles.productImage} />
-                  <div>
-                    <h4>{item.productName}</h4>
-                    {item.options && Object.keys(item.options).length > 0 && (
-                      <div className={styles.productOptions}>
-                        {Object.entries(item.options).map(([key, value]) => (
-                          <span key={key} className={styles.optionItem}>
-                            <span className={styles.optionKey}>{key}</span>
-                            <span className={styles.optionValue}>{value}</span>
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                    {item.option && !item.options && <p className={styles.option}>{item.option}</p>}
-                    <p className={styles.quantity}>수량: {item.quantity}개</p>
-                  </div>
-                </div>
-                <div className={styles.priceInfo}>
-                  <p className={styles.price}>₩{item.price.toLocaleString()}</p>
-                </div>
-              </div>
-            ))}
-
-            <div className={styles.totalSummary}>
-              <div className={styles.summaryRow}>
-                <span>상품 금액</span>
-                <span>₩{cartData.summary.totalPrice.toLocaleString()}</span>
-              </div>
-              <div className={styles.summaryRow}>
-                <span>할인 금액</span>
-                <span>-₩{cartData.summary.discountAmount.toLocaleString()}</span>
-              </div>
-              <div className={styles.summaryRow}>
-                <span>배송비</span>
-                <span>
-                  {cartData.summary.shippingFee === 0 
-                    ? '무료 배송' 
-                    : `₩${cartData.summary.shippingFee.toLocaleString()}`}
-                </span>
-              </div>
-              <div className={`${styles.summaryRow} ${styles.finalAmount}`}>
-                <span>최종 결제 금액</span>
-                <span>₩{cartData.summary.finalAmount.toLocaleString()}</span>
-              </div>
-            </div>
-          </div>
-        </fieldset>
-
-        <button type="submit" className={styles.submitButton}>
-          ₩{cartData.summary.finalAmount.toLocaleString()}원 결제하기
-        </button>
       </form>
     </div>
   );

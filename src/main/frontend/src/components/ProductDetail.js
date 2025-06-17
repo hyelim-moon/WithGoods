@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaHeart, FaCartPlus, FaShoppingCart } from 'react-icons/fa'; // 아이콘 가져오기
+import { FaHeart, FaCartPlus, FaShoppingCart, FaLock} from 'react-icons/fa'; // 아이콘 가져오기
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
@@ -30,15 +30,42 @@ function ProductDetail() {
     const [reviews, setReviews] = useState([]);
     const [reviewsLoading, setReviewsLoading] = useState(false);
     const [qnaList, setQnaList] = useState([]);
+    const [pwInputs, setPwInputs] = useState({});
+    const [unlocked, setUnlocked] = useState({});
+    const [expandedSecret, setExpandedSecret] = useState(null);
 
     useEffect(() => {
         if (!id) return;
-        axios.get(`http://localhost:8080/inquiries?productId=${id}`, {
+        axios.get(`http://localhost:8080/inquiries/product/${id}`, {
             withCredentials: true
         })
             .then(res => setQnaList(res.data))
             .catch(err => console.error('Q&A 불러오기 실패:', err));
     }, [id]);
+
+    const maskName = (name) => {
+        if (!name) return '';
+        return name[0] + '*'.repeat(Math.max(0, name.length - 1));
+    };
+
+    // 비밀번호 확인 API 호출
+    const checkPassword = async (qId) => {
+        try {
+            const ok = await axios.post(
+                `http://localhost:8080/inquiries/${qId}/check-password`,
+                { password: pwInputs[qId] },
+                { withCredentials: true }
+            ).then(r => r.data);
+
+            if (ok) {
+                navigate(`/inquiry/${qId}`);
+            } else {
+                alert('비밀번호가 틀렸습니다.');
+            }
+        } catch {
+            alert('서버 오류, 다시 시도해 주세요.');
+        }
+    };
 
     useEffect(() => {
         if (product) {
@@ -57,7 +84,6 @@ function ProductDetail() {
             localStorage.setItem('recentProducts', JSON.stringify(updated));
         }
     }, [product]);
-
 
     // 상품 데이터와 찜 상태 불러오기
     useEffect(() => {
@@ -78,7 +104,6 @@ function ProductDetail() {
                 ]);
 
                 if (productResponse.data) {
-                    console.log('Product Response:', productResponse.data);
                     const dto = productResponse.data;
                     setProduct({
                         ...dto,
@@ -93,16 +118,13 @@ function ProductDetail() {
                 setIsFavorited(wishlistResponse.data);
                 setError(null);
             } catch (err) {
-                console.error('Error fetching data:', err);
                 if (err.response) {
-                    console.error('Error response:', err.response.data);
-                    console.error('Error status:', err.response.status);
-                }
-                if (err.response?.status === 401) {
-                    setIsFavorited(false);
-                    setError('로그인이 필요한 서비스입니다.');
-                } else {
-                    setError('상품 정보를 불러오는데 실패했습니다.');
+                    if (err.response?.status === 401) {
+                        setIsFavorited(false);
+                        setError('로그인이 필요한 서비스입니다.');
+                    } else {
+                        setError('상품 정보를 불러오는데 실패했습니다.');
+                    }
                 }
             } finally {
                 setLoading(false);
@@ -126,7 +148,7 @@ function ProductDetail() {
                 });
                 setReviews(response.data);
             } catch (err) {
-                console.error('Error fetching reviews:', err);
+                // 리뷰 로딩 실패 시 무시
             } finally {
                 setReviewsLoading(false);
             }
@@ -183,6 +205,10 @@ function ProductDetail() {
         }));
     };
 
+    const handleSecretToggle = (qId) => {
+        setExpandedSecret(prev => (prev === qId ? null : qId));
+    };
+
     // 모든 필수 옵션이 선택되었는지 확인
     const areAllOptionsSelected = () => {
         if (!product?.options) return true;
@@ -215,7 +241,6 @@ function ProductDetail() {
                 alert('로그인이 필요한 서비스입니다.');
                 navigate('/login');
             } else {
-                console.error('장바구니 추가 실패:', error);
                 alert('장바구니 추가에 실패했습니다.');
             }
         }
@@ -223,7 +248,43 @@ function ProductDetail() {
 
     // 바로 구매
     const handlePurchase = () => {
-        alert('바로 구매 페이지로 이동합니다!');
+        // 로그인 체크
+        if (!user) {
+            alert('로그인이 필요한 서비스입니다.');
+            navigate('/login');
+            return;
+        }
+
+        // 모든 옵션이 선택되었는지 확인
+        if (product.options && !areAllOptionsSelected()) {
+            alert('모든 옵션을 선택해주세요.');
+            return;
+        }
+
+        // 주문할 상품 정보 구성
+        const orderItem = {
+            productId: product.productId,
+            name: product.name,
+            price: product.price,
+            imageUrl: product.imageUrl || product.mainImage,
+            quantity: quantity,
+            selectedOptions: selectedOptions,
+            totalPrice: product.price * quantity
+        };
+
+        // Checkout 페이지로 이동하면서 상품 정보 전달
+        navigate('/checkout', {
+            state: {
+                products: [orderItem],
+                summary: {
+                    totalPrice: orderItem.totalPrice,
+                    discountAmount: 0,
+                    shippingFee: 0,
+                    finalAmount: orderItem.totalPrice
+                },
+                isDirectPurchase: true // 바로 구매 여부 표시
+            }
+        });
     };
 
     // 즐겨찾기 토글
@@ -248,7 +309,6 @@ function ProductDetail() {
                 setIsFavorited(true);
             }
         } catch (error) {
-            console.error('Error toggling wishlist:', error);
             if (error.response?.status === 401) {
                 alert('로그인이 필요한 서비스입니다.');
                 navigate('/login');
@@ -277,11 +337,6 @@ function ProductDetail() {
 
     const submitReport = () => {
         // 신고 로직 구현
-        console.log('신고 제출:', {
-            target: reportTarget,
-            reasons: reportReasons,
-            detail: reportDetail,
-        });
         setIsReportModalOpen(false);
     };
 
@@ -529,47 +584,150 @@ function ProductDetail() {
             {activeTab === 'qa' && (
                 <div className={styles.reviewsSection}>
                     <div className={styles.qnaHeader}>
-                        <h3>Q&A ({product.length})</h3>
+                        <h3>Q&A ({qnaList.length})</h3>
                         {!authLoading && user && (
                             <button
                                 className={styles.inquiryBtn}
-                                onClick={() => navigate(`/inquiry/write/${product.productId}`)}
+                                onClick={() => navigate(`/inquiry/write/${id}`)}
                             >
                                 문의하기
                             </button>
                         )}
                     </div>
 
-                    {qnaList.length === 0 ? (
-                        <p className={styles.noInquiry}>등록된 문의가 없습니다.</p>
-                    ) : (
-                        <ul className={styles.reviewsList}>
-                            {qnaList.map((q) => (
-                                <li key={q.id} className={styles.reviewItem}>
-                                    <div className={styles.reviewHeader}>
-                                        <span>{q.userId}</span>
-                                        <span>{q.date}</span>
+                    {qnaList.length === 0 && <p>등록된 문의가 없습니다.</p>}
+
+                    <ul className={styles.qnaList}>
+                        {qnaList.map(q => (
+                            <li
+                                key={q.id}
+                                className={`${styles.qnaItem} ${expandedSecret === q.id ? styles.open : ''}`}
+                            >
+                                <div
+                                    className={styles.qnaTitleRow}
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => {
+                                        if (!q.secret) {
+                                            navigate(`/inquiry/${q.id}`);
+                                        } else {
+                                            handleSecretToggle(q.id);
+                                        }
+                                    }}
+                                >
+                                    {q.secret && <FaLock className={styles.lockIcon} />}
+                                    <span className={styles.qnaTitle}>{q.title}</span>
+                                    <span className={styles.meta}>
+                                        {maskName(q.writerUsername)} · {formatDate(q.createdAt)}
+                                    </span>
+                                </div>
+
+                                {/* ── 본문 혹은 비밀번호 입력 ── */}
+                                {q.secret && expandedSecret === q.id && !unlocked[q.id] ? (
+                                    <div className={styles.secretPrompt}>
+                                        <p>이 글은 비밀글입니다. 비밀번호를 입력해주세요.</p>
+                                        <input
+                                            type="password"
+                                            value={pwInputs[q.id] || ''}
+                                            onChange={e =>
+                                                setPwInputs(p => ({ ...p, [q.id]: e.target.value }))
+                                            }
+                                            className={styles.pwInput}
+                                        />
+                                        <button
+                                            onClick={() => checkPassword(q.id)}
+                                            className={styles.pwCheckBtn}
+                                        >
+                                            확인
+                                        </button>
                                     </div>
-                                    <p>
-                                        <strong>Q:</strong> {q.question}
-                                    </p>
-                                    <p>
-                                        <strong>A:</strong> {q.answer}
-                                    </p>
-                                </li>
-                            ))}
-                        </ul>
-                    )}
+                                ) : (
+                                    <div className={styles.qnaContent}>
+                                        <p><strong>Q:</strong> {q.content}</p>
+                                    </div>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             )}
 
             {activeTab === 'return' && (
                 <div className={styles.productDetailInfo}>
                     <h4>반품/교환 안내</h4>
-                    <div
-                        className={styles.productDescription}
-                        dangerouslySetInnerHTML={{ __html: product.returnPolicy || '' }}
-                    />
+                    <div className={styles.returnPolicy}>
+                        <div className={styles.policySection}>
+                            <h5>📦 배송 안내</h5>
+                            <ul>
+                                <li>배송 기간: 결제 완료 후 1-3일 내 배송</li>
+                                <li>배송 방법: 택배 배송 (CJ대한통운)</li>
+                                <li>배송비: 3,000원 (5만원 이상 구매 시 무료배송)</li>
+                                <li>제주도 및 도서산간 지역: 추가 배송비 3,000원</li>
+                            </ul>
+                        </div>
+
+                        <div className={styles.policySection}>
+                            <h5>🔄 반품/교환 안내</h5>
+                            <ul>
+                                <li><strong>반품/교환 기간:</strong> 상품 수령 후 7일 이내</li>
+                                <li><strong>반품/교환 가능 사유:</strong>
+                                    <ul>
+                                        <li>상품의 하자, 오배송, 불량</li>
+                                        <li>상품과 다르게 배송된 경우</li>
+                                        <li>단순 변심 (단, 상품 상태가 새것과 같은 경우에만)</li>
+                                    </ul>
+                                </li>
+                                <li><strong>반품/교환 불가 사유:</strong>
+                                    <ul>
+                                        <li>고객의 책임으로 상품이 멸실 또는 훼손된 경우</li>
+                                        <li>고객의 사용 또는 일부 소비로 상품 가치가 현저히 감소한 경우</li>
+                                        <li>시간 경과로 재판매가 곤란할 정도로 상품 가치가 현저히 감소한 경우</li>
+                                        <li>복제가 가능한 상품의 포장을 훼손한 경우</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <div className={styles.policySection}>
+                            <h5>💰 환불 안내</h5>
+                            <ul>
+                                <li><strong>환불 방법:</strong> 결제 수단과 동일한 방법으로 환불</li>
+                                <li><strong>환불 기간:</strong> 반품 상품 확인 후 3-5일 내 처리</li>
+                                <li><strong>환불 금액:</strong> 상품 금액 + 배송비 (단, 단순 변심의 경우 배송비 차감)</li>
+                                <li><strong>교환:</strong> 동일 상품으로만 교환 가능</li>
+                            </ul>
+                        </div>
+
+                        <div className={styles.policySection}>
+                            <h5>📞 반품/교환 신청 방법</h5>
+                            <ol>
+                                <li>마이페이지 → 주문내역에서 반품/교환 신청</li>
+                                <li>반품 사유 선택 및 상세 내용 작성</li>
+                                <li>반품 상품을 새것과 같은 상태로 포장</li>
+                                <li>반품 택배 발송 (반품 배송비는 고객 부담)</li>
+                                <li>상품 확인 후 환불 또는 교환 처리</li>
+                            </ol>
+                        </div>
+
+                        <div className={styles.policySection}>
+                            <h5>⚠️ 주의사항</h5>
+                            <ul>
+                                <li>반품 시 상품의 라벨, 태그, 포장재 등이 모두 포함되어야 합니다.</li>
+                                <li>세탁이나 사용 흔적이 있는 경우 반품이 불가능합니다.</li>
+                                <li>주문 시 사용한 쿠폰이나 포인트는 반품 시 복원되지 않을 수 있습니다.</li>
+                                <li>교환 시 재고 상황에 따라 지연될 수 있습니다.</li>
+                            </ul>
+                        </div>
+
+                        <div className={styles.policySection}>
+                            <h5>📞 고객센터</h5>
+                            <p>반품/교환 관련 문의사항이 있으시면 고객센터로 연락해 주세요.</p>
+                            <ul>
+                                <li>전화: 1588-1234 (평일 09:00-18:00)</li>
+                                <li>이메일: cs@withgoods.com</li>
+                                <li>카카오톡: @withgoods</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             )}
 

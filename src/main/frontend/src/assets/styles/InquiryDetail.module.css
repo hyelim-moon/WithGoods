@@ -169,3 +169,24 @@
     background: #944c21;
     color: white;
 }
+
+.metaRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem; /* hr 과의 간격 조절 */
+}
+
+.deleteButton {
+    padding: 0.4rem 0.8rem;
+    background-color: #cccccc;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.2s;
+}
+.deleteButton:hover {
+    background-color: #944c21;
+}
