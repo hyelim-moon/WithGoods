@@ -218,7 +218,7 @@ function Anniversary() {
                                 className={styles.productImage}
                             />
                             <div className={styles.productOverlay}>
-                                <div className={styles.overlayItem}>
+                                <div className={`${styles.overlayItem} ${product.stock <= 10 ? styles.lowStock : ''}`}>
                                     <span className={styles.overlayIcon}>📦</span>
                                     {`남은수량 : ${product.stock}개`}
                                 </div>
