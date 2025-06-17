@@ -310,31 +310,31 @@ function EditProfile() {
                     />
                 </div>
 
-                <div className={styles.formGroup}>
-                    <label className={styles.label}>성별</label>
-                    <div className={styles.radioGroup}>
-                        <label>
-                            <input
-                                type="radio"
-                                name="gender"
-                                value="남성"
-                                checked={form.gender === '남성'}
-                                onChange={handleChange}
-                            />
-                            남성
-                        </label>
-                        <label>
-                            <input
-                                type="radio"
-                                name="gender"
-                                value="여성"
-                                checked={form.gender === '여성'}
-                                onChange={handleChange}
-                            />
-                            여성
-                        </label>
-                    </div>
-                </div>
+                {/*<div className={styles.formGroup}>*/}
+                {/*    <label className={styles.label}>성별</label>*/}
+                {/*    <div className={styles.radioGroup}>*/}
+                {/*        <label>*/}
+                {/*            <input*/}
+                {/*                type="radio"*/}
+                {/*                name="gender"*/}
+                {/*                value="남성"*/}
+                {/*                checked={form.gender === '남성'}*/}
+                {/*                onChange={handleChange}*/}
+                {/*            />*/}
+                {/*            남성*/}
+                {/*        </label>*/}
+                {/*        <label>*/}
+                {/*            <input*/}
+                {/*                type="radio"*/}
+                {/*                name="gender"*/}
+                {/*                value="여성"*/}
+                {/*                checked={form.gender === '여성'}*/}
+                {/*                onChange={handleChange}*/}
+                {/*            />*/}
+                {/*            여성*/}
+                {/*        </label>*/}
+                {/*    </div>*/}
+                {/*</div>*/}
 
                 <div className={styles.buttonGroup}>
                     <button className={styles.saveButton} onClick={handleSave}>저장</button>
