@@ -12,6 +12,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -21,6 +24,7 @@ public class OrderService {
     private final MemberRepository memberRepository;
     private final ProductRepository productRepository;
     private final MemberCouponService memberCouponService;
+    private final CartService cartService;
 
     @Transactional
     public Integer createOrder(Integer memberId, OrderRequestDto orderRequest) {
@@ -97,6 +101,18 @@ public class OrderService {
             } catch (Exception e) {
                 // 쿠폰 사용 처리 실패 시에도 주문은 성공으로 처리
                 System.err.println("쿠폰 사용 처리 실패: " + e.getMessage());
+            }
+        }
+
+        // 장바구니에서 주문한 상품들 삭제
+        if (orderRequest.getCartIds() != null && !orderRequest.getCartIds().isEmpty()) {
+            try {
+                Member member = memberRepository.findById(memberId)
+                        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                cartService.removeMultipleFromCart(member.getUsername(), orderRequest.getCartIds());
+            } catch (Exception e) {
+                // 장바구니 삭제 실패 시에도 주문은 성공으로 처리
+                System.err.println("장바구니 삭제 실패: " + e.getMessage());
             }
         }
 

@@ -371,7 +371,9 @@ function Checkout() {
                         couponId: selectedCoupon.couponId,
                         couponName: selectedCoupon.couponName,
                         discountAmount: cartData.summary.discountAmount
-                    } : null
+                    } : null,
+                    // 장바구니 아이템 ID들 추가
+                    cartIds: cartItems.map(item => item.cartId)
                 };
 
                 // 주문 생성 API 호출

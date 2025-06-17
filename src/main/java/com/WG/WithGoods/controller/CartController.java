@@ -67,6 +67,25 @@ public class CartController {
         }
     }
 
+    @DeleteMapping("/multiple")
+    public ResponseEntity<?> removeMultipleFromCart(
+            @RequestBody List<Integer> cartIds,
+            HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
+            return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요한 서비스입니다."));
+        }
+
+        try {
+            cartService.removeMultipleFromCart(username, cartIds);
+            return ResponseEntity.ok().build();
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "장바구니에서 상품들을 제거하는데 실패했습니다."));
+        }
+    }
+
     @PutMapping("/{cartItemId}")
     public ResponseEntity<?> updateCartItemQuantity(
             @PathVariable Integer cartItemId,

@@ -16,6 +16,7 @@ public class OrderRequestDto {
     private List<OrderItemDto> orderItems;
     private OrderSummaryDto orderSummary;
     private UsedCouponDto usedCoupon;
+    private List<Integer> cartIds;
 
     @Getter
     @Setter
