@@ -22,4 +22,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     List<Product> findByRole(ProductRole role);
 
     List<Product> findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(String nameKeyword, String descriptionKeyword);
+
+    List<Product> findByNameContainingIgnoreCase(String name);
+
+    List<Product> findByDescriptionContainingIgnoreCase(String description);
+
 }

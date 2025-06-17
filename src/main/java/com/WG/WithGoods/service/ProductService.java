@@ -8,9 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -92,33 +90,37 @@ public class ProductService {
     }
 
     public List<ProductDto> searchProducts(String query) {
-        return toDtoList(productRepository
-                .findByNameContainingIgnoreCaseOrDescriptionContainingIgnoreCase(query, query));
-    }
+        List<Product> nameMatches = productRepository.findByNameContainingIgnoreCase(query);
+        List<Product> descMatches = productRepository.findByDescriptionContainingIgnoreCase(query);
 
-/*    public List<ProductDto> getRandomRecommendedProducts(int count) {
-        List<Product> allProducts = productRepository.findAll();
-        if (allProducts.isEmpty()) {
-            return Collections.emptyList();
+        Set<Integer> nameMatchIds = new HashSet<>();
+        for (Product p : nameMatches) {
+            nameMatchIds.add(p.getProductId());
         }
-        Collections.shuffle(allProducts);
-        return toDtoList(allProducts.subList(0, Math.min(count, allProducts.size())));
-    }*/
+
+        List<Product> uniqueDescMatches = new ArrayList<>();
+        for (Product p : descMatches) {
+            if (!nameMatchIds.contains(p.getProductId())) {
+                uniqueDescMatches.add(p);
+            }
+        }
+
+        List<Product> combined = new ArrayList<>();
+        combined.addAll(nameMatches);
+        combined.addAll(uniqueDescMatches);
+
+        return toDtoList(combined);
+    }
 
     public List<ProductDto> getRandomRecommendedProducts(int count) {
         List<Product> allProducts = productRepository.findAll();
-        System.out.println("총 상품 수: " + allProducts.size()); // 로그 찍기
-
         if (allProducts.isEmpty()) {
             return Collections.emptyList();
         }
-
         Collections.shuffle(allProducts);
         List<Product> subList = allProducts.subList(0, Math.min(count, allProducts.size()));
-        System.out.println("추천된 상품 수: " + subList.size());
         return toDtoList(subList);
     }
-
 
     private ProductDto toDto(Product product) {
         return ProductDto.builder()
