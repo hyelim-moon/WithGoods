@@ -531,3 +531,18 @@ input:disabled {
 .payment::-webkit-scrollbar-thumb:hover {
   background: #7c3b1d;
 }
+
+.postCodeBtn {
+  background-color: #7c3b1d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.postCodeBtn:hover {
+  background-color: #5a2a13;
+}
