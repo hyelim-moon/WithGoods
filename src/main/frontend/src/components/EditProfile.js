@@ -1,10 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import {Link, useNavigate} from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import styles from '../assets/styles/EditProfile.module.css';
 import mypageStyles from '../assets/styles/MyPage.module.css';
 
+const API_BASE_URL = 'http://localhost:8080';
+
 function EditProfile() {
     const navigate = useNavigate();
+    const { user, setUser } = useAuth();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
     const [form, setForm] = useState({
         name: '',
@@ -16,66 +23,107 @@ function EditProfile() {
         detailAddress: '',
         nickname: '',
         email: '',
+        gender: '',
     });
 
     useEffect(() => {
-        // 저장된 모든 정보 불러오기
-        const savedName = localStorage.getItem('name');
-        const savedPhone = localStorage.getItem('phone');
-        const savedZipcode = localStorage.getItem('zipcode');
-        const savedAddress = localStorage.getItem('address');
-        const savedDetailAddress = localStorage.getItem('detailAddress');
-        const savedNickname = localStorage.getItem('nickname');
-        const savedEmail = localStorage.getItem('email');
-
-        // 전화번호 분리
-        let phone1 = '010';
-        let phone2 = '';
-        let phone3 = '';
-        if (savedPhone) {
-            const phoneParts = savedPhone.split('-');
-            if (phoneParts.length === 3) {
-                phone1 = phoneParts[0];
-                phone2 = phoneParts[1];
-                phone3 = phoneParts[2];
-            }
-        }
-
-        // 저장된 정보가 있으면 폼에 설정
-        setForm(prev => ({
-            ...prev,
-            name: savedName || '',
-            phone1: phone1,
-            phone2: phone2,
-            phone3: phone3,
-            zipcode: savedZipcode || '',
-            address: savedAddress || '',
-            detailAddress: savedDetailAddress || '',
-            nickname: savedNickname || '',
-            email: savedEmail || '',
-        }));
+        fetchUserProfile();
     }, []);
+
+    const fetchUserProfile = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/my-profile`, {
+                withCredentials: true
+            });
+
+            const userData = response.data;
+            
+            // 전화번호 분리
+            let phone1 = '010';
+            let phone2 = '';
+            let phone3 = '';
+            if (userData.phoneNumber) {
+                const phoneParts = userData.phoneNumber.split('-');
+                if (phoneParts.length === 3) {
+                    phone1 = phoneParts[0];
+                    phone2 = phoneParts[1];
+                    phone3 = phoneParts[2];
+                }
+            }
+
+            // 주소 분리 (우편번호와 상세주소)
+            let zipcode = '';
+            let address = '';
+            let detailAddress = '';
+            if (userData.address) {
+                const addressParts = userData.address.split(' ');
+                if (addressParts.length > 0) {
+                    zipcode = addressParts[0];
+                    address = addressParts.slice(1).join(' ');
+                }
+            }
+
+            setForm({
+                name: userData.name || '',
+                phone1: phone1,
+                phone2: phone2,
+                phone3: phone3,
+                zipcode: zipcode,
+                address: address,
+                detailAddress: detailAddress,
+                nickname: userData.nickname || '',
+                email: userData.email || '',
+                gender: userData.gender || '',
+            });
+        } catch (error) {
+            console.error('사용자 정보 조회 실패:', error);
+            setError('사용자 정보를 불러오는데 실패했습니다.');
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm({ ...form, [name]: value });
     };
 
-    const handleSave = () => {
-        // 전화번호 합쳐서 처리
-        const fullPhone = `${form.phone1}-${form.phone2}-${form.phone3}`;
-        
-        // 모든 정보를 localStorage에 저장
-        localStorage.setItem('name', form.name);
-        localStorage.setItem('phone', fullPhone);
-        localStorage.setItem('zipcode', form.zipcode);
-        localStorage.setItem('address', form.address);
-        localStorage.setItem('detailAddress', form.detailAddress);
-        localStorage.setItem('nickname', form.nickname);
-        localStorage.setItem('email', form.email);
+    const handleSave = async () => {
+        try {
+            // 전화번호 합쳐서 처리
+            const fullPhone = `${form.phone1}-${form.phone2}-${form.phone3}`;
+            
+            // 주소 합쳐서 처리
+            const fullAddress = form.zipcode ? `${form.zipcode} ${form.address} ${form.detailAddress}`.trim() : '';
+            
+            const updateData = {
+                name: form.name,
+                phoneNumber: fullPhone,
+                address: fullAddress,
+                nickname: form.nickname,
+                email: form.email,
+                gender: form.gender,
+            };
 
-        alert(`정보가 저장되었습니다.\n전화번호: ${fullPhone}`);
-        navigate('/mypage');
+            const response = await axios.put(`${API_BASE_URL}/my-profile`, updateData, {
+                withCredentials: true
+            });
+
+            // AuthContext의 사용자 정보 업데이트
+            if (setUser) {
+                setUser(prev => ({
+                    ...prev,
+                    nickname: form.nickname
+                }));
+            }
+
+            alert('정보가 성공적으로 수정되었습니다.');
+            navigate('/mypage');
+        } catch (error) {
+            console.error('정보 수정 실패:', error);
+            const errorMessage = error.response?.data?.message || '정보 수정에 실패했습니다.';
+            alert(errorMessage);
+        }
     };
 
     const handleSearchZipcode = () => {
@@ -104,6 +152,52 @@ function EditProfile() {
             },
         }).open();
     };
+
+    if (loading) {
+        return (
+            <div className={mypageStyles.myPageLayout}>
+                <aside className={mypageStyles.sidebar}>
+                    <div className={mypageStyles.sidebarTitle}>MY</div>
+                    <ul className={mypageStyles.sidebarMenu}>
+                        <li><Link to="/edit-profile">내 정보 수정</Link></li>
+                        <li><Link to="/cart">장바구니</Link></li>
+                        <li><Link to="/orders">결제내역</Link></li>
+                        <li><Link to="/coupons">내 쿠폰</Link></li>
+                        <li><Link to="/my-reviews">내가 쓴 리뷰</Link></li>
+                        <li><Link to="/estimatelist">견적 문의</Link></li>
+                        <li><Link to="/wishlist">찜한 상품</Link></li>
+                        <li><Link to="/recent">최근 본 상품</Link></li>
+                    </ul>
+                </aside>
+                <main className={styles.mainContent}>
+                    <div>사용자 정보를 불러오는 중...</div>
+                </main>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className={mypageStyles.myPageLayout}>
+                <aside className={mypageStyles.sidebar}>
+                    <div className={mypageStyles.sidebarTitle}>MY</div>
+                    <ul className={mypageStyles.sidebarMenu}>
+                        <li><Link to="/edit-profile">내 정보 수정</Link></li>
+                        <li><Link to="/cart">장바구니</Link></li>
+                        <li><Link to="/orders">결제내역</Link></li>
+                        <li><Link to="/coupons">내 쿠폰</Link></li>
+                        <li><Link to="/my-reviews">내가 쓴 리뷰</Link></li>
+                        <li><Link to="/estimatelist">견적 문의</Link></li>
+                        <li><Link to="/wishlist">찜한 상품</Link></li>
+                        <li><Link to="/recent">최근 본 상품</Link></li>
+                    </ul>
+                </aside>
+                <main className={styles.mainContent}>
+                    <div className={styles.error}>{error}</div>
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className={mypageStyles.myPageLayout}>
@@ -214,6 +308,32 @@ function EditProfile() {
                         className={styles.input}
                         placeholder="example@email.com"
                     />
+                </div>
+
+                <div className={styles.formGroup}>
+                    <label className={styles.label}>성별</label>
+                    <div className={styles.radioGroup}>
+                        <label>
+                            <input
+                                type="radio"
+                                name="gender"
+                                value="남성"
+                                checked={form.gender === '남성'}
+                                onChange={handleChange}
+                            />
+                            남성
+                        </label>
+                        <label>
+                            <input
+                                type="radio"
+                                name="gender"
+                                value="여성"
+                                checked={form.gender === '여성'}
+                                onChange={handleChange}
+                            />
+                            여성
+                        </label>
+                    </div>
                 </div>
 
                 <div className={styles.buttonGroup}>

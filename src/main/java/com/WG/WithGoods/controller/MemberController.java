@@ -120,4 +120,85 @@ public class MemberController {
                 "role", role
         ));
     }
+
+    // ✅ 현재 로그인된 사용자 상세 정보 조회
+    @GetMapping("/my-profile")
+    public ResponseEntity<?> getMyProfile(HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
+            return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요합니다."));
+        }
+
+        try {
+            Member member = memberService.findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            
+            Map<String, Object> profile = new HashMap<>();
+            profile.put("memberId", member.getMemberId());
+            profile.put("username", member.getUsername());
+            profile.put("nickname", member.getNickname());
+            profile.put("name", member.getName());
+            profile.put("email", member.getEmail());
+            profile.put("phoneNumber", member.getPhoneNumber());
+            profile.put("gender", member.getGender());
+            profile.put("birthDate", member.getBirthDate());
+            profile.put("address", member.getAddress());
+            profile.put("role", member.getRole());
+            
+            return ResponseEntity.ok(profile);
+        } catch (Exception e) {
+            log.error("프로필 조회 실패: {}", e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
+
+    // ✅ 사용자 정보 수정
+    @PutMapping("/my-profile")
+    public ResponseEntity<?> updateMyProfile(@RequestBody Map<String, Object> request, HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
+            return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요합니다."));
+        }
+
+        try {
+            Member member = memberService.findByUsername(username)
+                    .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+            
+            // 수정 가능한 필드들만 업데이트
+            if (request.containsKey("nickname")) {
+                member.setNickname((String) request.get("nickname"));
+            }
+            if (request.containsKey("name")) {
+                member.setName((String) request.get("name"));
+            }
+            if (request.containsKey("email")) {
+                member.setEmail((String) request.get("email"));
+            }
+            if (request.containsKey("phoneNumber")) {
+                member.setPhoneNumber((String) request.get("phoneNumber"));
+            }
+            if (request.containsKey("gender")) {
+                member.setGender((String) request.get("gender"));
+            }
+            if (request.containsKey("address")) {
+                member.setAddress((String) request.get("address"));
+            }
+            
+            Member updatedMember = memberService.updateMemberProfile(member);
+            
+            // 세션 정보 업데이트
+            session.setAttribute("nickname", updatedMember.getNickname());
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "정보가 성공적으로 수정되었습니다.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            log.error("프로필 수정 실패: {}", e.getMessage());
+            Map<String, String> errorResponse = new HashMap<>();
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
+        }
+    }
 }

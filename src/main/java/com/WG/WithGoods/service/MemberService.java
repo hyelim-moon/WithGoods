@@ -73,6 +73,19 @@ public class MemberService {
         return memberRepository.save(member);
     }
 
+    // 사용자 정보 수정을 위한 메서드
+    @Transactional
+    public Member updateMemberProfile(Member member) {
+        // 이메일 중복 체크 (자신의 이메일은 제외)
+        Optional<Member> existingMemberWithEmail = memberRepository.findByEmail(member.getEmail());
+        if (existingMemberWithEmail.isPresent() && 
+            !existingMemberWithEmail.get().getMemberId().equals(member.getMemberId())) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
+        
+        return memberRepository.save(member);
+    }
+
     // 어드민용 회원 관리 메서드들
     public List<MemberDTO> getAllMembers() {
         return memberRepository.findAll().stream()
