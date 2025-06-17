@@ -104,15 +104,12 @@ function OrderHistory() {
 
     const isReviewable = (orderDetailId) => {
         const result = reviewableItems.some(item => item.orderDetailId === orderDetailId);
-        console.log(`isReviewable for orderDetailId ${orderDetailId}:`, result);
-        console.log('Available reviewable items:', reviewableItems);
         return result;
     };
 
     const hasReview = (orderDetailId) => {
         const item = reviewableItems.find(item => item.orderDetailId === orderDetailId);
         const result = item ? item.hasReview : false;
-        console.log(`hasReview for orderDetailId ${orderDetailId}:`, result);
         return result;
     };
 
@@ -215,16 +212,16 @@ function OrderHistory() {
                                             )}
                                             <span className={styles.productPrice}>
                                                 ₩{item.price.toLocaleString()}
+                                                {item.discount && item.discount > 0 && (
+                                                    <span style={{ color: '#e74c3c', marginLeft: '8px' }}>
+                                                        (할인: -₩{item.discount.toLocaleString()})
+                                                    </span>
+                                                )}
                                             </span>
                                         </div>
                                         
                                         {/* 리뷰 작성 버튼 */}
                                         {(() => {
-                                            console.log(`Rendering review button for orderDetailId: ${item.orderDetailId}`);
-                                            console.log(`orderDetailId exists: ${!!item.orderDetailId}`);
-                                            console.log(`isReviewable: ${isReviewable(item.orderDetailId)}`);
-                                            console.log(`hasReview: ${hasReview(item.orderDetailId)}`);
-                                            
                                             return item.orderDetailId && isReviewable(item.orderDetailId) && (
                                                 <div className={styles.reviewSection}>
                                                     {hasReview(item.orderDetailId) ? (

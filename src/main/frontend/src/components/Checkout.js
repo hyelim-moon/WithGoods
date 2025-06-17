@@ -8,7 +8,20 @@ const API_BASE_URL = 'http://localhost:8080';
 function Checkout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const cartData = location.state || { products: [], summary: { totalPrice: 0, discountAmount: 0, shippingFee: 0, finalAmount: 0 } };
+  
+  // location.state에서 전달받은 데이터 처리
+  const receivedData = location.state || { 
+    products: [], 
+    summary: { 
+      totalPrice: 0, 
+      discountAmount: 0, 
+      shippingFee: 0, 
+      finalAmount: 0 
+    } 
+  };
+  
+  const cartData = receivedData;
+  const isDirectPurchase = receivedData.isDirectPurchase || false;
 
   const [orderInfos, setOrderInfos] = useState([]); // 저장된 주문 정보 목록
   const [selectedOrderInfo, setSelectedOrderInfo] = useState(null); // 선택된 주문 정보
@@ -33,9 +46,16 @@ function Checkout() {
 
   // 회원 기본 정보와 저장된 주문 정보 불러오기
   useEffect(() => {
+    // 바로 구매로 넘어온 경우 상품 정보가 있는지 확인
+    if (isDirectPurchase && (!cartItems || cartItems.length === 0)) {
+      alert('상품 정보가 없습니다. 상품 상세페이지로 돌아갑니다.');
+      navigate('/');
+      return;
+    }
+    
     fetchMemberDefaultInfo();
     fetchUserCoupons();
-  }, []);
+  }, [isDirectPurchase, cartItems, navigate]);
 
   const fetchMemberDefaultInfo = async () => {
     try {
@@ -313,7 +333,7 @@ function Checkout() {
             price: item.price,
             discount: item.discount || 0,
             productOption: item.option,
-            options: item.options
+            options: item.selectedOptions || item.options || null
           })),
           orderSummary: {
             totalPrice: cartData.summary.totalPrice,
@@ -469,12 +489,22 @@ function Checkout() {
         <fieldset className={`${styles.section} ${styles.cart}`}>
           <legend>주문 상품 정보</legend>
           <div className={styles.orderSummary}>
-            {cartItems.map(item => (
-              <div key={item.cartId} className={styles.cartItem}>
+            {cartItems.map((item, index) => (
+              <div key={item.cartId || `direct-${index}`} className={styles.cartItem}>
                 <div className={styles.productInfo}>
-                  <img src={item.imageUrl} alt={item.productName} className={styles.productImage} />
+                  <img src={item.imageUrl} alt={item.name || item.productName} className={styles.productImage} />
                   <div>
-                    <h4>{item.productName}</h4>
+                    <h4>{item.name || item.productName}</h4>
+                    {item.selectedOptions && Object.keys(item.selectedOptions).length > 0 && (
+                      <div className={styles.productOptions}>
+                        {Object.entries(item.selectedOptions).map(([key, value]) => (
+                          <span key={key} className={styles.optionItem}>
+                            <span className={styles.optionKey}>{key}</span>
+                            <span className={styles.optionValue}>{value}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
                     {item.options && Object.keys(item.options).length > 0 && (
                       <div className={styles.productOptions}>
                         {Object.entries(item.options).map(([key, value]) => (
@@ -485,12 +515,12 @@ function Checkout() {
                         ))}
                       </div>
                     )}
-                    {item.option && !item.options && <p className={styles.option}>{item.option}</p>}
+                    {item.option && !item.options && !item.selectedOptions && <p className={styles.option}>{item.option}</p>}
                     <p className={styles.quantity}>수량: {item.quantity}개</p>
                   </div>
                 </div>
                 <div className={styles.priceInfo}>
-                  <p className={styles.price}>₩{item.price.toLocaleString()}</p>
+                  <p className={styles.price}>₩{(item.price * item.quantity).toLocaleString()}</p>
                 </div>
               </div>
             ))}

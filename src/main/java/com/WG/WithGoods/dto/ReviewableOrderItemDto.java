@@ -20,6 +20,8 @@ public class ReviewableOrderItemDto {
     private Map<String, String> options;
     private Integer quantity;
     private Integer price;
+    private Integer discount; // 개별 상품 할인
+    private Integer finalAmount; // 최종 금액 (할인 적용 후)
     private LocalDateTime orderDate;
     private LocalDateTime deliveredDate;
     private boolean hasReview; // 리뷰 작성 여부
