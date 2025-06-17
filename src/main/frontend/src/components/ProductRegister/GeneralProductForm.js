@@ -82,8 +82,6 @@ function GeneralProductForm() {
       .finally(() => setLoading(false));
   }, [id, isEditMode]);
 
-  // 이하 기존 코드 유지...
-
   const handleChange = (e) => {
     const { name, value, type, checked, files } = e.target;
     if (type === 'checkbox') {
@@ -245,8 +243,17 @@ function GeneralProductForm() {
       description: formData.detailDescription,
       options: formData.hasOption
         ? formData.optionType === 'single'
-          ? JSON.stringify(formData.singleOptions)
-          : JSON.stringify(formData.options)
+          ? JSON.stringify(
+              formData.singleOptions.map(opt => opt.name)
+            )
+          : JSON.stringify(
+              formData.options.reduce((acc, group) => {
+                if (group.group && Array.isArray(group.values)) {
+                  acc[group.group] = group.values.map(val => val.name);
+                }
+                return acc;
+              }, {})
+            )
         : null,
       limitedEditionNumber: formData.limitedEditionNumber || null,
       limitedReleaseDate: formData.limitedReleaseDate || null,
