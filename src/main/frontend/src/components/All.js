@@ -82,6 +82,10 @@ function All() {
                 // 평점 높은순
                 sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
                 break;
+            case 'reviewCount':
+                // 리뷰 많은 순
+                sorted.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
+                break;
             default:
                 break;
         }
@@ -180,10 +184,13 @@ function All() {
                     >
                         높은가격순
                     </span>
-                    <span className={styles.sortOption}>
+                    {/* <span className={styles.sortOption}>
                         누적판매순
-                    </span>
-                    <span className={styles.sortOption}>
+                    </span> */}
+                    <span 
+                        className={styles.sortOption}
+                        onClick={() => setSortOrder('reviewCount')}
+                    >
                         리뷰 많은 순
                     </span>
                     <span

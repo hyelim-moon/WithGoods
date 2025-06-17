@@ -40,5 +40,6 @@ public class Review {
     @Column(name = "rating")
     private Integer rating; // 별점 (1-5)
 
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt; // 리뷰날짜
 }

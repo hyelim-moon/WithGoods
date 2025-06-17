@@ -51,6 +51,15 @@ public class OrderService {
             Product product = productRepository.findById(item.getProductId())
                     .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다: " + item.getProductId()));
 
+            // 재고 확인 및 감소
+            if (product.getStock() != null) {
+                if (product.getStock() < item.getQuantity()) {
+                    throw new IllegalArgumentException("상품 '" + product.getName() + "'의 재고가 부족합니다. 현재 재고: " + product.getStock() + "개");
+                }
+                product.setStock(product.getStock() - item.getQuantity());
+                productRepository.save(product);
+            }
+
             // 옵션 정보 처리
             String productOption = null;
             if (item.getOptions() != null && !item.getOptions().isEmpty()) {
@@ -121,6 +130,19 @@ public class OrderService {
     public void updateOrderStatus(Integer orderId, OrderStatus newStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+        
+        OrderStatus oldStatus = order.getStatus();
+        
+        // 주문이 취소되는 경우 재고 복원
+        if (newStatus == OrderStatus.CANCELLED && oldStatus != OrderStatus.CANCELLED) {
+            for (OrderDetail orderDetail : order.getOrderDetails()) {
+                Product product = orderDetail.getProduct();
+                if (product.getStock() != null) {
+                    product.setStock(product.getStock() + orderDetail.getQuantity());
+                    productRepository.save(product);
+                }
+            }
+        }
         
         order.setStatus(newStatus);
         orderRepository.save(order);

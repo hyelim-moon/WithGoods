@@ -40,4 +40,7 @@ public interface ReviewRepository extends JpaRepository<Review, Integer> {
     
     // 특정 상품에 대한 회원의 리뷰 조회
     Optional<Review> findByMemberMemberIdAndProductProductId(Integer memberId, Integer productId);
+    
+    // 상품별 리뷰 개수 조회
+    long countByProductProductId(Integer productId);
 }

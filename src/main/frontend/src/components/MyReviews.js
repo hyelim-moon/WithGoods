@@ -197,6 +197,10 @@ function MyReviews() {
                                                 src={`http://localhost:8080${review.imageUrl}`}
                                                 alt="리뷰 이미지"
                                                 className={styles.reviewImage}
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    console.error('리뷰 이미지 로딩 실패:', review.imageUrl);
+                                                }}
                                             />
                                         )}
                                         <div className={styles.reviewActions}>

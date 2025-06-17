@@ -38,11 +38,17 @@ public class OrderController {
         Member member = memberRepository.findByUsername(username)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         
-        Integer orderId = orderService.createOrder(member.getMemberId(), orderRequest);
+        try {
+            Integer orderId = orderService.createOrder(member.getMemberId(), orderRequest);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("orderId", orderId);
-        return ResponseEntity.ok(response);
+            Map<String, Object> response = new HashMap<>();
+            response.put("orderId", orderId);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "주문 생성에 실패했습니다."));
+        }
     }
 
     @GetMapping("/{orderId}")

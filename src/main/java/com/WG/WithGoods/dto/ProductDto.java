@@ -25,6 +25,7 @@ public class ProductDto {
     private LocalDate endDate;
     private Integer stock;
     private Double rating;
+    private Long reviewCount;
 
     // ✅ Entity → DTO 변환
     public static ProductDto fromEntity(Product product) {
@@ -43,6 +44,7 @@ public class ProductDto {
                 .endDate(product.getEndDate())
                 .stock(product.getStock())
                 .rating(product.getRating())
+                .reviewCount(null)
                 .build();
     }
 

@@ -36,6 +36,11 @@ public class CartService {
         Product product = productRepository.findById(requestDto.getProductId())
                 .orElseThrow(() -> new IllegalArgumentException("상품을 찾을 수 없습니다."));
 
+        // 재고 확인 및 감소
+        if (product.getStock() != null && product.getStock() < requestDto.getQuantity()) {
+            throw new IllegalArgumentException("재고가 부족합니다. 현재 재고: " + product.getStock() + "개");
+        }
+
         // 옵션 문자열 생성
         String optionString = null;
         if (requestDto.getOptions() != null && !requestDto.getOptions().isEmpty()) {
@@ -55,8 +60,15 @@ public class CartService {
         Cart cart;
         if (existingCart != null) {
             // 이미 있는 경우 수량만 증가
-            existingCart.setProductQuantity(existingCart.getProductQuantity() + requestDto.getQuantity());
-            existingCart.setTotalPrice(product.getPrice() * existingCart.getProductQuantity());
+            int newQuantity = existingCart.getProductQuantity() + requestDto.getQuantity();
+            
+            // 재고 확인 (기존 수량 + 새로 추가할 수량)
+            if (product.getStock() != null && product.getStock() < newQuantity) {
+                throw new IllegalArgumentException("재고가 부족합니다. 현재 재고: " + product.getStock() + "개");
+            }
+            
+            existingCart.setProductQuantity(newQuantity);
+            existingCart.setTotalPrice(product.getPrice() * newQuantity);
             cart = existingCart;
         } else {
             // 새로운 장바구니 아이템 생성
@@ -68,6 +80,12 @@ public class CartService {
                     .addedDate(LocalDateTime.now())
                     .totalPrice(product.getPrice() * requestDto.getQuantity())
                     .build();
+        }
+
+        // 재고 감소
+        if (product.getStock() != null) {
+            product.setStock(product.getStock() - requestDto.getQuantity());
+            productRepository.save(product);
         }
 
         cart = cartRepository.save(cart);
@@ -94,6 +112,13 @@ public class CartService {
             throw new IllegalArgumentException("해당 장바구니 아이템에 대한 권한이 없습니다.");
         }
 
+        // 재고 복원
+        Product product = cart.getProduct();
+        if (product.getStock() != null) {
+            product.setStock(product.getStock() + cart.getProductQuantity());
+            productRepository.save(product);
+        }
+
         cartRepository.delete(cart);
     }
 
@@ -106,6 +131,27 @@ public class CartService {
 
         if (!cart.getMember().equals(member)) {
             throw new IllegalArgumentException("해당 장바구니 아이템에 대한 권한이 없습니다.");
+        }
+
+        Product product = cart.getProduct();
+        int quantityDifference = quantity - cart.getProductQuantity();
+
+        // 수량이 증가하는 경우 재고 확인
+        if (quantityDifference > 0) {
+            if (product.getStock() != null && product.getStock() < quantityDifference) {
+                throw new IllegalArgumentException("재고가 부족합니다. 현재 재고: " + product.getStock() + "개");
+            }
+            // 재고 감소
+            if (product.getStock() != null) {
+                product.setStock(product.getStock() - quantityDifference);
+                productRepository.save(product);
+            }
+        } else if (quantityDifference < 0) {
+            // 수량이 감소하는 경우 재고 복원
+            if (product.getStock() != null) {
+                product.setStock(product.getStock() + Math.abs(quantityDifference));
+                productRepository.save(product);
+            }
         }
 
         cart.setProductQuantity(quantity);

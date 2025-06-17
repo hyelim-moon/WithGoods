@@ -379,18 +379,22 @@ function Checkout() {
                     withCredentials: true
                 });
 
-                // 주문 완료 페이지로 이동
-                navigate('/ordercomplete', {
-                    state: {
-                        orderId: response.data.orderId
-                    }
-                });
-            } catch (error) {
-                console.error('주문 처리 실패:', error);
-                alert('주문 처리에 실패했습니다. 다시 시도해주세요.');
-            }
+        // 주문 완료 페이지로 이동
+        navigate('/ordercomplete', {
+          state: {
+            orderId: response.data.orderId
+          }
+        });
+      } catch (error) {
+        console.error('주문 처리 실패:', error);
+        if (error.response?.data?.message) {
+          alert(error.response.data.message);
+        } else {
+          alert('주문 처리에 실패했습니다. 다시 시도해주세요.');
         }
-    };
+      }
+    }
+  };
 
     if (loading) {
         return <div className={styles.loading}>주문 정보를 불러오는 중...</div>;

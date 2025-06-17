@@ -205,7 +205,15 @@ function ReviewEdit() {
                     
                     {imagePreview && (
                         <div className={styles.imagePreview}>
-                            <img src={imagePreview} alt="미리보기" className={styles.previewImage} />
+                            <img 
+                                src={imagePreview} 
+                                alt="미리보기" 
+                                className={styles.previewImage}
+                                onError={(e) => {
+                                    e.target.style.display = 'none';
+                                    console.error('이미지 미리보기 로딩 실패:', imagePreview);
+                                }}
+                            />
                             <button type="button" onClick={removeImage} className={styles.removeImage}>
                                 삭제
                             </button>
