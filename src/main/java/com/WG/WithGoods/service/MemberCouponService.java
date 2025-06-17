@@ -23,6 +23,7 @@ public class MemberCouponService {
     private final MemberCouponRepository memberCouponRepository;
     private final MemberRepository memberRepository;
     private final CouponService couponService;
+    private final NotificationService notificationService;
 
     // 회원에게 쿠폰 발급
     @Transactional
@@ -45,7 +46,12 @@ public class MemberCouponService {
                 .expiresAt(coupon.getExpiryDate())
                 .build();
         
-        return memberCouponRepository.save(memberCoupon);
+        MemberCoupon savedMemberCoupon = memberCouponRepository.save(memberCoupon);
+        
+        // 쿠폰 발급 알림 생성
+        notificationService.createCouponIssuedNotification(memberId, coupon.getName(), coupon.getEvent());
+        
+        return savedMemberCoupon;
     }
 
     // 회원의 사용 가능한 쿠폰 목록 조회

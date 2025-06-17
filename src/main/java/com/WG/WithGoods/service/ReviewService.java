@@ -35,7 +35,7 @@ public class ReviewService {
     private final MemberRepository memberRepository;
 
     // 이미지 저장 경로
-    private static final String UPLOAD_DIR = "uploads/reviews/";
+    private static final String UPLOAD_DIR = System.getProperty("user.dir") + "/uploads/reviews/";
 
     @Transactional
     public void writeReview(Integer orderDetailId, String content, Integer rating, MultipartFile imageFile, String username) {
@@ -103,7 +103,12 @@ public class ReviewService {
 
         // 파일명 생성 (UUID + 원본 확장자)
         String originalFilename = file.getOriginalFilename();
-        String extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        String extension = ".jpg"; // 기본 확장자
+        
+        if (originalFilename != null && originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+        }
+        
         String filename = UUID.randomUUID().toString() + extension;
 
         // 파일 저장
@@ -335,8 +340,9 @@ public class ReviewService {
     private void deleteImageFile(String imageUrl) {
         try {
             if (imageUrl != null && imageUrl.startsWith("/uploads/")) {
-                String filePath = imageUrl.substring(1); // "/uploads/..." -> "uploads/..."
-                File file = new File(filePath);
+                String relativePath = imageUrl.substring(1); // "/uploads/..." -> "uploads/..."
+                String absolutePath = System.getProperty("user.dir") + "/" + relativePath;
+                File file = new File(absolutePath);
                 if (file.exists()) {
                     file.delete();
                 }

@@ -240,6 +240,8 @@ function ProductDetail() {
             if (error.response?.status === 401) {
                 alert('로그인이 필요한 서비스입니다.');
                 navigate('/login');
+            } else if (error.response?.data?.message) {
+                alert(error.response.data.message);
             } else {
                 alert('장바구니 추가에 실패했습니다.');
             }
@@ -560,6 +562,10 @@ function ProductDetail() {
                                                 src={`http://localhost:8080${review.imageUrl}`}
                                                 alt="리뷰 이미지"
                                                 className={styles.reviewImage}
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    console.error('리뷰 이미지 로딩 실패:', review.imageUrl);
+                                                }}
                                             />
                                         )}
                                     </div>

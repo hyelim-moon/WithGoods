@@ -66,6 +66,10 @@ function Customization() {
             case 'rating':
                 sorted.sort((a, b) => b.rating - a.rating);
                 break;
+            case 'reviewCount':
+                // 리뷰 많은 순
+                sorted.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
+                break;
             default:
                 break;
         }
@@ -134,8 +138,13 @@ function Customization() {
                     <span className={styles.sortOption} onClick={() => setSortOrder('high')}>
                 높은가격순
             </span>
-                    <span className={styles.sortOption}>누적판매순</span>
-                    <span className={styles.sortOption}>리뷰 많은 순</span>
+                    {/* <span className={styles.sortOption}>누적판매순</span> */}
+                    <span 
+                        className={styles.sortOption}
+                        onClick={() => setSortOrder('reviewCount')}
+                    >
+                        리뷰 많은 순
+                    </span>
                     <span className={styles.sortOption} onClick={() => setSortOrder('rating')}>
                 평점높은순
             </span>

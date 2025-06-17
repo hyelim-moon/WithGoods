@@ -288,6 +288,8 @@
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     margin-top: 20px;
+    overflow: hidden;
+    word-wrap: break-word;
 }
 
 .reviewsHeader {
@@ -297,6 +299,8 @@
     margin-bottom: 20px;
     padding-bottom: 10px;
     border-bottom: 2px solid #f0f0f0;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .reviewsHeader h3 {
@@ -322,7 +326,8 @@
     flex-direction: column;
     gap: 20px;
     list-style: none;
-    margin-left: -2rem;
+    padding: 0;
+    margin: 0;
 }
 
 .reviewItem {
@@ -330,6 +335,8 @@
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     background: #fafafa;
+    overflow: hidden;
+    word-wrap: break-word;
 }
 
 .reviewHeader {
@@ -339,17 +346,23 @@
     margin-bottom: 10px;
     padding-bottom: 10px;
     border-bottom: 1px solid #eee;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .reviewerInfo {
     display: flex;
     flex-direction: column;
     gap: 5px;
+    min-width: 0;
+    flex: 1;
 }
 
 .reviewerName {
     font-weight: bold;
     color: #333;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .reviewRating {
@@ -381,10 +394,13 @@
 .reviewContent {
     color: #333;
     line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .reviewContent p {
     margin: 0 0 10px 0;
+    word-wrap: break-word;
 }
 
 .reviewImage {
@@ -392,6 +408,7 @@
     max-height: 200px;
     border-radius: 4px;
     margin-top: 10px;
+    object-fit: cover;
 }
 
 .reviewToggle {

@@ -4,6 +4,7 @@ import com.WG.WithGoods.dto.ProductDto;
 import com.WG.WithGoods.entity.Product;
 import com.WG.WithGoods.entity.ProductRole;
 import com.WG.WithGoods.repository.ProductRepository;
+import com.WG.WithGoods.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +18,7 @@ import java.util.NoSuchElementException;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final ReviewRepository reviewRepository;
 
     public ProductDto createProduct(ProductDto dto) {
         Product product = Product.builder()
@@ -134,6 +136,7 @@ public class ProductService {
                 .endDate(product.getEndDate())
                 .stock(product.getStock())
                 .rating(product.getRating())
+                .reviewCount(reviewRepository.countByProductProductId(product.getProductId()))
                 .build();
     }
 

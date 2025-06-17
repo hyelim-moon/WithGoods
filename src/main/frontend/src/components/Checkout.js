@@ -363,7 +363,11 @@ function Checkout() {
         });
       } catch (error) {
         console.error('주문 처리 실패:', error);
-        alert('주문 처리에 실패했습니다. 다시 시도해주세요.');
+        if (error.response?.data?.message) {
+          alert(error.response.data.message);
+        } else {
+          alert('주문 처리에 실패했습니다. 다시 시도해주세요.');
+        }
       }
     }
   };
