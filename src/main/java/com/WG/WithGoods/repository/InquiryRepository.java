@@ -1,6 +1,7 @@
 package com.WG.WithGoods.repository;
 
 import com.WG.WithGoods.entity.Inquiry;
+import com.WG.WithGoods.entity.InquiryType;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -14,4 +15,8 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
     List<Inquiry> findByWriterUsernameOrderByCreatedAtDesc(String username);
     Optional<Inquiry> findTopByIdLessThanOrderByIdDesc(Long id);
     Optional<Inquiry> findTopByIdGreaterThanOrderByIdAsc(Long id);
+    // 견적문의만
+    List<Inquiry> findByType(InquiryType type);
+    // 견적문의가 아닌 것
+    List<Inquiry> findByTypeNot(InquiryType type);
 }

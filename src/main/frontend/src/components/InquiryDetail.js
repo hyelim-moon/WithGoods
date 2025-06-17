@@ -107,7 +107,10 @@ function InquiryDetail() {
         createdAt,
         views,
         content,
+        message,
+        designFileUrl
     } = inquiry || {};
+    const bodyText = (content ?? message) || '';
     const formattedDate = createdAt?.slice(0, 16).replace('T', ' ');
 
     return (
@@ -133,12 +136,24 @@ function InquiryDetail() {
                             </button>
                         )}
                     </div>
-                    <hr className={styles.separator} />
+                    <hr className={styles.separator}/>
+
                     <div className={styles.content}>
-                        {content.split('\n').map((line, i) => (
+                        {bodyText.split('\n').map((line, i) => (
                             <p key={i}>{line}</p>
                         ))}
                     </div>
+
+                    {/* 업로드된 디자인 파일 이미지 */}
+                    {designFileUrl && (
+                        <div className={styles.imageContainer}>
+                            <img
+                                src={`http://localhost:8080${designFileUrl}`}
+                                alt="Design File"
+                                className={styles.designImage}
+                            />
+                        </div>
+                    )}
 
                     <div className={styles.navLinks}>
                         {prevId && (
@@ -171,7 +186,7 @@ function InquiryDetail() {
             {showPwdModal && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modalContainer}>
-                        <h3 className={styles.modalTitle}>비밀글입니다</h3>
+                    <h3 className={styles.modalTitle}>비밀글입니다</h3>
                         <div className={styles.modalMessage}>
                             비밀번호를 입력하세요
                         </div>
