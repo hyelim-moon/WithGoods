@@ -1,27 +1,34 @@
 package com.WG.WithGoods.controller;
 
-import com.WG.WithGoods.dto.*;
+import com.WG.WithGoods.dto.InquiryAnswerRequest;
+import com.WG.WithGoods.dto.InquiryRequestDto;
+import com.WG.WithGoods.dto.InquiryResponseDto;
+import com.WG.WithGoods.dto.PasswordCheckRequest;
 import com.WG.WithGoods.entity.Inquiry;
-import com.WG.WithGoods.repository.InquiryRepository;
 import com.WG.WithGoods.service.InquiryService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.*;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
 @RequestMapping("/inquiries")
 @RequiredArgsConstructor
 public class InquiryController {
-    private final InquiryService inquiryService;
-    private final InquiryRepository inquiryRepository;
 
-    @PostMapping
+    private final InquiryService inquiryService;
+
+    /** 일반문의(JSON) 등록 */
+    @PostMapping(path="", consumes=MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> create(
-            @RequestBody InquiryRequestDto dto,
+            @Valid @RequestBody InquiryRequestDto dto,
             HttpSession session
     ) {
         String user = (String) session.getAttribute("username");
@@ -29,15 +36,50 @@ public class InquiryController {
         return ResponseEntity.ok("문의가 등록되었습니다.");
     }
 
-    /** 전체 목록 (공개/비공개 모두) */
+    /** 견적문의(multipart/form-data) 등록 */
+    @PostMapping(path = "/estimate",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<String> createEstimateInquiry(
+            Principal principal,
+            @RequestParam("title")        String title,
+            @RequestParam("type")         String type,
+            @RequestParam("customerName") String customerName,
+            @RequestParam("contact")      String contact,
+            @RequestParam("product")      String product,
+            @RequestParam("quantity")     Integer quantity,
+            @RequestParam("message")      String message,
+            @RequestParam("password")     String password,
+            @RequestParam("secret")       Boolean secret,
+            @RequestParam(value="designFile", required=false)
+            MultipartFile designFile
+    ) {
+        // writer 조회는 principal.getName()
+        inquiryService.createEstimateInquiry(
+                principal.getName(),
+                title, customerName, contact,
+                product, quantity, message,
+                password, secret, designFile
+        );
+        return ResponseEntity.ok("견적 문의가 등록되었습니다.");
+    }
+
+    /**
+     * 전체 목록 조회
+     * - productId 파라미터가 있으면 해당 상품 문의만
+     * - category=estimate 이면 견적문의만, 그렇지 않으면 일반문의
+     */
     @GetMapping
     public List<InquiryResponseDto> list(
-            @RequestParam(value="productId", required=false) Long productId
+            @RequestParam(value="productId", required=false) Long productId,
+            @RequestParam(value="category",   required=false) String category
     ) {
         if (productId != null) {
             return inquiryService.findByProduct(productId);
         }
-        return inquiryService.findAllForListing();
+        if ("estimate".equalsIgnoreCase(category)) {
+            return inquiryService.getEstimateInquiries();
+        }
+        return inquiryService.getGeneralInquiries();
     }
 
     /** 관리자 전체 조회 */
@@ -60,7 +102,7 @@ public class InquiryController {
 
     /**
      * 상세 조회
-     * → 비밀글이면 비밀번호 검사 (작성자도 우회 없이, ADMIN 만 무조건 통과)
+     * - 비밀글인 경우 패스워드 확인 (ADMIN은 무조건 통과)
      */
     @GetMapping("/{id}")
     public ResponseEntity<?> detail(
@@ -68,38 +110,19 @@ public class InquiryController {
             @RequestParam(value = "password", required = false) String pw,
             HttpSession session
     ) {
-        try {
-            Inquiry i = inquiryRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("문의글을 찾을 수 없습니다."));
-
-            if (i.isSecret()) {
-                // ADMIN 만 비밀번호 없이 통과
-                String role = (String) session.getAttribute("role");
-                boolean isAdmin = "ADMIN".equals(role);
-
-                if (!isAdmin) {
-                    // password 가 없거나, 틀리면 403
-                    if (pw == null || !i.getPassword().equals(pw)) {
-                        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                                .body("비밀번호가 일치하지 않습니다.");
-                    }
-                }
+        Inquiry i = inquiryService.findEntityById(id);
+        if (i.isSecret()) {
+            String role = (String) session.getAttribute("role");
+            boolean isAdmin = "ADMIN".equals(role);
+            if (!isAdmin && (pw == null || !i.getPassword().equals(pw))) {
+                return ResponseEntity.status(403).body("비밀번호가 일치하지 않습니다.");
             }
-
-            InquiryResponseDto dto = inquiryService.findById(id);
-            return ResponseEntity.ok(dto);
-
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(ex.getMessage());
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("서버 예외 발생; 콘솔 로그 확인하세요.");
         }
+        InquiryResponseDto dto = inquiryService.findById(id);
+        return ResponseEntity.ok(dto);
     }
 
-    /** 비밀번호 체크 API (front 에서 확인 후 /inquiry/{id}?password=xxx 로 redirect 처리) */
+    /** 비밀번호 체크 API */
     @PostMapping("/{id}/check-password")
     public ResponseEntity<Boolean> checkPassword(
             @PathVariable("id") Long id,
@@ -114,7 +137,7 @@ public class InquiryController {
     @PutMapping("/{id}")
     public ResponseEntity<String> update(
             @PathVariable("id") Long id,
-            @RequestBody InquiryRequestDto dto,
+            @Valid @RequestBody InquiryRequestDto dto,
             HttpSession session
     ) {
         String user = (String) session.getAttribute("username");
@@ -133,7 +156,7 @@ public class InquiryController {
         return ResponseEntity.ok("삭제되었습니다.");
     }
 
-    /** 답변 등록 (ADMIN 전용) */
+    /** 관리자 답변 등록 */
     @PostMapping("/{id}/answer")
     public ResponseEntity<String> answer(
             @PathVariable("id") Long id,
@@ -143,13 +166,5 @@ public class InquiryController {
         String user = (String) session.getAttribute("username");
         inquiryService.answer(id, user, req.getAnswer());
         return ResponseEntity.ok("답변이 등록되었습니다.");
-    }
-
-    /** 특정 상품의 Q&A 목록 */
-    @GetMapping("/product/{productId}")
-    public List<InquiryResponseDto> listByProduct(
-            @PathVariable("productId") Long productId
-    ) {
-        return inquiryService.findByProduct(productId);
     }
 }

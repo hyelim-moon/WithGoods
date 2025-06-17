@@ -28,18 +28,22 @@ const InquiryPage = () => {
 
     // 데이터 fetch & 내림차순 정렬
     useEffect(() => {
-        axios.get('http://localhost:8080/inquiries', { withCredentials: true })
+        const category = selectedTab === '견적' ? 'estimate' : 'general';
+        axios.get(`http://localhost:8080/inquiries?category=${category}`, {
+            withCredentials: true
+        })
             .then(res => {
-                const data = res.data;
-                const gen = data.filter(i => i.type!=='견적').sort((a,b)=>b.id-a.id);
-                const est = data.filter(i => i.type==='견적').sort((a,b)=>b.id-a.id);
-                setGeneralList(gen);
-                setEstimateList(est);
+                const sorted = res.data.slice().sort((a, b) => b.id - a.id);
+                if (category === 'estimate') {
+                    setEstimateList(sorted);
+                } else {
+                    setGeneralList(sorted);
+                }
             })
             .catch(console.error);
-    }, []);
+    }, [selectedTab]);
 
-    const list = selectedTab==='기타' ? generalList : estimateList;
+    const list = selectedTab === '기타' ? generalList : estimateList;
     const totalItems = list.length;
     const totalPages = Math.ceil((totalItems - (totalItems % itemsPerPage || itemsPerPage)) / itemsPerPage)
         + (totalItems % itemsPerPage ? 1 : 0);

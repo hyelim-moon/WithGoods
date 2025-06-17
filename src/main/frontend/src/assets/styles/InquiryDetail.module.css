@@ -84,6 +84,8 @@
     font-size: 0.9rem;
     color: #555;
     margin-bottom: 60px;      /* 화면 최하단 여백 */
+    clear: both;
+    text-align: center;
 }
 
 .navItem {
@@ -190,3 +192,19 @@
 .deleteButton:hover {
     background-color: #944c21;
 }
+
+/* InquiryDetail.module.css에 추가 */
+.imageContainer {
+    text-align: left;
+    margin-top: 1.5rem;
+}
+
+.designImage {
+    max-width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    float: left;
+    margin: 0 1rem 1rem 0;
+}
+
+
