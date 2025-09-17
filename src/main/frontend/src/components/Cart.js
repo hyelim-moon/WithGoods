@@ -76,7 +76,11 @@ function Cart() {
             ));
         } catch (err) {
             console.error('수량 증가 실패:', err);
-            alert('수량 변경에 실패했습니다.');
+            if (err.response?.data?.message) {
+                alert(err.response.data.message);
+            } else {
+                alert('수량 변경에 실패했습니다.');
+            }
         }
     };
 
@@ -94,7 +98,11 @@ function Cart() {
             ));
         } catch (err) {
             console.error('수량 감소 실패:', err);
-            alert('수량 변경에 실패했습니다.');
+            if (err.response?.data?.message) {
+                alert(err.response.data.message);
+            } else {
+                alert('수량 변경에 실패했습니다.');
+            }
         }
     };
 
@@ -106,7 +114,11 @@ function Cart() {
             setCartItems(prev => prev.filter(item => item.cartId !== cartId));
         } catch (err) {
             console.error('상품 삭제 실패:', err);
-            alert('상품 삭제에 실패했습니다.');
+            if (err.response?.data?.message) {
+                alert(err.response.data.message);
+            } else {
+                alert('상품 삭제에 실패했습니다.');
+            }
         }
     };
 
@@ -242,8 +254,22 @@ function Cart() {
 
                                         <div className={styles.productDetails}>
                                             <h4 className={styles.productTitle}>{item.productName}</h4>
-                                            {item.option && (
-                                                <p className={styles.productOption}>{item.option}</p>
+                                            {item.options && Object.keys(item.options).length > 0 && (
+                                                <div className={styles.productOptions}>
+                                                    {Object.entries(item.options).map(([key, value]) => (
+                                                        <span key={key} className={styles.optionItem}>
+                                                            <span className={styles.optionKey}>{key}</span>
+                                                            <span className={styles.optionValue}>{value}</span>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {item.option && !item.options && (
+                                                <div className={styles.productOptions}>
+                                                    <span className={styles.optionItem}>
+                                                        <span className={styles.optionValue}>{item.option}</span>
+                                                    </span>
+                                                </div>
                                             )}
                                             <p className={styles.productPrice}>₩{item.price.toLocaleString()}</p>
                                         </div>

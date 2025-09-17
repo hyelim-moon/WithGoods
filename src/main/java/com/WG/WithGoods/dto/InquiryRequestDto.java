@@ -8,7 +8,9 @@ import lombok.Setter;
 public class InquiryRequestDto {
     private String title;
     private String type;
+    private Long productId;
     private String content;
     private String password;
     private boolean secret;
+
 }

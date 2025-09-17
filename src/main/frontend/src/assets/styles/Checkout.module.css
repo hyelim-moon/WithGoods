@@ -54,7 +54,7 @@ h1 {
 
 .cart {
   grid-column: 2;
-  grid-row: 1 / span 3;
+  grid-row: 2;
 }
 
 legend {
@@ -195,12 +195,29 @@ select:focus {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
 }
 
 .submitButton:hover {
   background-color: #7c3b1d;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(158, 75, 37, 0.2);
+  box-shadow: 0 4px 12px rgba(158, 75, 37, 0.3);
+}
+
+.submitButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.submitButton:disabled:hover {
+  background-color: #ccc;
+  transform: none;
+  box-shadow: none;
 }
 
 /* 반응형 디자인 */
@@ -386,4 +403,146 @@ input:disabled {
   min-height: 200px;
   font-size: 1.1rem;
   color: #666;
+}
+
+.productOptions {
+  margin: 8px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.optionItem {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  color: #495057;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.optionItem:hover {
+  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+.optionKey {
+  font-weight: 600;
+  color: #6c757d;
+  font-size: 11px;
+}
+
+.optionValue {
+  font-weight: 500;
+  background: rgba(158, 75, 37, 0.1);
+  color: #9e4b25;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  border: 1px solid rgba(158, 75, 37, 0.2);
+}
+
+/* 쿠폰 관련 스타일 */
+.coupons {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.couponSelection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.couponSelect {
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  background-color: #fff;
+  transition: all 0.2s ease;
+}
+
+.couponSelect:focus {
+  border-color: #9e4b25;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(158, 75, 37, 0.1);
+}
+
+.selectedCoupon {
+  background-color: #f8f4e6;
+  border: 1px solid #d9b99b;
+  border-radius: 6px;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.selectedCoupon p {
+  margin: 0;
+  font-weight: 600;
+  color: #9e4b25;
+}
+
+.removeCouponBtn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.removeCouponBtn:hover {
+  background-color: #c0392b;
+}
+
+.payment {
+  grid-column: 1;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 1rem;
+}
+
+.payment::-webkit-scrollbar {
+  width: 6px;
+}
+
+.payment::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.payment::-webkit-scrollbar-thumb {
+  background: #9e4b25;
+  border-radius: 3px;
+}
+
+.payment::-webkit-scrollbar-thumb:hover {
+  background: #7c3b1d;
+}
+
+.postCodeBtn {
+  background-color: #7c3b1d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.postCodeBtn:hover {
+  background-color: #5a2a13;
 }

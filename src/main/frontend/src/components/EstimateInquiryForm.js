@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from '../assets/styles/EstimateInquiryForm.module.css';
 import CommonInput from './CommonInput';
 import TextareaWithCount from './TextareaWithCount';
+import axios from "axios";
 
 const EstimateInquiryForm = () => {
     const [form, setForm] = useState({
@@ -34,11 +35,36 @@ const EstimateInquiryForm = () => {
     };
 
     // handleSubmit 예시 (EstimateInquiryForm.js)
-    const handleSubmit = e => {
+    const handleSubmit = async e => {
         e.preventDefault();
-        // payload에 form 데이터를 넣고, type을 “견적 문의”로 지정
-        const payload = { ...form, type: "견적 문의" };
-        navigate('/inquiry', { state: { newInquiry: payload } });
+        const formData = new FormData();
+        formData.append('title', form.title);
+        formData.append('type', 'ESTIMATE');
+        formData.append('customerName', form.customerName);
+        formData.append('contact', form.contact);
+        formData.append('product', form.product);
+        formData.append('quantity', form.quantity);
+        formData.append('message', form.message);
+        formData.append('password', form.password);
+        formData.append('secret', true);
+        if (form.designFile) {
+            formData.append('designFile', form.designFile);
+        }
+
+        try {
+            await axios.post(
+                'http://localhost:8080/inquiries/estimate',
+                formData,
+                {
+                    withCredentials: true
+                }
+            );
+            alert('견적 문의가 저장되었습니다.');
+            navigate('/inquiry');
+        } catch (err) {
+            console.error(err);
+            alert('저장 중 오류가 발생했습니다.');
+        }
     };
 
     return (

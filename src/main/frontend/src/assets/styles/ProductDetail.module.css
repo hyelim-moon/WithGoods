@@ -56,6 +56,39 @@
     margin-bottom: 10px;
 }
 
+/* 상품 평점 */
+.productRating {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.starRating {
+    display: flex;
+    gap: 2px;
+}
+
+.star {
+    font-size: 20px;
+    color: #ddd;
+}
+
+.star.filled {
+    color: #ffc107;
+}
+
+.ratingText {
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
+}
+
+.reviewCount {
+    font-size: 14px;
+    color: #666;
+}
+
 /* 상품 가격 */
 .productPrice {
     font-size: 24px;
@@ -140,9 +173,21 @@
     background-color: #f1e3dc;
 }
 
+.quantityControls button:disabled {
+    background-color: #e0e0e0;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
 .quantityControls span {
     font-size: 1rem;
     font-weight: bold;
+}
+
+.stockInfo {
+    margin-left: 10px;
+    color: #666;
+    font-size: 0.9em;
 }
 
 /* 총 상품 금액 */
@@ -200,6 +245,16 @@
     background-color: #884120;
 }
 
+.buttonRow button:disabled {
+    background-color: #e0e0e0;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.buttonRow button:disabled:hover {
+    background-color: #e0e0e0;
+}
+
 /* 탭 섹션 */
 .tabsContainer {
     display: flex;
@@ -250,86 +305,154 @@
 
 /* 리뷰 섹션 */
 .reviewsSection {
-    margin-top: 40px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-top: 20px;
+    overflow: hidden;
+    word-wrap: break-word;
 }
 
-.reviewsSection h3 {
-    font-size: 22px;
-    font-weight: bold;
-    margin-bottom: 20px;
-}
-
-.ratingSection {
+.reviewsHeader {
     display: flex;
+    justify-content: space-between;
     align-items: center;
     margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-.stars {
-    display: flex;
-    gap: 5px;
+.reviewsHeader h3 {
+    margin: 0;
+    color: #333;
+    font-size: 1.2rem;
+    font-weight: 600;
 }
 
-.filledStar {
-    color: #f39c12;
+.noReviews {
+    text-align: center;
+    padding: 40px 20px;
+    color: #666;
 }
 
-.emptyStar {
-    color: #ccc;
-}
-
-.ratingText {
-    margin-left: 10px;
-    font-size: 16px;
+.noReviews p {
+    margin: 5px 0;
+    font-size: 1rem;
 }
 
 .reviewsList {
-    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
 
 .reviewItem {
-    border-bottom: 1px solid #eee;
-    padding: 15px 0;
+    padding: 20px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background: #fafafa;
+    overflow: hidden;
+    word-wrap: break-word;
 }
 
 .reviewHeader {
     display: flex;
     justify-content: space-between;
-    font-size: 14px;
-    color: #777;
+    align-items: flex-start;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #eee;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
-.reviewText {
-    margin-top: 10px;
+.reviewerInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    flex: 1;
+}
+
+.reviewerName {
+    font-weight: bold;
+    color: #333;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .reviewRating {
-    display: inline-block;
-    margin-right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
 }
 
-.ratingScore {
-    font-size: 16px;
-    color: #555;
-}
-
-.reviewPhoto {
-    margin-top: 10px;
-    width: 100%;
-    max-width: 200px;
-    object-fit: cover;
-    border-radius: 5px;
-}
-
-.reportLabel {
+.reviewRating .star {
     font-size: 14px;
-    color: #8B0000;
-    cursor: pointer;
-    margin-top: 10px;
+    color: #ddd;
 }
 
-.reportLabel:hover {
-    text-decoration: underline;
+.reviewRating .star.filled {
+    color: #ffc107;
+}
+
+.reviewRatingText {
+    font-size: 12px;
+    color: #666;
+    font-weight: 500;
+}
+
+.reviewDate {
+    color: #666;
+    font-size: 14px;
+}
+
+.reviewContent {
+    color: #333;
+    line-height: 1.6;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.reviewContent p {
+    margin: 0 0 10px 0;
+    word-wrap: break-word;
+}
+
+.reviewImage {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 4px;
+    margin-top: 10px;
+    object-fit: cover;
+}
+
+.reviewToggle {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
+}
+
+.showMoreReviewsBtn {
+    background: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background-color 0.3s;
+}
+
+.showMoreReviewsBtn:hover {
+    background: #0056b3;
 }
 
 /* 리뷰 더보기 버튼 */
@@ -437,6 +560,14 @@
 
 .urgentStock {
     color: #d32f2f !important;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    to { opacity: 1; }
 }
 
 /* 반응형 스타일 */
@@ -451,7 +582,7 @@
         font-size: 1.1rem;
     }
 
-    .timeLeft, 
+    .timeLeft,
     .stock {
         font-size: 1rem;
     }
@@ -538,3 +669,191 @@
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* Q&A 항목 전체에 클릭 커서 */
+.qnaItem .qnaTitleRow {
+    cursor: pointer;
+}
+
+/* 열렸을 때 배경 강조 (선택사항) */
+.qnaItem.open {
+    background-color: #faf9f5;
+}
+
+/* 비밀글 입력창 스타일 */
+.secretPrompt {
+    padding: 12px;
+    margin: 8px 0 16px 24px;
+    background: #fffaf0;
+    border: 1px solid #e0d4c3;
+    border-radius: 6px;
+}
+
+.pwInput {
+    padding: 6px 8px;
+    margin-right: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.pwCheckBtn {
+    padding: 6px 12px;
+    background-color: #9e4b25;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.pwCheckBtn:hover {
+    background-color: #7e3f1d;
+}
+
+/* ─── Q&A 리스트 전체 ─── */
+.qnaList {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+/* ─── 개별 질문 아이템 ─── */
+.qnaItem {
+    padding: 16px 0;
+    border-bottom: 1px solid #e0e0e0;
+    transition: background-color 0.2s;
+}
+.qnaItem.open {
+    background-color: #fafafa;
+}
+
+/* ─── 제목 / 메타 영역 ─── */
+.qnaTitleRow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+}
+.lockIcon {
+    color: #777;
+    font-size: 14px;
+}
+.qnaTitle {
+    font-size: 16px;
+    font-weight: bold;
+    color: #333;
+}
+.meta {
+    margin-left: auto;
+    font-size: 14px;
+    color: #777;
+    white-space: nowrap;
+}
+
+/* ─── 비밀글 입력 폼 ─── */
+.secretPrompt {
+    margin-top: 8px;
+    padding: 12px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.secretPrompt p {
+    margin: 0;
+    color: #555;
+    font-size: 14px;
+}
+.pwInput {
+    flex-grow: 1;
+    padding: 6px 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+}
+.pwCheckBtn {
+    padding: 6px 12px;
+    background-color: #9e4b25;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+/* ─── Q&A 본문 (열렸을 때) ─── */
+.qnaContent {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #444;
+    line-height: 1.6;
+}
+.qnaContent p {
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* 반품/교환 정보 스타일 */
+.returnPolicy {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 15px;
+}
+
+.policySection {
+    margin-bottom: 25px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.policySection:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+}
+
+.policySection h5 {
+    color: #9e4b25;
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.policySection ul,
+.policySection ol {
+    margin: 0;
+    padding-left: 20px;
+}
+
+.policySection li {
+    margin-bottom: 8px;
+    line-height: 1.6;
+    color: #555;
+}
+
+.policySection ul ul {
+    margin-top: 8px;
+    margin-bottom: 8px;
+}
+
+.policySection ul ul li {
+    margin-bottom: 4px;
+    font-size: 14px;
+    color: #666;
+}
+
+.policySection strong {
+    color: #333;
+    font-weight: 600;
+}
+
+.policySection p {
+    margin: 0 0 10px 0;
+    line-height: 1.6;
+    color: #555;
+}
+
+

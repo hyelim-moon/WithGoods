@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -14,6 +15,8 @@ public class OrderRequestDto {
     private PaymentInfoDto paymentInfo;
     private List<OrderItemDto> orderItems;
     private OrderSummaryDto orderSummary;
+    private UsedCouponDto usedCoupon;
+    private List<Integer> cartIds;
 
     @Getter
     @Setter
@@ -50,6 +53,8 @@ public class OrderRequestDto {
         private Integer quantity;
         private Integer price;
         private Integer discount;
+        private String productOption;
+        private Map<String, String> options;
     }
 
     @Getter
@@ -59,5 +64,14 @@ public class OrderRequestDto {
         private Integer discountAmount;
         private Integer shippingFee;
         private Integer finalAmount;
+    }
+
+    @Getter
+    @Setter
+    public static class UsedCouponDto {
+        private Integer memberCouponId;
+        private Integer couponId;
+        private String couponName;
+        private Integer discountAmount;
     }
 } 

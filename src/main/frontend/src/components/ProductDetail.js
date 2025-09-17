@@ -1,14 +1,15 @@
-import { useNavigate } from 'react-router-dom';
-import styles from '../assets/styles/ProductDetail.module.css';
-import { FaHeart, FaCartPlus, FaShoppingCart } from 'react-icons/fa'; // 아이콘 가져오기
-import { useParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { FaHeart, FaCartPlus, FaShoppingCart, FaLock} from 'react-icons/fa'; // 아이콘 가져오기
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import ProductBadge from './ProductBadge';
+import styles from '../assets/styles/ProductDetail.module.css';
 
 function ProductDetail() {
     const { id } = useParams(); // URL에서 id 파라미터 가져오기
     const navigate = useNavigate();
+    const { user, loading: authLoading } = useAuth();
 
     // 상태 변수들 정의
     const [selectedOptions, setSelectedOptions] = useState({}); // 선택된 옵션들을 저장
@@ -26,6 +27,63 @@ function ProductDetail() {
     const [reportDetail, setReportDetail] = useState('');
     const [isReportModalOpen, setIsReportModalOpen] = useState(false);
     const [timeLeft, setTimeLeft] = useState(null);
+    const [reviews, setReviews] = useState([]);
+    const [reviewsLoading, setReviewsLoading] = useState(false);
+    const [qnaList, setQnaList] = useState([]);
+    const [pwInputs, setPwInputs] = useState({});
+    const [unlocked, setUnlocked] = useState({});
+    const [expandedSecret, setExpandedSecret] = useState(null);
+
+    useEffect(() => {
+        if (!id) return;
+        axios.get(`http://localhost:8080/inquiries/product/${id}`, {
+            withCredentials: true
+        })
+            .then(res => setQnaList(res.data))
+            .catch(err => console.error('Q&A 불러오기 실패:', err));
+    }, [id]);
+
+    const maskName = (name) => {
+        if (!name) return '';
+        return name[0] + '*'.repeat(Math.max(0, name.length - 1));
+    };
+
+    // 비밀번호 확인 API 호출
+    const checkPassword = async (qId) => {
+        try {
+            const ok = await axios.post(
+                `http://localhost:8080/inquiries/${qId}/check-password`,
+                { password: pwInputs[qId] },
+                { withCredentials: true }
+            ).then(r => r.data);
+
+            if (ok) {
+                navigate(`/inquiry/${qId}`);
+            } else {
+                alert('비밀번호가 틀렸습니다.');
+            }
+        } catch {
+            alert('서버 오류, 다시 시도해 주세요.');
+        }
+    };
+
+    useEffect(() => {
+        if (product) {
+            const recent = JSON.parse(localStorage.getItem('recentProducts')) || [];
+            const filtered = recent.filter(p => p.productId !== product.productId);
+            const updated = [
+                {
+                    productId: product.productId,
+                    name: product.name,
+                    price: product.price,
+                    discountRate: product.discountRate || 0,
+                    image: product.imageUrl || product.mainImage,
+                },
+                ...filtered,
+            ].slice(0, 20);
+            localStorage.setItem('recentProducts', JSON.stringify(updated));
+        }
+    }, [product]);
 
     // 상품 데이터와 찜 상태 불러오기
     useEffect(() => {
@@ -34,22 +92,39 @@ function ProductDetail() {
                 setLoading(true);
                 const [productResponse, wishlistResponse] = await Promise.all([
                     axios.get(`http://localhost:8080/products/${id}`, {
-                        withCredentials: true
+                        withCredentials: true,
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Accept': 'application/json'
+                        }
                     }),
                     axios.get(`http://localhost:8080/api/wishlist/check/${id}`, {
                         withCredentials: true
                     })
                 ]);
-                
-                setProduct(productResponse.data);
+
+                if (productResponse.data) {
+                    const dto = productResponse.data;
+                    setProduct({
+                        ...dto,
+                        options: typeof dto.options === 'string'
+                            ? JSON.parse(dto.options)
+                            : dto.options
+                    });
+                } else {
+                    throw new Error('상품 데이터가 없습니다.');
+                }
+
                 setIsFavorited(wishlistResponse.data);
                 setError(null);
             } catch (err) {
-                console.error('Error fetching data:', err);
-                if (err.response?.status === 401) {
-                    setIsFavorited(false);
-                } else {
-                    setError('상품 정보를 불러오는데 실패했습니다.');
+                if (err.response) {
+                    if (err.response?.status === 401) {
+                        setIsFavorited(false);
+                        setError('로그인이 필요한 서비스입니다.');
+                    } else {
+                        setError('상품 정보를 불러오는데 실패했습니다.');
+                    }
                 }
             } finally {
                 setLoading(false);
@@ -60,6 +135,32 @@ function ProductDetail() {
             fetchProductAndWishlist();
         }
     }, [id]);
+
+    // 리뷰 데이터 불러오기
+    useEffect(() => {
+        const fetchReviews = async () => {
+            if (!product?.productId) return;
+
+            try {
+                setReviewsLoading(true);
+                const response = await axios.get(`http://localhost:8080/api/reviews/product/${parseInt(product.productId)}`, {
+                    withCredentials: true
+                });
+                setReviews(response.data);
+            } catch (err) {
+                // 리뷰 로딩 실패 시 무시
+            } finally {
+                setReviewsLoading(false);
+            }
+        };
+
+        fetchReviews();
+    }, [product?.productId]);
+
+    // 날짜 포맷팅
+    const formatDate = (dateString) => {
+        return new Date(dateString).toLocaleDateString('ko-KR');
+    };
 
     // 남은 시간 계산 함수
     const calculateTimeLeft = (endDate) => {
@@ -104,10 +205,14 @@ function ProductDetail() {
         }));
     };
 
+    const handleSecretToggle = (qId) => {
+        setExpandedSecret(prev => (prev === qId ? null : qId));
+    };
+
     // 모든 필수 옵션이 선택되었는지 확인
     const areAllOptionsSelected = () => {
         if (!product?.options) return true;
-        const optionsObj = JSON.parse(product.options);
+        const optionsObj = typeof product.options === 'string' ? JSON.parse(product.options) : product.options;
         return Object.keys(optionsObj).every(group => selectedOptions[group]);
     };
 
@@ -122,20 +227,22 @@ function ProductDetail() {
             const cartItem = {
                 productId: product.productId,
                 quantity: quantity,
-                options: selectedOptions,
+                option: JSON.stringify(selectedOptions), // JSON 문자열로 변환
+                options: selectedOptions, // Map 형태도 함께 전송
             };
 
             await axios.post('http://localhost:8080/api/cart', cartItem, {
                 withCredentials: true
             });
-            
+
             alert('장바구니에 추가되었습니다.');
         } catch (error) {
             if (error.response?.status === 401) {
                 alert('로그인이 필요한 서비스입니다.');
                 navigate('/login');
+            } else if (error.response?.data?.message) {
+                alert(error.response.data.message);
             } else {
-                console.error('장바구니 추가 실패:', error);
                 alert('장바구니 추가에 실패했습니다.');
             }
         }
@@ -143,7 +250,43 @@ function ProductDetail() {
 
     // 바로 구매
     const handlePurchase = () => {
-        alert('바로 구매 페이지로 이동합니다!');
+        // 로그인 체크
+        if (!user) {
+            alert('로그인이 필요한 서비스입니다.');
+            navigate('/login');
+            return;
+        }
+
+        // 모든 옵션이 선택되었는지 확인
+        if (product.options && !areAllOptionsSelected()) {
+            alert('모든 옵션을 선택해주세요.');
+            return;
+        }
+
+        // 주문할 상품 정보 구성
+        const orderItem = {
+            productId: product.productId,
+            name: product.name,
+            price: product.price,
+            imageUrl: product.imageUrl || product.mainImage,
+            quantity: quantity,
+            selectedOptions: selectedOptions,
+            totalPrice: product.price * quantity
+        };
+
+        // Checkout 페이지로 이동하면서 상품 정보 전달
+        navigate('/checkout', {
+            state: {
+                products: [orderItem],
+                summary: {
+                    totalPrice: orderItem.totalPrice,
+                    discountAmount: 0,
+                    shippingFee: 0,
+                    finalAmount: orderItem.totalPrice
+                },
+                isDirectPurchase: true // 바로 구매 여부 표시
+            }
+        });
     };
 
     // 즐겨찾기 토글
@@ -168,7 +311,6 @@ function ProductDetail() {
                 setIsFavorited(true);
             }
         } catch (error) {
-            console.error('Error toggling wishlist:', error);
             if (error.response?.status === 401) {
                 alert('로그인이 필요한 서비스입니다.');
                 navigate('/login');
@@ -196,21 +338,9 @@ function ProductDetail() {
     };
 
     const submitReport = () => {
-        if (reportReasons.length === 0) {
-            alert('신고 사유를 하나 이상 선택해주세요.');
-            return;
-        }
-        // 실제 신고 API 호출 시 여기에 작성
-        alert(
-            `리뷰 ID ${reportTarget.id} 신고가 접수되었습니다.\n사유: ${reportReasons.join(
-                ', '
-            )}\n상세 내용: ${reportDetail}`
-        );
+        // 신고 로직 구현
         setIsReportModalOpen(false);
     };
-
-    const reviews = product?.reviews || [];
-    const qnaList = product?.qna || [];
 
     const averageRating = reviews.length
         ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
@@ -229,6 +359,9 @@ function ProductDetail() {
 
     // 상품 이미지 배열 생성 (임시로 같은 이미지 반복)
     const productImages = product.imageUrl ? [product.imageUrl, product.imageUrl, product.imageUrl] : [];
+
+    // 리뷰 표시 개수 제한
+    const displayedReviews = showAllReviews ? reviews : reviews.slice(0, 3);
 
     return (
         <div className={styles.detailContainer}>
@@ -256,15 +389,36 @@ function ProductDetail() {
                 {/* 상품 정보 영역 */}
                 <div className={styles.infoSection}>
                     <h2 className={styles.productName}>{product.name}</h2>
+
+                    {/* 상품 평점 표시 */}
+                    <div className={styles.productRating}>
+                        <div className={styles.starRating}>
+                            {[1, 2, 3, 4, 5].map(star => (
+                                <span
+                                    key={star}
+                                    className={`${styles.star} ${star <= (product.rating || 0) ? styles.filled : ''}`}
+                                >
+                                    ★
+                                </span>
+                            ))}
+                        </div>
+                        <span className={styles.ratingText}>
+                            {product.rating ? `${product.rating.toFixed(1)}점` : '평점 없음'}
+                        </span>
+                        <span className={styles.reviewCount}>
+                            ({reviews.length}개의 리뷰)
+                        </span>
+                    </div>
+
                     <p className={styles.productPrice}>₩{product.price?.toLocaleString()}</p>
-                    
+
                     {/* 한정판/기념일 상품 정보 */}
                     <ProductBadge product={product} />
 
                     {/* 옵션 선택 */}
                     {product.options && (
                         <div className={styles.optionSection}>
-                            {Object.entries(JSON.parse(product.options)).map(([groupName, options]) => (
+                            {Object.entries(typeof product.options === 'string' ? JSON.parse(product.options) : product.options).map(([groupName, options]) => (
                                 <div key={groupName} className={styles.optionGroup}>
                                     <div className={styles.optionTitle}>{groupName}</div>
                                     <div className={styles.optionButtons}>
@@ -291,8 +445,18 @@ function ProductDetail() {
                         <div className={styles.quantityControls}>
                             <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
                             <span>{quantity}</span>
-                            <button onClick={() => setQuantity(quantity + 1)}>+</button>
+                            <button 
+                                onClick={() => setQuantity(product.stock === null ? quantity + 1 : Math.min(product.stock, quantity + 1))}
+                                disabled={product.stock === 0 || (product.stock !== null && quantity >= product.stock)}
+                            >
+                                +
+                            </button>
                         </div>
+                        {product.stock !== null && product.stock > 0 && (
+                            <span className={styles.stockInfo}>
+                                (재고: {product.stock}개)
+                            </span>
+                        )}
                     </div>
 
                     {/* 총 상품 금액 */}
@@ -305,10 +469,18 @@ function ProductDetail() {
                         <button className={styles.favoriteBtn} onClick={toggleFavorite}>
                             <FaHeart color={isFavorited ? 'red' : 'gray'} />
                         </button>
-                        <button className={styles.addToCartBtn} onClick={handleAddToCart}>
+                        <button 
+                            className={styles.addToCartBtn} 
+                            onClick={handleAddToCart}
+                            disabled={product.stock === 0}
+                        >
                             <FaCartPlus /> 장바구니에 담기
                         </button>
-                        <button className={styles.purchaseBtn} onClick={handlePurchase}>
+                        <button 
+                            className={styles.purchaseBtn} 
+                            onClick={handlePurchase}
+                            disabled={product.stock === 0}
+                        >
                             <FaShoppingCart /> 바로 구매하기
                         </button>
                     </div>
@@ -327,7 +499,7 @@ function ProductDetail() {
                     className={`${styles.tab} ${activeTab === 'reviews' ? styles.activeTab : ''}`}
                     onClick={() => setActiveTab('reviews')}
                 >
-                    리뷰
+                    리뷰 ({reviews.length})
                 </div>
                 <div
                     className={`${styles.tab} ${activeTab === 'qa' ? styles.activeTab : ''}`}
@@ -364,62 +536,72 @@ function ProductDetail() {
                 </div>
             )}
 
+            {/* 리뷰 탭 */}
             {activeTab === 'reviews' && (
                 <div className={styles.reviewsSection}>
-                    <h3>전체 리뷰 ({product.reviews.length})</h3>
-                    <div className={styles.ratingSection}>
-                        <div className={styles.stars}>
-                            {[...Array(5)].map((_, i) => (
-                                <span
-                                    key={i}
-                                    className={i < Math.round(averageRating) ? styles.filledStar : styles.emptyStar}
-                                >
-                                    ★
-                                </span>
-                            ))}
-                        </div>
-                        <span className={styles.ratingText}>
-                            평점: {averageRating.toFixed(1)} ({product.reviews.length}명)
-                        </span>
+                    <div className={styles.reviewsHeader}>
+                        <h3>상품 리뷰 ({reviews.length})</h3>
                     </div>
 
-                    <div className={styles.reviewsList}>
-                        {product.reviews
-                            .slice(0, showAllReviews ? product.reviews.length : 3)
-                            .map((review) => (
-                                <div key={review.id} className={styles.reviewItem}>
+                    {reviewsLoading ? (
+                        <div className={styles.loading}>리뷰를 불러오는 중...</div>
+                    ) : reviews.length === 0 ? (
+                        <div className={styles.noReviews}>
+                            <p>아직 작성된 리뷰가 없습니다.</p>
+                            <p>첫 번째 리뷰를 작성해보세요!</p>
+                        </div>
+                    ) : (
+                        <div className={styles.reviewsList}>
+                            {displayedReviews.map((review) => (
+                                <div key={review.reviewId} className={styles.reviewItem}>
                                     <div className={styles.reviewHeader}>
-                                        <span style={{ marginRight: '10px' }}>{review.userId}</span>
-                                        <span>{review.date}</span>
-                                        {/* 신고하기 라벨 - 모달 열기 */}
-                                        <span
-                                            className={styles.reportLabel}
-                                            onClick={() => openReportModal(review)}
-                                            style={{ cursor: 'pointer', color: 'red', fontSize: '0.8rem', marginLeft: 'auto' }}
-                                            title="신고하기"
-                                        >
-                                            신고하기
-                                        </span>
+                                        <div className={styles.reviewerInfo}>
+                                            <span className={styles.reviewerName}>{review.memberNickname}</span>
+                                            <div className={styles.reviewRating}>
+                                                {[1, 2, 3, 4, 5].map(star => (
+                                                    <span
+                                                        key={star}
+                                                        className={`${styles.star} ${star <= (review.rating || 0) ? styles.filled : ''}`}
+                                                    >
+                                                        ★
+                                                    </span>
+                                                ))}
+                                                <span className={styles.reviewRatingText}>
+                                                    {review.rating || 0}점
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <span className={styles.reviewDate}>{formatDate(review.createdAt)}</span>
                                     </div>
-                                    <div className={styles.reviewText}>
-                                        {[...Array(5)].map((_, i) => (
-                                            <span
-                                                key={i}
-                                                className={i < Math.round(review.rating) ? styles.filledStar : styles.emptyStar}
-                                            >
-                                                ★
-                                            </span>
-                                        ))}
-                                        <span className={styles.ratingScore}>({review.rating}점)</span>
-                                        <p>{review.text}</p>
+                                    <div className={styles.reviewContent}>
+                                        <p>{review.content}</p>
+                                        {review.imageUrl && (
+                                            <img
+                                                src={`http://localhost:8080${review.imageUrl}`}
+                                                alt="리뷰 이미지"
+                                                className={styles.reviewImage}
+                                                onError={(e) => {
+                                                    e.target.style.display = 'none';
+                                                    console.error('리뷰 이미지 로딩 실패:', review.imageUrl);
+                                                }}
+                                            />
+                                        )}
                                     </div>
                                 </div>
                             ))}
-                    </div>
 
-                    <button className={styles.showMoreBtn} onClick={() => setShowAllReviews(!showAllReviews)}>
-                        {showAllReviews ? '리뷰 간략히 보기' : '리뷰 더보기'}
-                    </button>
+                            {reviews.length > 3 && (
+                                <div className={styles.reviewToggle}>
+                                    <button
+                                        className={styles.showMoreReviewsBtn}
+                                        onClick={() => setShowAllReviews(!showAllReviews)}
+                                    >
+                                        {showAllReviews ? '리뷰 접기' : `리뷰 더보기 (${reviews.length - 3}개 더)`}
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    )}
                 </div>
             )}
 
@@ -427,48 +609,149 @@ function ProductDetail() {
                 <div className={styles.reviewsSection}>
                     <div className={styles.qnaHeader}>
                         <h3>Q&A ({qnaList.length})</h3>
-                        <button className={styles.inquiryBtn} onClick={() => navigate('/inquiry/write')}>
-                            문의하기
-                        </button>
+                        {!authLoading && user && (
+                            <button
+                                className={styles.inquiryBtn}
+                                onClick={() => navigate(`/inquiry/write/${id}`)}
+                            >
+                                문의하기
+                            </button>
+                        )}
                     </div>
 
-                    {qnaList.length === 0 ? (
-                        <p className={styles.noInquiry}>등록된 문의가 없습니다.</p>
-                    ) : (
-                        <ul className={styles.reviewsList}>
-                            {qnaList.map((q) => (
-                                <li key={q.id} className={styles.reviewItem}>
-                                    <div className={styles.reviewHeader}>
-                                        <span>{q.userId}</span>
-                                        <span>{q.date}</span>
+                    {qnaList.length === 0 && <p>등록된 문의가 없습니다.</p>}
+
+                    <ul className={styles.qnaList}>
+                        {qnaList.map(q => (
+                            <li
+                                key={q.id}
+                                className={`${styles.qnaItem} ${expandedSecret === q.id ? styles.open : ''}`}
+                            >
+                                <div
+                                    className={styles.qnaTitleRow}
+                                    style={{ cursor: 'pointer' }}
+                                    onClick={() => {
+                                        if (!q.secret) {
+                                            navigate(`/inquiry/${q.id}`);
+                                        } else {
+                                            handleSecretToggle(q.id);
+                                        }
+                                    }}
+                                >
+                                    {q.secret && <FaLock className={styles.lockIcon} />}
+                                    <span className={styles.qnaTitle}>{q.title}</span>
+                                    <span className={styles.meta}>
+                                        {maskName(q.writerUsername)} · {formatDate(q.createdAt)}
+                                    </span>
+                                </div>
+
+                                {/* ── 본문 혹은 비밀번호 입력 ── */}
+                                {q.secret && expandedSecret === q.id && !unlocked[q.id] ? (
+                                    <div className={styles.secretPrompt}>
+                                        <p>이 글은 비밀글입니다. 비밀번호를 입력해주세요.</p>
+                                        <input
+                                            type="password"
+                                            value={pwInputs[q.id] || ''}
+                                            onChange={e =>
+                                                setPwInputs(p => ({ ...p, [q.id]: e.target.value }))
+                                            }
+                                            className={styles.pwInput}
+                                        />
+                                        <button
+                                            onClick={() => checkPassword(q.id)}
+                                            className={styles.pwCheckBtn}
+                                        >
+                                            확인
+                                        </button>
                                     </div>
-                                    <p>
-                                        <strong>Q:</strong> {q.question}
-                                    </p>
-                                    <p>
-                                        <strong>A:</strong> {q.answer}
-                                    </p>
+                                ) : (
+                                    <div className={styles.qnaContent}>
+                                        <p><strong>Q:</strong> {q.content}</p>
+                                    </div>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+
+            {activeTab === 'return' && (
+                <div className={styles.productDetailInfo}>
+                    <h4>반품/교환 안내</h4>
+                    <div className={styles.returnPolicy}>
+                        <div className={styles.policySection}>
+                            <h5>📦 배송 안내</h5>
+                            <ul>
+                                <li>배송 기간: 결제 완료 후 1-3일 내 배송</li>
+                                <li>배송 방법: 택배 배송 (CJ대한통운)</li>
+                                <li>배송비: 3,000원 (5만원 이상 구매 시 무료배송)</li>
+                                <li>제주도 및 도서산간 지역: 추가 배송비 3,000원</li>
+                            </ul>
+                        </div>
+
+                        <div className={styles.policySection}>
+                            <h5>🔄 반품/교환 안내</h5>
+                            <ul>
+                                <li><strong>반품/교환 기간:</strong> 상품 수령 후 7일 이내</li>
+                                <li><strong>반품/교환 가능 사유:</strong>
+                                    <ul>
+                                        <li>상품의 하자, 오배송, 불량</li>
+                                        <li>상품과 다르게 배송된 경우</li>
+                                        <li>단순 변심 (단, 상품 상태가 새것과 같은 경우에만)</li>
+                                    </ul>
                                 </li>
-                            ))}
-                        </ul>
-                    )}
-                </div>
-            )}
+                                <li><strong>반품/교환 불가 사유:</strong>
+                                    <ul>
+                                        <li>고객의 책임으로 상품이 멸실 또는 훼손된 경우</li>
+                                        <li>고객의 사용 또는 일부 소비로 상품 가치가 현저히 감소한 경우</li>
+                                        <li>시간 경과로 재판매가 곤란할 정도로 상품 가치가 현저히 감소한 경우</li>
+                                        <li>복제가 가능한 상품의 포장을 훼손한 경우</li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
 
-            {activeTab === 'return' && (
-                <div className={styles.productDetailInfo}>
-                    <h4>반품/교환 안내</h4>
-                    <div
-                        className={styles.productDescription}
-                        dangerouslySetInnerHTML={{ __html: product.returnPolicy || '' }}
-                    />
-                </div>
-            )}
+                        <div className={styles.policySection}>
+                            <h5>💰 환불 안내</h5>
+                            <ul>
+                                <li><strong>환불 방법:</strong> 결제 수단과 동일한 방법으로 환불</li>
+                                <li><strong>환불 기간:</strong> 반품 상품 확인 후 3-5일 내 처리</li>
+                                <li><strong>환불 금액:</strong> 상품 금액 + 배송비 (단, 단순 변심의 경우 배송비 차감)</li>
+                                <li><strong>교환:</strong> 동일 상품으로만 교환 가능</li>
+                            </ul>
+                        </div>
 
-            {activeTab === 'return' && (
-                <div className={styles.productDetailInfo}>
-                    <h4>반품/교환 안내</h4>
-                    <div className={styles.productDescription} dangerouslySetInnerHTML={{ __html: product.returnPolicy }} />
+                        <div className={styles.policySection}>
+                            <h5>📞 반품/교환 신청 방법</h5>
+                            <ol>
+                                <li>마이페이지 → 주문내역에서 반품/교환 신청</li>
+                                <li>반품 사유 선택 및 상세 내용 작성</li>
+                                <li>반품 상품을 새것과 같은 상태로 포장</li>
+                                <li>반품 택배 발송 (반품 배송비는 고객 부담)</li>
+                                <li>상품 확인 후 환불 또는 교환 처리</li>
+                            </ol>
+                        </div>
+
+                        <div className={styles.policySection}>
+                            <h5>⚠️ 주의사항</h5>
+                            <ul>
+                                <li>반품 시 상품의 라벨, 태그, 포장재 등이 모두 포함되어야 합니다.</li>
+                                <li>세탁이나 사용 흔적이 있는 경우 반품이 불가능합니다.</li>
+                                <li>주문 시 사용한 쿠폰이나 포인트는 반품 시 복원되지 않을 수 있습니다.</li>
+                                <li>교환 시 재고 상황에 따라 지연될 수 있습니다.</li>
+                            </ul>
+                        </div>
+
+                        <div className={styles.policySection}>
+                            <h5>📞 고객센터</h5>
+                            <p>반품/교환 관련 문의사항이 있으시면 고객센터로 연락해 주세요.</p>
+                            <ul>
+                                <li>전화: 1588-1234 (평일 09:00-18:00)</li>
+                                <li>이메일: cs@withgoods.com</li>
+                                <li>카카오톡: @withgoods</li>
+                            </ul>
+                        </div>
+                    </div>
                 </div>
             )}
 

@@ -1,73 +1,22 @@
 package com.WG.WithGoods.service;
 
 import com.WG.WithGoods.dto.ProductDto;
-import com.WG.WithGoods.dto.ProductRequestDto;
 import com.WG.WithGoods.entity.Product;
 import com.WG.WithGoods.entity.ProductRole;
 import com.WG.WithGoods.repository.ProductRepository;
+import com.WG.WithGoods.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class ProductService {
 
     private final ProductRepository productRepository;
-
-    public ProductDto createProductFromRequest(ProductRequestDto req,
-                                               MultipartFile representativeImage,
-                                               List<MultipartFile> additionalImages) throws Exception {
-
-        String imageUrl = null;
-        if (representativeImage != null && !representativeImage.isEmpty()) {
-            imageUrl = saveImageAndGetUrl(representativeImage);
-        }
-
-        ProductRole role;
-        try {
-            role = ProductRole.valueOf(req.getProductType().toUpperCase());
-        } catch (Exception e) {
-            role = ProductRole.NORMAL;
-        }
-
-        Product product = Product.builder()
-                .name(req.getName())
-                .description(req.getDescription())
-                .price(req.getPrice())
-                .category(req.getCategory())
-                .options(req.getOptions())
-                .role(role)
-                .startDate(req.getStartDate())  // LocalDate 사용
-                .endDate(req.getEndDate())
-                .stock(req.getStock())
-                .hasDiscount(req.getHasDiscount())
-                .discountRate(req.getDiscountRate())
-                .imageUrl(imageUrl)
-                .rating(0.0)
-                .build();
-
-        Product savedProduct = productRepository.save(product);
-
-        if (additionalImages != null) {
-            for (MultipartFile file : additionalImages) {
-                if (!file.isEmpty()) {
-                    saveAdditionalImage(savedProduct.getProductId(), file);
-                }
-            }
-        }
-
-        return toDto(savedProduct);
-    }
+    private final ReviewRepository reviewRepository;
 
     public ProductDto createProduct(ProductDto dto) {
         Product product = Product.builder()
@@ -87,9 +36,31 @@ public class ProductService {
     }
 
     public List<ProductDto> getAllProducts() {
-        return productRepository.findAll().stream()
-                .map(this::toDto)
-                .toList();
+        return toDtoList(productRepository.findAll());
+    }
+
+    public List<ProductDto> getLimitedProducts() {
+        return toDtoList(productRepository.findByRole(ProductRole.LIMITED));
+    }
+
+    public List<ProductDto> getActiveLimitedProducts() {
+        return toDtoList(productRepository.findActiveLimitedProducts(LocalDate.now()));
+    }
+
+    public List<ProductDto> getNormalProducts() {
+        return toDtoList(productRepository.findByRole(ProductRole.NORMAL));
+    }
+
+    public List<ProductDto> getAnniversaryProducts() {
+        return toDtoList(productRepository.findByRole(ProductRole.ANNIVERSARY));
+    }
+
+    public List<ProductDto> getCustomProducts() {
+        return toDtoList(productRepository.findByRole(ProductRole.CUSTOM));
+    }
+
+    public List<ProductDto> getActiveAnniversaryProducts() {
+        return toDtoList(productRepository.findActiveAnniversaryProducts(LocalDate.now()));
     }
 
     public ProductDto getProductById(Integer id) {
@@ -116,104 +87,41 @@ public class ProductService {
         return toDto(productRepository.save(product));
     }
 
-    public ProductDto updateProductFromRequest(Integer id,
-                                               ProductRequestDto req,
-                                               MultipartFile representativeImage,
-                                               List<MultipartFile> additionalImages) throws Exception {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다."));
-
-        // 대표 이미지 처리
-        if (representativeImage != null && !representativeImage.isEmpty()) {
-            String imageUrl = saveImageAndGetUrl(representativeImage);
-            product.setImageUrl(imageUrl);
-        }
-
-        // 기타 필드 업데이트
-        product.setName(req.getName());
-        product.setDescription(req.getDescription());
-        product.setPrice(req.getPrice());
-        product.setCategory(req.getCategory());
-        product.setOptions(req.getOptions());
-
-        try {
-            ProductRole role = ProductRole.valueOf(req.getProductType().toUpperCase());
-            product.setRole(role);
-        } catch (Exception e) {
-            product.setRole(ProductRole.NORMAL);
-        }
-
-        product.setStartDate(req.getStartDate());
-        product.setEndDate(req.getEndDate());
-        product.setStock(req.getStock());
-        product.setHasDiscount(req.getHasDiscount());
-        product.setDiscountRate(req.getDiscountRate());
-
-        // 추가 이미지 처리 (필요하면 구현)
-        if (additionalImages != null) {
-            for (MultipartFile file : additionalImages) {
-                if (!file.isEmpty()) {
-                    saveAdditionalImage(product.getProductId(), file);
-                }
-            }
-        }
-
-        Product saved = productRepository.save(product);
-
-        return toDto(saved);
-    }
-
-
     public void deleteProduct(Integer id) {
         productRepository.deleteById(id);
     }
 
-    public List<ProductDto> getNormalProducts() {
-        return productRepository.findByRole(ProductRole.NORMAL).stream()
-                .map(this::toDto)
-                .toList();
+    public List<ProductDto> searchProducts(String query) {
+        List<Product> nameMatches = productRepository.findByNameContainingIgnoreCase(query);
+        List<Product> descMatches = productRepository.findByDescriptionContainingIgnoreCase(query);
+
+        Set<Integer> nameMatchIds = new HashSet<>();
+        for (Product p : nameMatches) {
+            nameMatchIds.add(p.getProductId());
+        }
+
+        List<Product> uniqueDescMatches = new ArrayList<>();
+        for (Product p : descMatches) {
+            if (!nameMatchIds.contains(p.getProductId())) {
+                uniqueDescMatches.add(p);
+            }
+        }
+
+        List<Product> combined = new ArrayList<>();
+        combined.addAll(nameMatches);
+        combined.addAll(uniqueDescMatches);
+
+        return toDtoList(combined);
     }
 
-    public List<ProductDto> getLimitedProducts() {
-        return productRepository.findByRole(ProductRole.LIMITED).stream()
-                .map(this::toDto)
-                .toList();
-    }
-
-    public List<ProductDto> getAnniversaryProducts() {
-        return productRepository.findByRole(ProductRole.ANNIVERSARY).stream()
-                .map(this::toDto)
-                .toList();
-    }
-
-    public List<ProductDto> getCustomProducts() {
-        return productRepository.findByRole(ProductRole.CUSTOM).stream()
-                .map(this::toDto)
-                .toList();
-    }
-
-    // 오늘 날짜를 기준으로 한정판 상품 조회 (Repository 메서드가 LocalDate 받도록 구현 필요)
-    public List<ProductDto> getActiveLimitedProducts() {
-        return productRepository.findActiveLimitedProducts(LocalDate.now()).stream()
-                .map(this::toDto)
-                .toList();
-    }
-
-    public List<ProductDto> getActiveAnniversaryProducts() {
-        return productRepository.findActiveAnniversaryProducts(LocalDate.now()).stream()
-                .map(this::toDto)
-                .toList();
-    }
-
-    public Map<String, Object> getProductWithOptions(Integer id) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("상품을 찾을 수 없습니다."));
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("product", product);
-        response.put("options", product.getOptionsAsMap());
-        
-        return response;
+    public List<ProductDto> getRandomRecommendedProducts(int count) {
+        List<Product> allProducts = productRepository.findAll();
+        if (allProducts.isEmpty()) {
+            return Collections.emptyList();
+        }
+        Collections.shuffle(allProducts);
+        List<Product> subList = allProducts.subList(0, Math.min(count, allProducts.size()));
+        return toDtoList(subList);
     }
 
     private ProductDto toDto(Product product) {
@@ -230,15 +138,11 @@ public class ProductService {
                 .endDate(product.getEndDate())
                 .stock(product.getStock())
                 .rating(product.getRating())
+                .reviewCount(reviewRepository.countByProductProductId(product.getProductId()))
                 .build();
     }
 
-    private String saveImageAndGetUrl(MultipartFile file) throws Exception {
-        // 실제 파일 저장 구현 필요
-        return "https://example.com/images/" + file.getOriginalFilename();
-    }
-
-    private void saveAdditionalImage(Integer productId, MultipartFile file) {
-        // 추가 이미지 저장 구현 필요
+    private List<ProductDto> toDtoList(List<Product> products) {
+        return products.stream().map(this::toDto).toList();
     }
 }

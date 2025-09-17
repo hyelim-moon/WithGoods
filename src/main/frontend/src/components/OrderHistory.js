@@ -13,39 +13,57 @@ function OrderHistory() {
     const [error, setError] = useState(null);       // 에러 메시지
     const [page, setPage] = useState(0);            // 현재 페이지
     const [hasMore, setHasMore] = useState(true);   // 다음 페이지 존재 여부
+    const [reviewableItems, setReviewableItems] = useState([]);
     const navigate = useNavigate();                 // 페이지 이동을 위한 훅
 
     // 컴포넌트가 마운트되거나 page 값이 바뀔 때 실행
     useEffect(() => {
         fetchOrders();
+        fetchReviewableItems();
     }, [page]);
 
     // 주문 데이터를 서버에서 가져오는 함수
     const fetchOrders = async () => {
         try {
+            setLoading(true);
             const response = await axios.get(`${API_BASE_URL}/api/orders/my?page=${page}&size=10`, {
-                withCredentials: true // 쿠키 포함 (로그인 유지용)
+                withCredentials: true
             });
-
-            // 첫 페이지면 새로 세팅, 아니면 추가
+            
+            console.log('주문 데이터:', response.data); // 디버깅 로그 추가
+            console.log('주문 content:', response.data.content); // content 확인
+            console.log('주문 last:', response.data.last); // last 확인
+            
             if (page === 0) {
                 setOrders(response.data.content);
             } else {
                 setOrders(prev => [...prev, ...response.data.content]);
             }
-
-            // 다음 페이지 존재 여부 판단
+            
             setHasMore(!response.data.last);
-            setLoading(false);
-        } catch (error) {
-            console.error('주문 내역 조회 실패:', error);
-            if (error.response?.status === 401) {
+            setError(null);
+        } catch (err) {
+            console.error('주문 내역 로딩 실패:', err);
+            if (err.response?.status === 401) {
                 alert('로그인이 필요한 서비스입니다.');
                 navigate('/login');
                 return;
             }
             setError('주문 내역을 불러오는데 실패했습니다.');
+        } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchReviewableItems = async () => {
+        try {
+            const response = await axios.get(`${API_BASE_URL}/api/reviews/reviewable`, {
+                withCredentials: true
+            });
+            console.log('Reviewable items:', response.data);
+            setReviewableItems(response.data);
+        } catch (error) {
+            console.error('리뷰 작성 가능한 상품 조회 실패:', error);
         }
     };
 
@@ -79,8 +97,60 @@ function OrderHistory() {
     };
 
     // 리뷰 쓰기 버튼 클릭 시 리뷰 작성 페이지로 이동
-    const handleWriteReview = (orderId, productId) => {
-        navigate(`/review/write`, { state: { orderId, productId } });
+    const handleWriteReview = (orderDetailId, e) => {
+        e.stopPropagation();
+        navigate(`/review-write/${orderDetailId}`);
+    };
+
+    const isReviewable = (orderDetailId) => {
+        const result = reviewableItems.some(item => item.orderDetailId === orderDetailId);
+        return result;
+    };
+
+    const hasReview = (orderDetailId) => {
+        const item = reviewableItems.find(item => item.orderDetailId === orderDetailId);
+        const result = item ? item.hasReview : false;
+        return result;
+    };
+
+    // 주문 상태 라벨 변환 함수
+    const getStatusLabel = (status) => {
+        switch (status) {
+            case 'PENDING':
+                return '주문 대기';
+            case 'PAID':
+                return '결제 완료';
+            case 'PREPARING':
+                return '상품 준비중';
+            case 'SHIPPING':
+                return '배송중';
+            case 'DELIVERED':
+                return '배송 완료';
+            case 'CANCELLED':
+                return '주문 취소';
+            default:
+                return status || '상태 정보 없음';
+        }
+    };
+
+    // 주문 상태 색상 함수
+    const getStatusColor = (status) => {
+        switch (status) {
+            case 'PENDING':
+                return '#ff9800';
+            case 'PAID':
+                return '#2196f3';
+            case 'PREPARING':
+                return '#9c27b0';
+            case 'SHIPPING':
+                return '#ff5722';
+            case 'DELIVERED':
+                return '#4caf50';
+            case 'CANCELLED':
+                return '#f44336';
+            default:
+                return '#757575';
+        }
     };
 
     // 로딩 중인 경우
@@ -110,21 +180,65 @@ function OrderHistory() {
                                 주문번호: {order.orderId}
                             </span>
                             <span className={styles.orderDate}>
-                                {formatDate(order.createdAt)}
+                                {formatDate(order.orderDate)}
                             </span>
                         </div>
 
-                        <div className={styles.orderSummary}>
+                        <div className={styles.orderContent}>
                             {/* 주문 상품 리스트 */}
                             <div className={styles.productInfo}>
                                 {order.orderItems.map((item, index) => (
                                     <div key={index} className={styles.productItem}>
-                                        <span className={styles.productName}>
-                                            {item.productName} x {item.quantity}
-                                        </span>
-                                        <span className={styles.productPrice}>
-                                            ₩{item.price.toLocaleString()}
-                                        </span>
+                                        <div className={styles.productDetails}>
+                                            <span className={styles.productName}>
+                                                {item.productName} x {item.quantity}
+                                            </span>
+                                            {item.options && Object.keys(item.options).length > 0 && (
+                                                <div className={styles.productOptions}>
+                                                    {Object.entries(item.options).map(([key, value]) => (
+                                                        <span key={key} className={styles.optionItem}>
+                                                            <span className={styles.optionKey}>{key}</span>
+                                                            <span className={styles.optionValue}>{value}</span>
+                                                        </span>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {item.productOption && !item.options && (
+                                                <div className={styles.productOptions}>
+                                                    <span className={styles.optionItem}>
+                                                        <span className={styles.optionValue}>{item.productOption}</span>
+                                                    </span>
+                                                </div>
+                                            )}
+                                            <span className={styles.productPrice}>
+                                                ₩{item.price.toLocaleString()}
+                                                {item.discount && item.discount > 0 && (
+                                                    <span style={{ color: '#e74c3c', marginLeft: '8px' }}>
+                                                        (할인: -₩{item.discount.toLocaleString()})
+                                                    </span>
+                                                )}
+                                            </span>
+                                        </div>
+                                        
+                                        {/* 리뷰 작성 버튼 */}
+                                        {(() => {
+                                            return item.orderDetailId && isReviewable(item.orderDetailId) && (
+                                                <div className={styles.reviewSection}>
+                                                    {hasReview(item.orderDetailId) ? (
+                                                        <span className={styles.reviewedBadge}>
+                                                            리뷰 작성 완료 ✓
+                                                        </span>
+                                                    ) : (
+                                                        <button
+                                                            className={styles.reviewButton}
+                                                            onClick={(e) => handleWriteReview(item.orderDetailId, e)}
+                                                        >
+                                                            리뷰 쓰기 ✍️
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            );
+                                        })()}
                                     </div>
                                 ))}
                             </div>
@@ -138,20 +252,15 @@ function OrderHistory() {
                             </div>
 
                             <div className={styles.orderStatus}>
-                                <span>{order.status || '배송완료'}</span>
-                            </div>
-                            {/* 리뷰 쓰기 버튼: 배송완료 상태에서만 표시 */}
-                            {(order.status || '배송완료') === '배송완료' && (
-                                <button
-                                    className={styles.reviewButton}
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        handleWriteReview(order.orderId, order.orderItems[0]?.productId);
+                                <span 
+                                    style={{ 
+                                        backgroundColor: getStatusColor(order.status),
+                                        color: 'white'
                                     }}
                                 >
-                                    리뷰 쓰기 ✍️
-                                </button>
-                            )}
+                                    {getStatusLabel(order.status)}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 ))}

@@ -3,7 +3,9 @@ package com.WG.WithGoods.controller;
 import com.WG.WithGoods.dto.OrderRequestDto;
 import com.WG.WithGoods.dto.OrderResponseDto;
 import com.WG.WithGoods.entity.Order;
+import com.WG.WithGoods.entity.Member;
 import com.WG.WithGoods.service.OrderService;
+import com.WG.WithGoods.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -21,23 +23,32 @@ import java.util.Map;
 public class OrderController {
 
     private final OrderService orderService;
+    private final MemberRepository memberRepository;
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> createOrder(
             HttpSession session,
             @RequestBody OrderRequestDto orderRequest
     ) {
-        Object memberIdAttr = session.getAttribute("memberId");
-        if (memberIdAttr == null) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
             return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요한 서비스입니다."));
         }
 
-        Integer memberId = (Integer) memberIdAttr;
-        Integer orderId = orderService.createOrder(memberId, orderRequest);
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        
+        try {
+            Integer orderId = orderService.createOrder(member.getMemberId(), orderRequest);
 
-        Map<String, Object> response = new HashMap<>();
-        response.put("orderId", orderId);
-        return ResponseEntity.ok(response);
+            Map<String, Object> response = new HashMap<>();
+            response.put("orderId", orderId);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of("message", "주문 생성에 실패했습니다."));
+        }
     }
 
     @GetMapping("/{orderId}")
@@ -45,15 +56,17 @@ public class OrderController {
             HttpSession session,
             @PathVariable Integer orderId
     ) {
-        Object memberIdAttr = session.getAttribute("memberId");
-        if (memberIdAttr == null) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
             return ResponseEntity.status(401).body(null);
         }
 
-        Integer memberId = (Integer) memberIdAttr;
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        
         Order order = orderService.getOrder(orderId);
 
-        if (!order.getMemberId().equals(memberId)) {
+        if (!order.getMemberId().equals(member.getMemberId())) {
             return ResponseEntity.status(403).body(null);  // 권한 없음
         }
 
@@ -65,13 +78,15 @@ public class OrderController {
             HttpSession session,
             @PageableDefault(size = 10) Pageable pageable
     ) {
-        Object memberIdAttr = session.getAttribute("memberId");
-        if (memberIdAttr == null) {
+        String username = (String) session.getAttribute("username");
+        if (username == null) {
             return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요한 서비스입니다."));
         }
 
-        Integer memberId = (Integer) memberIdAttr;
-        Page<OrderResponseDto> orders = orderService.getMemberOrders(memberId, pageable);
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        
+        Page<OrderResponseDto> orders = orderService.getMemberOrders(member.getMemberId(), pageable);
         return ResponseEntity.ok(orders);
     }
 }

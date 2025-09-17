@@ -19,7 +19,7 @@ const ProductBadge = ({ product }) => {
     };
 
     const getStockClassName = (stock) => {
-        return stock <= 5 ? `${styles.stockValue} ${styles.urgentStock}` : styles.stockValue;
+        return stock <= 10 ? `${styles.stockValue} ${styles.urgentStock}` : styles.stockValue;
     };
 
     if (product.role === 'LIMITED') {

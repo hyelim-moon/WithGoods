@@ -1,154 +1,160 @@
+// src/components/InquiryPage.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import styles from '../assets/styles/InquiryPage.module.css';
 
-// 날짜 포맷 헬퍼 (YYYY-MM-DD)
-const formatDate = (isoString) => {
-    const date = new Date(isoString);
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
+// 날짜 포맷 헬퍼
+const formatDate = isoString => {
+    const d = new Date(isoString);
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 };
 
 const InquiryPage = () => {
     const navigate = useNavigate();
-    const location = useLocation();
-
-    // “일반 문의” / “견적 문의”를 따로 관리
+    const { user, loading } = useAuth();
     const [generalList, setGeneralList] = useState([]);
     const [estimateList, setEstimateList] = useState([]);
     const [selectedTab, setSelectedTab] = useState('기타');
 
+    // pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+    const pageGroupSize = 5;
+
+    // 탭 바뀌면 1페이지로
+    useEffect(() => { setCurrentPage(1); }, [selectedTab]);
+
+    // 데이터 fetch & 내림차순 정렬
     useEffect(() => {
-        const newInquiry = location.state?.newInquiry;
-        if (newInquiry) {
-            // 기본값 처리
-            if (!newInquiry.author) newInquiry.author = '익명';
-            if (!newInquiry.createdAt) newInquiry.createdAt = new Date().toISOString();
-            if (!newInquiry.views) newInquiry.views = 0;
+        const category = selectedTab === '견적' ? 'estimate' : 'general';
+        axios.get(`http://localhost:8080/inquiries?category=${category}`, {
+            withCredentials: true
+        })
+            .then(res => {
+                const sorted = res.data.slice().sort((a, b) => b.id - a.id);
+                if (category === 'estimate') {
+                    setEstimateList(sorted);
+                } else {
+                    setGeneralList(sorted);
+                }
+            })
+            .catch(console.error);
+    }, [selectedTab]);
 
-            if (newInquiry.type === '견적 문의') {
-                setEstimateList((prev) => {
-                    const exists = prev.some((item) => item.id === newInquiry.id);
-                    if (exists) return prev;
-                    return [newInquiry, ...prev];
-                });
-                setSelectedTab('견적 문의');
-            } else {
-                setGeneralList((prev) => {
-                    const exists = prev.some((item) => item.id === newInquiry.id);
-                    if (exists) return prev;
-                    return [newInquiry, ...prev];
-                });
-                setSelectedTab('기타');
-            }
+    const list = selectedTab === '기타' ? generalList : estimateList;
+    const totalItems = list.length;
+    const totalPages = Math.ceil((totalItems - (totalItems % itemsPerPage || itemsPerPage)) / itemsPerPage)
+        + (totalItems % itemsPerPage ? 1 : 0);
 
-            // state 초기화
-            navigate(location.pathname, { replace: true, state: {} });
-        }
-    }, [location, navigate]);
+    // 첫 페이지에 보여줄 개수
+    const rem = totalItems % itemsPerPage || itemsPerPage;
 
-    const handleWriteClick = () => {
-        if (selectedTab === '기타') navigate('/inquiry/write');
-        else navigate('/inquiry/estimate');
-    };
+    // 현재 페이지에 보여줄 slice 구하기
+    let currentItems;
+    if (currentPage === 1) {
+        currentItems = list.slice(0, rem);
+    } else {
+        const start = rem + (currentPage-2)*itemsPerPage;
+        currentItems = list.slice(start, start + itemsPerPage);
+    }
 
-    // 테이블 행 렌더러
-    const renderTableRows = (dataList) =>
-        dataList.map((item, idx) => (
-            <tr key={idx} className={styles.row}>
-                {/* 1) 번호 */}
-                <td className={styles.cellNumber}>{item.id}</td>
-
-                {/* 2) 상품정보: 오직 “문의 유형”만 가운데 정렬 */}
-                <td className={styles.cellProduct}>
-                    <div className={styles.inquiryTypeOnly}>
-                        [{item.type || '기타'}]
-                    </div>
-                </td>
-
-                {/* 3) 제목 */}
-                <td className={styles.cellTitle}>
-                    {item.secret === '비밀글' && (
-                        <span className={styles.iconLock}>🔒&nbsp;</span>
-                    )}
-                    {item.title}
-                    {new Date() - new Date(item.createdAt) < 1000 * 60 * 60 * 24 && (
-                        <span className={styles.badgeNew}>NEW</span>
-                    )}
-                </td>
-
-                {/* 4) 작성자 */}
-                <td className={styles.cellAuthor}>{item.author}</td>
-
-                {/* 5) 작성일 */}
-                <td className={styles.cellDate}>{formatDate(item.createdAt)}</td>
-
-                {/* 6) 조회 */}
-                <td className={styles.cellViews}>{item.views}</td>
-            </tr>
-        ));
+    // 페이지 그룹
+    const groupIndex = Math.floor((currentPage-1)/pageGroupSize);
+    const groupStart = groupIndex*pageGroupSize + 1;
+    const groupEnd = Math.min(groupStart + pageGroupSize - 1, totalPages);
 
     return (
         <div className={styles.container}>
-            {/* --- 상단 헤더 --- */}
+            {/* 탭 */}
             <div className={styles.header}>
-                <div className={styles.title}>문의</div>
+                <h2 className={styles.title}>문의</h2>
                 <div className={styles.tabContainer}>
                     <button
-                        className={`${styles.tab} ${selectedTab === '기타' ? styles.active : ''}`}
-                        onClick={() => setSelectedTab('기타')}
-                    >
-                        기타
-                    </button>
+                        className={`${styles.tab} ${selectedTab==='기타'?styles.active:''}`}
+                        onClick={()=>setSelectedTab('기타')}
+                    >기타</button>
                     <button
-                        className={`${styles.tab} ${selectedTab === '견적 문의' ? styles.active : ''}`}
-                        onClick={() => setSelectedTab('견적 문의')}
-                    >
-                        견적 문의
-                    </button>
+                        className={`${styles.tab} ${selectedTab==='견적'?styles.active:''}`}
+                        onClick={()=>setSelectedTab('견적')}
+                    >견적</button>
                 </div>
             </div>
+            <hr className={styles.line}/>
 
-            <hr className={styles.line} />
-
-            {/* --- 본문: 테이블 & 버튼 영역 --- */}
+            {/* 테이블 */}
             <div className={styles.content}>
-                {selectedTab === '기타' && generalList.length === 0 && (
-                    <p className={styles.noInquiry}>기타 문의가 없습니다.</p>
-                )}
-                {selectedTab === '견적 문의' && estimateList.length === 0 && (
-                    <p className={styles.noInquiry}>견적 문의가 없습니다.</p>
-                )}
-
-                {(selectedTab === '기타' && generalList.length > 0) ||
-                (selectedTab === '견적 문의' && estimateList.length > 0) ? (
-                    <table className={styles.inquiryTable}>
+                {currentItems.length===0
+                    ? <p className={styles.noInquiry}>
+                        {selectedTab==='기타'?'기타 문의가 없습니다.':'견적 문의가 없습니다.'}
+                    </p>
+                    : <table className={styles.inquiryTable}>
                         <thead>
                         <tr>
-                            <th className={styles.headerNumber}>번호</th>
-                            <th className={styles.headerProduct}>상품정보</th>
-                            <th className={styles.headerTitle}>제목</th>
-                            <th className={styles.headerAuthor}>작성자</th>
-                            <th className={styles.headerDate}>작성일</th>
-                            <th className={styles.headerViews}>조회</th>
+                            <th>번호</th><th>상품정보</th><th>제목</th>
+                            <th>작성자</th><th>작성일</th><th>조회</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {selectedTab === '기타'
-                            ? renderTableRows(generalList)
-                            : renderTableRows(estimateList)}
+                        {currentItems.map((item, idx) => {
+                            // 연속 번호 계산: 전체개수에서 (이 페이지 앞에 이미 보여준 개수 + idx)만큼 뺌
+                            const offset = (currentPage===1 ? 0 : rem + (currentPage-2)*itemsPerPage);
+                            const displayNo = totalItems - (offset + idx);
+                            return (
+                                <tr key={item.id} onClick={()=>navigate(`/inquiry/${item.id}`)}>
+                                    <td>{displayNo}</td>
+                                    <td>[{item.type||'기타'}]</td>
+                                    <td>
+                                        {item.secret && '🔒︎ '}
+                                        {item.title}
+                                        {Date.now()-new Date(item.createdAt)<1000*60*60*24 && (
+                                            <span className={styles.badgeNew}>NEW</span>
+                                        )}
+                                    </td>
+                                    <td>{item.writer||'익명'}</td>
+                                    <td>{formatDate(item.createdAt)}</td>
+                                    <td>{item.views||0}</td>
+                                </tr>
+                            );
+                        })}
                         </tbody>
                     </table>
-                ) : null}
-
-                <button className={styles.inquiryButton} onClick={handleWriteClick}>
-                    문의하기
-                </button>
+                }
             </div>
 
-            <hr className={styles.line} />
+            {/* 페이지네이션 */}
+            {totalPages>1 && (
+                <div className={styles.pagination}>
+                    {groupStart>1 && (
+                        <button onClick={()=>setCurrentPage(groupStart-1)}>‹</button>
+                    )}
+                    {Array.from({length: groupEnd-groupStart+1}, (_,i)=>groupStart+i)
+                        .map(p=>(
+                            <button
+                                key={p}
+                                className={p===currentPage?styles.activePage:''}
+                                onClick={()=>setCurrentPage(p)}
+                            >{p}</button>
+                        ))
+                    }
+                    {groupEnd<totalPages && (
+                        <button onClick={()=>setCurrentPage(groupEnd+1)}>›</button>
+                    )}
+                </div>
+            )}
+
+            <hr className={styles.line}/>
+            {!loading && user && (
+                <div className={styles.footerButtonWrapper}>
+                    <button
+                        className={styles.inquiryButton}
+                        onClick={()=>navigate(selectedTab==='기타'?'/inquiry/write':'/inquiry/estimate')}
+                    >
+                        문의하기
+                    </button>
+                </div>
+            )}
         </div>
     );
 };

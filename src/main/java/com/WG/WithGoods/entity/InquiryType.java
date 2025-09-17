@@ -11,12 +11,12 @@ public enum InquiryType {
     DEFECT("불량/오배송 문의"),
     MEMBER("회원 정보 문의"),
     EVENT("이벤트/쿠폰 문의"),
-    PRIVATE("1:1 개인 문의");
+    PRIVATE("1:1 개인 문의"),
+    ESTIMATE("견적 문의");  // 새로 추가된 견적문의 타입
 
     private final String displayName;
 
     InquiryType(String displayName) {
         this.displayName = displayName;
     }
-
 }
