@@ -3,8 +3,8 @@
     justify-content: space-around;
     background-color: #fff;
     padding: 8px 0;
-    border-top: 3px solid #9e4b25;
-    border-bottom: 3px solid #9e4b25;
+    /*border-top: 1px solid #000000;*/
+    border-bottom: 1px solid #ccc;
 }
 
 .navbar button {
