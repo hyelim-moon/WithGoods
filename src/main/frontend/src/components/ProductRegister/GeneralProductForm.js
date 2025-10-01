@@ -1,148 +1,98 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import styles from '../../assets/styles/GeneralProductForm.module.css';
 
 function GeneralProductForm() {
-  const { id } = useParams();  // 수정 모드일 경우 id 존재
+  const { id } = useParams();
+  const navigate = useNavigate();
   const isEditMode = Boolean(id);
 
-  console.log('id:', id);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     productType: 'normal',
     category: '',
     name: '',
     price: '',
+    stock: '',
     hasDiscount: false,
     discountRate: '',
     hasSalePeriod: false,
     saleStartDate: '',
     saleEndDate: '',
-    representativeImage: null,
-    repPreview: null,
-    additionalImages: [],
-    additionalPreviews: [],
     detailDescription: '',
     hasOption: false,
     optionType: 'single',
     singleOptions: [{ name: '', price: '' }],
     options: [],
-    limitedEditionNumber: '',
-    limitedReleaseDate: '',
-    allowMessageOption: false,
   });
 
   useEffect(() => {
     if (!isEditMode) {
-      // 신규 등록 모드: fetch 하지 않고 기본값 유지
       return;
     }
 
     setLoading(true);
-    fetch(`/api/products/${id}`)
-      .then(res => {
-        if (!res.ok) throw new Error('상품 정보를 불러오는데 실패했습니다.');
-        return res.json();
-      })
-      .then(data => {
-        let parsedOptions = [];
-        try {
-          if (data.options) {
-            parsedOptions = typeof data.options === 'string' ? JSON.parse(data.options) : data.options;
+    axios.get(`http://localhost:8080/products/${id}`, { withCredentials: true })
+      .then(response => {
+        const data = response.data;
+        
+        let parsedOptions = null;
+        let detectedOptionType = 'single';
+        let singleOptions = [{ name: '', price: '' }];
+        let comboOptions = [];
+
+        if (data.options) {
+          try {
+            parsedOptions = JSON.parse(data.options);
+            if (Array.isArray(parsedOptions)) {
+              detectedOptionType = 'single';
+              singleOptions = parsedOptions.map(name => ({ name: name, price: '' }));
+            } else if (typeof parsedOptions === 'object' && parsedOptions !== null) {
+              detectedOptionType = 'combo';
+              comboOptions = Object.entries(parsedOptions).map(([group, values]) => ({
+                group,
+                values: values.map(name => ({ name: name, price: '' }))
+              }));
+            }
+          } catch (e) {
+            console.error('Failed to parse options:', e);
           }
-        } catch (e) {
-          console.error('options 파싱 실패:', e);
         }
 
         setFormData({
-          productType: data.productType?.toLowerCase() || 'normal',
+          productType: data.role?.toLowerCase() || 'normal',
           category: data.category || '',
           name: data.name || '',
           price: data.price || '',
-          hasDiscount: data.discountRate > 0,
+          stock: data.stock || '',
+          hasDiscount: data.hasDiscount || false,
           discountRate: data.discountRate || '',
           hasSalePeriod: !!(data.startDate && data.endDate),
-          saleStartDate: data.startDate || '',
-          saleEndDate: data.endDate || '',
-          representativeImage: null,
-          repPreview: data.imageUrl || null,
-          additionalImages: [],
-          additionalPreviews: [],
+          saleStartDate: data.startDate ? data.startDate.split('T')[0] : '',
+          saleEndDate: data.endDate ? data.endDate.split('T')[0] : '',
           detailDescription: data.description || '',
           hasOption: !!data.options,
-          optionType: data.optionType || 'single',
-          singleOptions: data.optionType === 'single' ? parsedOptions : [{ name: '', price: '' }],
-          options: data.optionType === 'combo' ? parsedOptions : [],
-          limitedEditionNumber: data.limitedEditionNumber || '',
-          limitedReleaseDate: data.limitedReleaseDate || '',
-          allowMessageOption: data.allowMessageOption || false,
+          optionType: detectedOptionType,
+          singleOptions: singleOptions,
+          options: comboOptions,
         });
       })
-      .catch(console.error)
+      .catch(err => {
+        console.error(err);
+        alert('상품 정보를 불러오는데 실패했습니다.');
+      })
       .finally(() => setLoading(false));
   }, [id, isEditMode]);
 
   const handleChange = (e) => {
-    const { name, value, type, checked, files } = e.target;
+    const { name, value, type, checked } = e.target;
     if (type === 'checkbox') {
       setFormData((prev) => ({ ...prev, [name]: checked }));
-    } else if (files) {
-      // 파일은 handleImageChange에서 처리
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
   };
-
-  const handleImageChange = (e, isRepresentative) => {
-    const files = e.target.files;
-    if (isRepresentative) {
-      if (files.length === 0) return;
-      const file = files[0];
-      if (formData.repPreview) URL.revokeObjectURL(formData.repPreview);
-      setFormData((prev) => ({
-        ...prev,
-        representativeImage: file,
-        repPreview: URL.createObjectURL(file),
-      }));
-    } else {
-      const newFiles = Array.from(files);
-      formData.additionalPreviews.forEach(URL.revokeObjectURL);
-      setFormData((prev) => {
-        const combined = [...prev.additionalImages, ...newFiles].slice(0, 9);
-        const combinedPreviews = combined.map((file) => URL.createObjectURL(file));
-        return {
-          ...prev,
-          additionalImages: combined,
-          additionalPreviews: combinedPreviews,
-        };
-      });
-    }
-  };
-
-  const handleRemoveRepresentativeImage = () => {
-    if (formData.repPreview) URL.revokeObjectURL(formData.repPreview);
-    setFormData((prev) => ({
-      ...prev,
-      representativeImage: null,
-      repPreview: null,
-    }));
-  };
-
-  const handleRemoveAdditionalImage = (index) => {
-    setFormData((prev) => {
-      const newImages = [...prev.additionalImages];
-      newImages.splice(index, 1);
-      prev.additionalPreviews.forEach(URL.revokeObjectURL);
-      const newPreviews = newImages.map((file) => URL.createObjectURL(file));
-      return {
-        ...prev,
-        additionalImages: newImages,
-        additionalPreviews: newPreviews,
-      };
-    });
-  };
-
-  // 옵션 관련 핸들러들도 동일
 
   const handleSingleOptionChange = (index, key, value) => {
     setFormData((prev) => {
@@ -230,77 +180,76 @@ function GeneralProductForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const dto = {
-      productType: formData.productType,
+    const productDto = {
+      id: isEditMode ? parseInt(id) : null,
+      role: formData.productType.toUpperCase(),
       category: formData.category,
       name: formData.name,
       price: Number(formData.price),
-      hasDiscount: formData.hasDiscount,
-      discountRate: formData.discountRate ? Number(formData.discountRate) : null,
-      hasSalePeriod: formData.hasSalePeriod,
-      startDate: formData.saleStartDate || null,
-      endDate: formData.saleEndDate || null,
+      stock: Number(formData.stock),
       description: formData.detailDescription,
+      hasDiscount: formData.hasDiscount,
+      discountRate: formData.hasDiscount ? Number(formData.discountRate) : null,
+      startDate: formData.hasSalePeriod ? formData.saleStartDate : null,
+      endDate: formData.hasSalePeriod ? formData.saleEndDate : null,
       options: formData.hasOption
         ? formData.optionType === 'single'
           ? JSON.stringify(
-              formData.singleOptions.map(opt => opt.name)
+              formData.singleOptions.map(opt => opt.name).filter(Boolean)
             )
           : JSON.stringify(
               formData.options.reduce((acc, group) => {
                 if (group.group && Array.isArray(group.values)) {
-                  acc[group.group] = group.values.map(val => val.name);
+                  const values = group.values.map(val => val.name).filter(Boolean);
+                  if (values.length > 0) {
+                    acc[group.group] = values;
+                  }
                 }
                 return acc;
               }, {})
             )
         : null,
-      limitedEditionNumber: formData.limitedEditionNumber || null,
-      limitedReleaseDate: formData.limitedReleaseDate || null,
-      allowMessageOption: formData.allowMessageOption,
-      stock: null,
     };
 
     try {
-      const data = new FormData();
-      data.append('dto', JSON.stringify(dto));
+      const url = isEditMode ? `http://localhost:8080/products/${id}` : 'http://localhost:8080/products';
+      const method = isEditMode ? 'PUT' : 'POST';
 
-      if (formData.representativeImage) {
-        data.append('representativeImage', formData.representativeImage);
-      }
-      formData.additionalImages.forEach((file) => {
-        data.append('additionalImages', file);
+      await axios({
+        method: method,
+        url: url,
+        data: productDto,
+        headers: { 'Content-Type': 'application/json' },
+        withCredentials: true,
       });
 
-      const response = await fetch(
-        isEditMode ? `/api/products/${id}` : '/api/products/upload',
-        {
-          method: isEditMode ? 'PUT' : 'POST',
-          body: data,
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`서버 오류 발생: ${JSON.stringify(errorData)}`);
-      }
-
       alert(isEditMode ? '상품 수정 완료' : '상품 등록 완료');
-      // 필요 시 페이지 이동 등 처리
+      navigate(-1); // Go back to the previous page
     } catch (err) {
-      alert(err.message);
+      console.error(err);
+      const errorMsg = err.response?.data?.message || '작업에 실패했습니다.';
+      alert(`오류: ${errorMsg}`);
     }
   };
 
-  if (loading) return <div>로딩 중...</div>;
+  if (loading && isEditMode) return <div>로딩 중...</div>;
 
   return (
     <form className={styles.registerForm} onSubmit={handleSubmit}>
       <h2 className={styles.title}>{isEditMode ? '상품 수정' : '일반 상품 등록'}</h2>
-      <input type="hidden" name="productType" value={formData.productType} />
-
+      
       <label className={styles.label}>
         상품 유형
+        <select name="productType" value={formData.productType} onChange={handleChange} className={styles.select} required>
+          <option value="normal">일반</option>
+          <option value="custom">커스텀</option>
+          <option value="limited">한정판</option>
+          <option value="anniversary">기념일</option>
+        </select>
+      </label>
+
+      <label className={styles.label}>
+        카테고리
         <select name="category" value={formData.category} onChange={handleChange} className={styles.select} required>
           <option value="">선택하세요</option>
           <option value="인형">인형</option>
@@ -320,6 +269,11 @@ function GeneralProductForm() {
         <input type="number" name="price" value={formData.price} onChange={handleChange} className={styles.input} min="0" required />
       </label>
 
+      <label className={styles.label}>
+        재고
+        <input type="number" name="stock" value={formData.stock} onChange={handleChange} className={styles.input} min="0" required />
+      </label>
+
       <label className={`${styles.label} ${styles.checkboxLabel}`}>
         <input type="checkbox" name="hasDiscount" checked={formData.hasDiscount} onChange={handleChange} className={styles.checkbox} />
         할인 여부
@@ -328,7 +282,7 @@ function GeneralProductForm() {
       {formData.hasDiscount && (
         <label className={styles.label}>
           할인율 (%)
-          <input type="number" name="discountRate" value={formData.discountRate} onChange={handleChange} className={styles.input} min="0" max="100" required />
+          <input type="number" name="discountRate" value={formData.discountRate} onChange={handleChange} className={styles.input} min="0" max="100" />
         </label>
       )}
 
@@ -339,7 +293,6 @@ function GeneralProductForm() {
           checked={formData.hasSalePeriod}
           onChange={handleChange}
           className={styles.checkbox}
-          disabled={formData.productType === 'limited'}
         />
         판매 기간 설정
       </label>
@@ -354,7 +307,6 @@ function GeneralProductForm() {
               value={formData.saleStartDate}
               onChange={handleChange}
               className={styles.input}
-              required
             />
           </label>
           <label className={styles.label}>
@@ -365,37 +317,10 @@ function GeneralProductForm() {
               value={formData.saleEndDate}
               onChange={handleChange}
               className={styles.input}
-              required
             />
           </label>
         </div>
       )}
-
-      <label className={styles.label}>
-        대표 이미지
-        <input type="file" accept="image/*" onChange={(e) => handleImageChange(e, true)} className={styles.fileInput} required={!formData.repPreview} />
-      </label>
-
-      {formData.repPreview && (
-        <div className={styles.imagePreview}>
-          <img src={formData.repPreview} alt="대표 이미지" />
-          <button type="button" onClick={handleRemoveRepresentativeImage}>삭제</button>
-        </div>
-      )}
-
-      <label className={styles.label}>
-        추가 이미지 (최대 9장)
-        <input type="file" accept="image/*" multiple onChange={(e) => handleImageChange(e, false)} className={styles.fileInput} />
-      </label>
-
-      <div className={styles.additionalImagesGrid}>
-        {formData.additionalPreviews.map((src, i) => (
-          <div key={i} className={styles.imagePreview}>
-            <img src={src} alt={`추가 이미지 ${i + 1}`} />
-            <button type="button" onClick={() => handleRemoveAdditionalImage(i)}>삭제</button>
-          </div>
-        ))}
-      </div>
 
       <label className={styles.label}>
         상세 설명
@@ -445,16 +370,14 @@ function GeneralProductForm() {
                   value={opt.name}
                   onChange={(e) => handleSingleOptionChange(idx, 'name', e.target.value)}
                   className={styles.input}
-                  required
                 />
                 <input
                   type="number"
-                  placeholder="가격"
+                  placeholder="가격 (선택)"
                   value={opt.price}
                   onChange={(e) => handleSingleOptionChange(idx, 'price', e.target.value)}
                   className={styles.input}
                   min="0"
-                  required
                 />
                 <button type="button" onClick={() => removeSingleOption(idx)} className={styles.removeButton}>
                   삭제
@@ -476,7 +399,6 @@ function GeneralProductForm() {
                   value={group.group}
                   onChange={(e) => handleOptionGroupChange(gIdx, 'group', e.target.value)}
                   className={styles.input}
-                  required
                 />
                 <button type="button" onClick={() => removeOptionGroup(gIdx)} className={styles.removeButton}>
                   그룹 삭제
@@ -489,16 +411,14 @@ function GeneralProductForm() {
                       value={val.name}
                       onChange={(e) => handleOptionValueChange(gIdx, vIdx, 'name', e.target.value)}
                       className={styles.input}
-                      required
                     />
                     <input
                       type="number"
-                      placeholder="가격"
+                      placeholder="가격 (선택)"
                       value={val.price}
                       onChange={(e) => handleOptionValueChange(gIdx, vIdx, 'price', e.target.value)}
                       className={styles.input}
                       min="0"
-                      required
                     />
                     <button type="button" onClick={() => removeOptionValue(gIdx, vIdx)} className={styles.removeButton}>
                       삭제
