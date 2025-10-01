@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import styles from '../../assets/styles/GeneralProductForm.module.css';
+import styles from '../../assets/styles/product/GeneralProductForm.module.css';
 
 function GeneralProductForm() {
   const { id } = useParams();

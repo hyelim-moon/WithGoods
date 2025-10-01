@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from '../../../src/assets/styles/GeneralProductForm.module.css';
+import styles from '../../assets/styles/product/GeneralProductForm.module.css';
 
 function CustomProductForm() {
     const [formData, setFormData] = useState({

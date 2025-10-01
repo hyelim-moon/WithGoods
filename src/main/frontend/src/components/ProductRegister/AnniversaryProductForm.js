@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import styles from '../../assets/styles/GeneralProductForm.module.css';
+import styles from '../../assets/styles/product/GeneralProductForm.module.css';
 
 function AnniversaryProductForm() {
   const [formData, setFormData] = useState({

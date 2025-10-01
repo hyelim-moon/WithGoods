@@ -1,0 +1,10 @@
+{
+  "name": "withgoods-root",
+  "version": "1.0.0",
+  "description": "Project root",
+  "scripts": {
+    "start": "npm start --prefix src/main/frontend"
+  },
+  "author": "",
+  "license": "ISC"
+}
