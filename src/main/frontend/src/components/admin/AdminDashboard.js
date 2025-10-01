@@ -11,10 +11,11 @@ import {
 } from "react-icons/fi";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
+import logo from '../../assets/images/logo.png';
 
-function SidebarItem({ icon, label, active }) {
+function SidebarItem({ icon, label, active, onClick }) {
     return (
-        <div className={`${styles.navItem} ${active ? styles.active : ""}`}>
+        <div className={`${styles.navItem} ${active ? styles.active : ""}`} onClick={onClick}>
             <span className={styles.navIcon}>{icon}</span>
             <span className={styles.navLabel}>{label}</span>
         </div>
@@ -157,14 +158,13 @@ function AdminDashboard() {
             {/* Sidebar */}
             <aside className={styles.sidebar}>
                 <div className={styles.logoRow}>
-                    <div className={styles.logo}>🧸</div>
-                    <div className={styles.brand}>WITH GOODS</div>
+                    <img src={logo} alt="WITH GOODS Logo" />
                 </div>
                 <div className={styles.userRow}><FiUser /> &nbsp;000님</div>
 
                 <nav className={styles.nav}>
-                    <SidebarItem icon={<FiHome />} label="대시보드" active />
-                    <SidebarItem icon={<FiUsers />} label="회원관리" />
+                    <SidebarItem icon={<FiHome />} label="대시보드" active onClick={() => navigate('/admin/dashboard')} />
+                    <SidebarItem icon={<FiUsers />} label="회원관리" onClick={() => navigate('/admin/members')} />
                     <SidebarItem icon={<FiShoppingCart />} label="주문관리" />
                     <SidebarItem icon={<FiPackage />} label="상품관리" />
                     <SidebarItem icon={<FiFileText />} label="견적관리" />
