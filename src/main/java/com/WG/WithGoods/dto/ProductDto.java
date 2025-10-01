@@ -5,7 +5,6 @@ import com.WG.WithGoods.entity.ProductRole;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -24,6 +23,8 @@ public class ProductDto {
     private LocalDate startDate;
     private LocalDate endDate;
     private Integer stock;
+    private Boolean hasDiscount; // 할인 여부 필드 추가
+    private Integer discountRate;
     private Double rating;
     private Long reviewCount;
 
@@ -43,8 +44,10 @@ public class ProductDto {
                 .startDate(product.getStartDate())
                 .endDate(product.getEndDate())
                 .stock(product.getStock())
+                .hasDiscount(product.getHasDiscount())
+                .discountRate(product.getDiscountRate())
                 .rating(product.getRating())
-                .reviewCount(null)
+                .reviewCount(null) // 리뷰 카운트는 서비스 레이어에서 별도 계산
                 .build();
     }
 
@@ -62,6 +65,8 @@ public class ProductDto {
                 .startDate(this.startDate)
                 .endDate(this.endDate)
                 .stock(this.stock)
+                .hasDiscount(this.hasDiscount)
+                .discountRate(this.discountRate)
                 .rating(this.rating)
                 .build();
     }

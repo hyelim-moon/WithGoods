@@ -90,18 +90,9 @@ function ProductDetail() {
         const fetchProductAndWishlist = async () => {
             try {
                 setLoading(true);
-                const [productResponse, wishlistResponse] = await Promise.all([
-                    axios.get(`http://localhost:8080/products/${id}`, {
-                        withCredentials: true,
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Accept': 'application/json'
-                        }
-                    }),
-                    axios.get(`http://localhost:8080/api/wishlist/check/${id}`, {
-                        withCredentials: true
-                    })
-                ]);
+                const productResponse = await axios.get(`http://localhost:8080/products/${id}`, {
+                    withCredentials: true,
+                });
 
                 if (productResponse.data) {
                     const dto = productResponse.data;
@@ -111,20 +102,28 @@ function ProductDetail() {
                             ? JSON.parse(dto.options)
                             : dto.options
                     });
+
+                    // Fetch wishlist status only if product fetch is successful
+                    if (user) { // only check wishlist if user is logged in
+                        const wishlistResponse = await axios.get(`http://localhost:8080/api/wishlist/check/${id}`, {
+                            withCredentials: true
+                        });
+                        setIsFavorited(wishlistResponse.data);
+                    }
                 } else {
                     throw new Error('상품 데이터가 없습니다.');
                 }
-
-                setIsFavorited(wishlistResponse.data);
                 setError(null);
             } catch (err) {
                 if (err.response) {
                     if (err.response?.status === 401) {
+                        // This might happen for wishlist check if not logged in, which is fine.
                         setIsFavorited(false);
-                        setError('로그인이 필요한 서비스입니다.');
                     } else {
                         setError('상품 정보를 불러오는데 실패했습니다.');
                     }
+                } else {
+                     setError('상품 정보를 불러오는데 실패했습니다.');
                 }
             } finally {
                 setLoading(false);
@@ -134,7 +133,7 @@ function ProductDetail() {
         if (id) {
             fetchProductAndWishlist();
         }
-    }, [id]);
+    }, [id, user]);
 
     // 리뷰 데이터 불러오기
     useEffect(() => {
@@ -292,8 +291,7 @@ function ProductDetail() {
     // 즐겨찾기 토글
     const toggleFavorite = async () => {
         try {
-            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
-            if (!isLoggedIn) {
+            if (!user) {
                 alert('로그인이 필요한 서비스입니다.');
                 navigate('/login');
                 return;
@@ -342,6 +340,25 @@ function ProductDetail() {
         setIsReportModalOpen(false);
     };
 
+    const handleEdit = () => {
+        navigate(`/product/edit/${id}`);
+    };
+
+    const handleDelete = async () => {
+        if (window.confirm('정말로 이 상품을 삭제하시겠습니까?')) {
+            try {
+                await axios.delete(`http://localhost:8080/products/${id}`, {
+                    withCredentials: true
+                });
+                alert('상품이 삭제되었습니다.');
+                navigate('/'); // 삭제 후 홈으로 이동
+            } catch (err) {
+                console.error('상품 삭제 실패:', err);
+                alert('상품 삭제에 실패했습니다. 권한을 확인해주세요.');
+            }
+        }
+    };
+
     const averageRating = reviews.length
         ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
         : 0;
@@ -363,13 +380,15 @@ function ProductDetail() {
     // 리뷰 표시 개수 제한
     const displayedReviews = showAllReviews ? reviews : reviews.slice(0, 3);
 
+    const isOwner = user && product && (user.role === 'ADMIN' || user.id === product.sellerId);
+
     return (
         <div className={styles.detailContainer}>
             <div className={styles.productWrapper}>
                 {/* 이미지 영역 */}
                 <div className={styles.imageSection}>
                     <img
-                        src={productImages[selectedImage]}
+                        src={productImages[selectedImage] || 'https://via.placeholder.com/400'}
                         alt="상품 이미지"
                         className={styles.productImage}
                     />
@@ -484,6 +503,14 @@ function ProductDetail() {
                             <FaShoppingCart /> 바로 구매하기
                         </button>
                     </div>
+
+                    {/* 수정/삭제 버튼 */}
+                    {!authLoading && isOwner && (
+                        <div className={styles.adminActions}>
+                            <button onClick={handleEdit} className={styles.editBtn}>수정</button>
+                            <button onClick={handleDelete} className={styles.deleteBtn}>삭제</button>
+                        </div>
+                    )}
                 </div>
             </div>
 

@@ -7,6 +7,7 @@ import com.WG.WithGoods.repository.ProductRepository;
 import com.WG.WithGoods.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -18,20 +19,22 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ReviewRepository reviewRepository;
 
+    @Transactional
     public ProductDto createProduct(ProductDto dto) {
-        Product product = Product.builder()
-                .name(dto.getName())
-                .imageUrl(dto.getImageUrl())
-                .description(dto.getDescription())
-                .price(dto.getPrice())
-                .category(dto.getCategory())
-                .options(dto.getOptions())
-                .role(dto.getRole() != null ? dto.getRole() : ProductRole.NORMAL)
-                .startDate(dto.getStartDate())
-                .endDate(dto.getEndDate())
-                .stock(dto.getStock())
-                .rating(dto.getRating() != null ? dto.getRating() : 0.0)
-                .build();
+        Product product = dto.toEntity();
+        if (product.getRole() == null) {
+            product.setRole(ProductRole.NORMAL);
+        }
+        if (product.getRating() == null) {
+            product.setRating(0.0);
+        }
+        // 할인 여부에 따라 할인율 처리
+        if (dto.getHasDiscount() == null || !dto.getHasDiscount()) {
+            product.setHasDiscount(false);
+            product.setDiscountRate(null);
+        } else {
+            product.setHasDiscount(true);
+        }
         return toDto(productRepository.save(product));
     }
 
@@ -69,24 +72,37 @@ public class ProductService {
         return toDto(product);
     }
 
+    @Transactional
     public ProductDto updateProduct(Integer id, ProductDto dto) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다."));
 
-        product.setName(dto.getName());
-        product.setImageUrl(dto.getImageUrl());
-        product.setDescription(dto.getDescription());
-        product.setPrice(dto.getPrice());
-        product.setCategory(dto.getCategory());
-        product.setOptions(dto.getOptions());
-        product.setRole(dto.getRole());
+        if (dto.getName() != null) product.setName(dto.getName());
+        if (dto.getDescription() != null) product.setDescription(dto.getDescription());
+        if (dto.getPrice() != null) product.setPrice(dto.getPrice());
+        if (dto.getCategory() != null) product.setCategory(dto.getCategory());
+        if (dto.getOptions() != null) product.setOptions(dto.getOptions());
+        if (dto.getRole() != null) product.setRole(dto.getRole());
+        if (dto.getStock() != null) product.setStock(dto.getStock());
+
+        // 할인 여부 및 할인율 업데이트
+        if (dto.getHasDiscount() != null) {
+            product.setHasDiscount(dto.getHasDiscount());
+            if (dto.getHasDiscount()) {
+                product.setDiscountRate(dto.getDiscountRate());
+            } else {
+                product.setDiscountRate(null);
+            }
+        }
+
+        // 판매 기간 업데이트
         product.setStartDate(dto.getStartDate());
         product.setEndDate(dto.getEndDate());
-        product.setStock(dto.getStock());
 
         return toDto(productRepository.save(product));
     }
 
+    @Transactional
     public void deleteProduct(Integer id) {
         productRepository.deleteById(id);
     }
@@ -125,21 +141,9 @@ public class ProductService {
     }
 
     private ProductDto toDto(Product product) {
-        return ProductDto.builder()
-                .productId(product.getProductId())
-                .name(product.getName())
-                .imageUrl(product.getImageUrl())
-                .description(product.getDescription())
-                .price(product.getPrice())
-                .category(product.getCategory())
-                .options(product.getOptions())
-                .role(product.getRole())
-                .startDate(product.getStartDate())
-                .endDate(product.getEndDate())
-                .stock(product.getStock())
-                .rating(product.getRating())
-                .reviewCount(reviewRepository.countByProductProductId(product.getProductId()))
-                .build();
+        ProductDto dto = ProductDto.fromEntity(product);
+        dto.setReviewCount(reviewRepository.countByProductProductId(product.getProductId()));
+        return dto;
     }
 
     private List<ProductDto> toDtoList(List<Product> products) {
