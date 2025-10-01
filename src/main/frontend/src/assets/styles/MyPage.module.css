@@ -2,7 +2,6 @@
     display: flex;
     width: 90%;
     margin: 0 auto;
-    font-family: 'Noto Sans KR', sans-serif;
     color: #333;
     padding: 1rem;
     gap: 1rem;
@@ -11,7 +10,7 @@
 
 .sidebar {
     flex: 0 0 220px;
-    background-color: #fff8f4;
+    background-color: #f5f5f5;
     padding: 1.5rem 1rem;
     border-right: 1px solid #eee;
     box-sizing: border-box;
@@ -19,9 +18,8 @@
 
 .sidebarTitle {
     font-size: 1.5rem;
-    font-weight: bold;
     margin-bottom: 1rem;
-    color: #9e4b25;
+    color: #000;
 }
 
 .sidebarMenu {
@@ -36,11 +34,10 @@
 .sidebarMenu a {
     color: #333;
     text-decoration: none;
-    font-weight: 500;
 }
 
 .sidebarMenu a:hover {
-    color: #9e4b25;
+    color: #000;
 }
 
 .mainContent {
@@ -70,25 +67,24 @@
 }
 
 .logoutButton {
-    background-color: #9e4b25;
+    background-color: #000;
     color: #fff;
     border: none;
     padding: 0.5rem 1rem;
     border-radius: 4px;
     cursor: pointer;
-    font-weight: bold;
     transition: background-color 0.3s ease;
     flex-shrink: 0;
 }
 
 .logoutButton:hover {
-    background-color: #7c3b1d;
+    background-color: #333;
 }
 
 .statusCard {
     display: flex;
     justify-content: space-around;
-    background-color: #fff6f0;
+    background-color: #f9f9f9;
     padding: 1rem;
     border-radius: 8px;
     margin-bottom: 2rem;
@@ -99,9 +95,8 @@
 
 .statusCardItem {
     text-align: center;
-    font-weight: bold;
     font-size: 1rem;
-    color: #9e4b25;
+    color: #000;
     flex: 1 1 150px;
     min-width: 120px;
 }
@@ -119,24 +114,23 @@
 .sectionTitle {
     font-size: 1.3rem;
     margin-bottom: 1rem;
-    border-left: 5px solid #9e4b25;
+    border-left: 5px solid #000;
     padding-left: 0.8rem;
 }
 
 .moreBtn {
-    background-color: #9e4b25;
+    background-color: #000;
     color: white;
     border: none;
     padding: 0.4rem 0.8rem;
     border-radius: 6px;
     font-size: 0.85rem;
-    font-weight: 500;
     cursor: pointer;
     transition: background-color 0.3s ease;
 }
 
 .moreBtn:hover {
-    background-color: #7c3b1d;
+    background-color: #333;
 }
 
 .card {
@@ -184,7 +178,6 @@
 }
 
 .wishName {
-    font-weight: 500;
     font-size: 0.95rem;
     white-space: nowrap;
     overflow: hidden;

@@ -2,14 +2,13 @@
     max-width: 960px;
     margin: 0 auto;
     padding: 40px 20px;
-    font-family: 'Apple SD Gothic Neo', 'Segoe UI', sans-serif;
 }
 
 .loading,
 .error {
     text-align: center;
     font-size: 1.1em;
-    color: #8b5e3c;
+    color: #555;
     padding: 60px 0;
 }
 
@@ -20,8 +19,7 @@
 h1 {
     font-size: 28px;
     margin-bottom: 30px;
-    font-weight: bold;
-    color: #9e4b25;
+    color: #000;
     text-align: center;
 }
 
@@ -32,18 +30,18 @@ h1 {
 }
 
 .orderItem {
-    background-color: #fef7e6;
+    background-color: #f9f9f9;
     border-radius: 20px;
     padding: 24px;
-    box-shadow: 0 4px 10px rgba(158, 75, 37, 0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     cursor: pointer;
-    border: 2px solid #9e4b25;
+    border: 2px solid #000;
 }
 
 .orderItem:hover {
     transform: translateY(-3px);
-    box-shadow: 0 6px 14px rgba(158, 75, 37, 0.15);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
 }
 
 .orderHeader {
@@ -52,18 +50,17 @@ h1 {
     align-items: center;
     padding-bottom: 10px;
     margin-bottom: 16px;
-    border-bottom: 1px dashed #d9b8aa;
+    border-bottom: 1px dashed #ccc;
 }
 
 .orderId {
     font-size: 16px;
-    font-weight: bold;
-    color: #9e4b25;
+    color: #000;
 }
 
 .orderDate {
     font-size: 14px;
-    color: #b07d5e;
+    color: #555;
 }
 
 .orderContent {
@@ -81,7 +78,7 @@ h1 {
     justify-content: space-between;
     align-items: center;
     padding: 12px 0;
-    border-bottom: 1px solid #f0e6d6;
+    border-bottom: 1px solid #eee;
 }
 
 .productItem:last-child {
@@ -97,14 +94,12 @@ h1 {
 }
 
 .productName {
-    font-weight: 500;
-    color: #5c3c23;
+    color: #333;
     font-size: 15px;
 }
 
 .productPrice {
-    font-weight: bold;
-    color: #5c3c23;
+    color: #333;
     font-size: 15px;
 }
 
@@ -117,9 +112,8 @@ h1 {
     display: inline-block;
     padding: 8px 16px;
     font-size: 13px;
-    font-weight: bold;
-    color: #fffaf4;
-    background-color: #9e4b25;
+    color: #fff;
+    background-color: #000;
     border: none;
     border-radius: 999px;
     cursor: pointer;
@@ -128,14 +122,13 @@ h1 {
 }
 
 .reviewButton:hover {
-    background-color: #7c3f1a;
+    background-color: #333;
 }
 
 .reviewedBadge {
     display: inline-block;
     padding: 8px 16px;
     font-size: 13px;
-    font-weight: bold;
     color: #28a745;
     background-color: #d4edda;
     border: 1px solid #c3e6cb;
@@ -147,10 +140,9 @@ h1 {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    font-weight: bold;
     font-size: 16px;
     margin-top: 12px;
-    border-top: 1px dashed #e0c5b6;
+    border-top: 1px dashed #ccc;
     padding-top: 10px;
 }
 
@@ -168,7 +160,6 @@ h1 {
     display: inline-block;
     padding: 6px 14px;
     font-size: 13px;
-    font-weight: 600;
     border-radius: 20px;
     background-color: rgba(0, 0, 0, 0.1);
     color: #333;
@@ -180,10 +171,9 @@ h1 {
     margin-top: 30px;
     width: 100%;
     padding: 14px;
-    background-color: #9e4b25;
+    background-color: #000;
     color: white;
     font-size: 16px;
-    font-weight: bold;
     border: none;
     border-radius: 999px;
     cursor: pointer;
@@ -191,13 +181,13 @@ h1 {
 }
 
 .loadMoreButton:hover:not(:disabled) {
-    background-color: #7c3f1a;
+    background-color: #333;
 }
 
 .loadMoreButton:disabled {
-    background-color: #d5b8a1;
+    background-color: #ccc;
     cursor: not-allowed;
-    color: #fff0e6;
+    color: #888;
 }
 
 @media (max-width: 768px) {
@@ -238,7 +228,6 @@ h1 {
     padding: 4px 12px;
     border-radius: 16px;
     font-size: 12px;
-    font-weight: 500;
     border: 1px solid #dee2e6;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     display: flex;
@@ -253,17 +242,15 @@ h1 {
 }
 
 .optionKey {
-    font-weight: 600;
     color: #6c757d;
     font-size: 11px;
 }
 
 .optionValue {
-    font-weight: 500;
-    background: rgba(158, 75, 37, 0.1);
-    color: #9e4b25;
+    background: rgba(0, 0, 0, 0.05);
+    color: #000;
     padding: 2px 8px;
     border-radius: 12px;
     font-size: 11px;
-    border: 1px solid rgba(158, 75, 37, 0.2);
+    border: 1px solid rgba(0, 0, 0, 0.1);
 }

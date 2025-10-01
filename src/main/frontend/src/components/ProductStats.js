@@ -113,7 +113,7 @@ function ProductStats() {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Line type="monotone" dataKey="sales" stroke="#9e4b25" activeDot={{ r: 8 }} />
+            <Line type="monotone" dataKey="sales" stroke="#000" activeDot={{ r: 8 }} />
             <Line type="monotone" dataKey="volume" stroke="#00C49F" />
           </LineChart>
         </div>
@@ -155,7 +155,7 @@ function ProductStats() {
             <YAxis />
             <Tooltip />
             <Legend />
-            <Bar dataKey="count" fill="#9e4b25" />
+            <Bar dataKey="count" fill="#000" />
           </BarChart>
         </div>
 

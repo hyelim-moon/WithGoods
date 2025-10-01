@@ -20,7 +20,7 @@
 
 .navbar button:hover {
     /*background-color: #b79240;*/
-    color: #9e4b25;
+    color: #000;
 }
 
 @media (max-width: 768px) {

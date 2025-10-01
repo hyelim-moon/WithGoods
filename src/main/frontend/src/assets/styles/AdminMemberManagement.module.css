@@ -2,18 +2,16 @@
     max-width: 1200px;
     margin: 2rem auto;
     padding: 2rem;
-    background-color: #fef7e6;
+    background-color: #f9f9f9;
     border-radius: 12px;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-    font-family: 'Noto Sans KR', sans-serif;
 }
 
 h1 {
     text-align: center;
     margin-bottom: 2rem;
-    color: #9e4b25;
+    color: #000;
     font-size: 2rem;
-    font-weight: 700;
 }
 
 .actionButtons {
@@ -29,7 +27,6 @@ h1 {
     border: none;
     border-radius: 8px;
     font-size: 1rem;
-    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -44,12 +41,12 @@ h1 {
 }
 
 .issueCouponBtn {
-    background-color: #9e4b25;
+    background-color: #000;
     color: white;
 }
 
 .issueCouponBtn:hover:not(:disabled) {
-    background-color: #7c3b1d;
+    background-color: #333;
 }
 
 .issueCouponBtn:disabled {
@@ -77,8 +74,7 @@ h1 {
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-weight: 600;
-    color: #9e4b25;
+    color: #000;
     cursor: pointer;
 }
 
@@ -103,8 +99,7 @@ h1 {
 
 .memberTable th {
     background-color: #f8f9fa;
-    font-weight: 600;
-    color: #9e4b25;
+    color: #000;
 }
 
 .memberTable tbody tr:hover {
@@ -159,9 +154,8 @@ h1 {
 
 .modalContent h3 {
     margin: 0 0 1.5rem 0;
-    color: #9e4b25;
+    color: #000;
     font-size: 1.5rem;
-    font-weight: 700;
 }
 
 .modalContent p {
@@ -173,7 +167,6 @@ h1 {
 .modalContent label {
     display: block;
     margin-bottom: 1rem;
-    font-weight: 500;
     color: #333;
 }
 
@@ -196,9 +189,9 @@ h1 {
 
 .modalContent input:focus,
 .modalContent select:focus {
-    border-color: #9e4b25;
+    border-color: #000;
     outline: none;
-    box-shadow: 0 0 0 2px rgba(158, 75, 37, 0.1);
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
 }
 
 .modalButtons {
@@ -214,18 +207,17 @@ h1 {
     border: none;
     border-radius: 6px;
     font-size: 1rem;
-    font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .confirmBtn {
-    background-color: #9e4b25;
+    background-color: #000;
     color: white;
 }
 
 .confirmBtn:hover {
-    background-color: #7c3b1d;
+    background-color: #333;
 }
 
 .cancelBtn {

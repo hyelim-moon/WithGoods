@@ -5,7 +5,6 @@
     flex-direction: column;
     height: 80vh;
     padding: 1.5rem 4rem;
-    font-family: 'Noto Sans KR', sans-serif;
 }
 
 .header {
@@ -16,7 +15,6 @@
 
 .title {
     font-size: 2rem;
-    font-weight: bold;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -30,7 +28,6 @@
 
 .tab {
     font-size: 1.3rem;
-    font-weight: bold;
     padding: 0.5rem 1.7rem;
     border: 1px solid #333;
     background-color: white;
@@ -45,14 +42,14 @@
 }
 
 .active {
-    background-color: #944c21;
+    background-color: #000;
     color: white;
     border: none;
 }
 
 .line {
     border: none;
-    border-top: 3px solid #944c21;
+    border-top: 3px solid #000;
     margin: 0.5rem 0;
 }
 
@@ -68,7 +65,6 @@
 
 .noInquiry {
     font-size: 1.5rem;
-    font-weight: bold;
     color: #777;
     margin-top: 2rem;
 }
@@ -82,7 +78,6 @@
 .inquiryButton {
     background-color: #ffffff;
     color: #333;
-    font-weight: bold;
     padding: 1rem 1.3rem;
     border: 1px solid #000;
     border-radius: 6px;
@@ -93,7 +88,7 @@
 
 .inquiryButton:hover {
     color: #fff;
-    background-color: #944c21;
+    background-color: #000;
 }
 
 /* ======================================
@@ -187,7 +182,7 @@
     display: inline-block;
     margin-left: 0.5rem;
     padding: 0.1rem 0.3rem;
-    background-color: #007bff;
+    background-color: #000;
     color: white;
     font-size: 0.7rem;
     border-radius: 3px;
@@ -212,9 +207,8 @@
 }
 
 .pagination .activePage {
-    font-weight: bold;
-    border-color: #9e4b25;
-    color: #9e4b25;
+    border-color: #000;
+    color: #000;
 }
 
 /* footer 문의하기 버튼 우측 정렬 */

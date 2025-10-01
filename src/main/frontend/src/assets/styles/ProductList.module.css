@@ -5,8 +5,7 @@
 
 .title {
     font-size: 2.5rem;
-    color: #9e4b25;
-    font-weight: 700;
+    color: #000;
     margin-bottom: 2rem;
 }
 
@@ -44,8 +43,7 @@
 
 .productName {
     font-size: 1.25rem;
-    color: #9e4b25;
-    font-weight: 600;
+    color: #000;
     margin: 0 0 0.5rem 0;
     line-height: 1.2;
 }
@@ -57,34 +55,28 @@
     align-items: center;
     gap: 0.5rem;
     margin-bottom: 0.4rem;
-    font-weight: 600;
 }
 
 .originalPrice {
-    color: #7a5a3a;
+    color: #888;
     text-decoration: line-through;
-    font-weight: 500;
 }
 
 .arrow {
-    color: #9e4b25;
-    font-weight: 700;
+    color: #000;
 }
 
 .discountedPrice {
     color: #d32f2f;
-    font-weight: 700;
 }
 
 .normalPrice {
     color: black;
-    font-weight: 700;
 }
 
 .discountRate {
     font-size: 0.9rem;
     color: #d32f2f;
-    font-weight: 600;
     margin-bottom: 1rem;
 }
 
@@ -100,19 +92,18 @@
     border-radius: 6px;
     padding: 6px 14px;
     font-size: 0.9rem;
-    font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s ease;
     user-select: none;
 }
 
 .detailBtn {
-    background-color: #3673B0; /* 바지 파랑색 */
+    background-color: #000; /* 바지 파랑색 */
     color: white;
 }
 
 .detailBtn:hover {
-    background-color: #2e5c8c;
+    background-color: #333;
 }
 
 .editBtn {

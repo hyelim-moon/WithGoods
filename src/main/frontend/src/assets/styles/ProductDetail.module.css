@@ -3,7 +3,6 @@
     padding: 20px;
     max-width: 1200px;
     margin: 0 auto;
-    font-family: Arial, sans-serif;
 }
 
 /* 상품 wrapper */
@@ -52,7 +51,6 @@
 /* 상품명 */
 .productName {
     font-size: 28px;
-    font-weight: bold;
     margin-bottom: 10px;
 }
 
@@ -80,7 +78,6 @@
 
 .ratingText {
     font-size: 16px;
-    font-weight: 500;
     color: #333;
 }
 
@@ -129,7 +126,7 @@
 /* 상품 더보기 버튼 */
 .showMoreBtn {
     font-size: 16px;
-    color: #9e4b25;
+    color: #000;
     background: none;
     border: none;
     cursor: pointer;
@@ -161,16 +158,16 @@
 .quantityControls button {
     padding: 0.35rem 0.7rem;
     font-size: 0.85rem;
-    background-color: #f9f1ed;
-    border: 1px solid #e0c5b6;
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
     border-radius: 0.4rem;
-    color: #9e4b25;
+    color: #000;
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
 
 .quantityControls button:hover {
-    background-color: #f1e3dc;
+    background-color: #eee;
 }
 
 .quantityControls button:disabled {
@@ -181,7 +178,6 @@
 
 .quantityControls span {
     font-size: 1rem;
-    font-weight: bold;
 }
 
 .stockInfo {
@@ -193,7 +189,6 @@
 /* 총 상품 금액 */
 .totalPrice {
     font-size: 18px;
-    font-weight: bold;
     margin-bottom: 20px;
 }
 
@@ -207,7 +202,7 @@
 .favoriteBtn {
     background: white;
     height: 53px;
-    border: #9e4b25 2px solid;
+    border: #000 2px solid;
 }
 
 .favoriteBtn,
@@ -225,24 +220,25 @@
 
 /* 장바구니 버튼 */
 .addToCartBtn {
-    border: #9e4b25 2px solid;
-    color: #9e4b25;
+    border: #000 2px solid;
+    color: #000;
     background: white;
 }
 
 .addToCartBtn:hover {
     cursor: pointer;
+    background-color: #f5f5f5;
 }
 
 /* 구매하기 버튼 */
 .purchaseBtn {
-    border: #9e4b25 2px solid;
-    background-color: #9e4b25;
+    border: #000 2px solid;
+    background-color: #000;
     color: white;
 }
 
 .purchaseBtn:hover {
-    background-color: #884120;
+    background-color: #333;
 }
 
 .buttonRow button:disabled {
@@ -275,8 +271,8 @@
 }
 
 .tab:hover {
-    color: #9e4b25;
-    border-bottom: 2px solid #9e4b25;
+    color: #000;
+    border-bottom: 2px solid #000;
 }
 
 /* 상세정보 섹션 */
@@ -329,7 +325,6 @@
     margin: 0;
     color: #333;
     font-size: 1.2rem;
-    font-weight: 600;
 }
 
 .noReviews {
@@ -381,7 +376,6 @@
 }
 
 .reviewerName {
-    font-weight: bold;
     color: #333;
     word-wrap: break-word;
     overflow-wrap: break-word;
@@ -405,7 +399,6 @@
 .reviewRatingText {
     font-size: 12px;
     color: #666;
-    font-weight: 500;
 }
 
 .reviewDate {
@@ -457,7 +450,7 @@
 
 /* 리뷰 더보기 버튼 */
 .toggleReviewsBtn {
-    background-color: #9e4b25;
+    background-color: #000;
     color: white;
     padding: 10px 20px;
     border: none;
@@ -467,7 +460,7 @@
 }
 
 .toggleReviewsBtn:hover {
-    background-color: #9e4b25;
+    background-color: #333;
 }
 
 .userId {
@@ -475,9 +468,8 @@
 }
 
 .activeTab {
-    font-weight: bold;
-    color: #9e4b25;
-    border-bottom: 2px solid #9e4b25;
+    color: #000;
+    border-bottom: 2px solid #000;
 }
 
 /*문의하기*/
@@ -489,7 +481,7 @@
 }
 
 .inquiryBtn {
-    background-color: #9e4b25;
+    background-color: #000;
     color: white;
     padding: 8px 16px;
     font-size: 15px;
@@ -500,7 +492,7 @@
 }
 
 .inquiryBtn:hover {
-    background-color: #7e3f1d;
+    background-color: #333;
 }
 
 .noInquiry {
@@ -520,7 +512,7 @@
 /* 한정판 상품 스타일 */
 .limitedEditionInfo,
 .anniversaryInfo {
-    border: 2px solid #9e4b25;
+    border: 2px solid #000;
     border-radius: 8px;
     padding: 0.75rem;
     margin-top: 0.5rem;
@@ -529,8 +521,7 @@
 .limitedHeader,
 .anniversaryHeader {
     font-size: 0.95rem;
-    font-weight: 600;
-    color: #9e4b25;
+    color: #000;
     margin-bottom: 0.5rem;
     display: flex;
     align-items: center;
@@ -554,13 +545,11 @@
 
 .timeValue,
 .stockValue {
-    color: #9e4b25;
-    font-weight: 600;
+    color: #000;
 }
 
 .urgentStock {
     color: #d32f2f !important;
-    font-weight: bold;
     animation: pulse 2s infinite;
 }
 
@@ -633,7 +622,6 @@
 }
 
 .optionTitle {
-    font-weight: bold;
     margin-bottom: 10px;
     color: #333;
 }
@@ -698,14 +686,14 @@
 
 .pwCheckBtn {
     padding: 6px 12px;
-    background-color: #9e4b25;
+    background-color: #000;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
 }
 .pwCheckBtn:hover {
-    background-color: #7e3f1d;
+    background-color: #333;
 }
 
 /* ─── Q&A 리스트 전체 ─── */
@@ -738,7 +726,6 @@
 }
 .qnaTitle {
     font-size: 16px;
-    font-weight: bold;
     color: #333;
 }
 .meta {
@@ -768,15 +755,6 @@
     padding: 6px 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
-    font-size: 14px;
-}
-.pwCheckBtn {
-    padding: 6px 12px;
-    background-color: #9e4b25;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
     font-size: 14px;
 }
 
@@ -813,9 +791,8 @@
 }
 
 .policySection h5 {
-    color: #9e4b25;
+    color: #000;
     font-size: 18px;
-    font-weight: bold;
     margin-bottom: 12px;
     display: flex;
     align-items: center;
@@ -847,7 +824,6 @@
 
 .policySection strong {
     color: #333;
-    font-weight: 600;
 }
 
 .policySection p {
@@ -855,5 +831,3 @@
     line-height: 1.6;
     color: #555;
 }
-
-

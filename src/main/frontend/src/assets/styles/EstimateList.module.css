@@ -5,8 +5,7 @@
 
 .title {
   font-size: 2.5rem;
-  font-weight: 700;
-  color: #9e4b25;
+  color: #000;
   margin-bottom: 1.5rem;
 }
 
@@ -23,7 +22,7 @@
   padding: 1rem 1.5rem;
   cursor: pointer;
   transition: box-shadow 0.3s ease;
-  border: 0.2rem solid #9e4b25;
+  border: 0.2rem solid #000;
 }
 
 .card:hover {
@@ -37,8 +36,7 @@
 }
 
 .label {
-  font-weight: 600;
-  color: #7a5a3a;
+  color: #000;
   min-width: 80px;
 }
 
@@ -49,10 +47,9 @@
 }
 
 .fileLink {
-  color: #3673B0;
+  color: #000;
   text-decoration: underline;
   cursor: pointer;
-  font-weight: 600;
 }
 
 .emptyMessage {

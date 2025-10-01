@@ -2,12 +2,10 @@
     max-width: 800px;
     margin: 0 auto;
     padding: 20px;
-    font-family: Arial, sans-serif;
 }
 
 .title {
     font-size: 24px;
-    font-weight: bold;
     margin-bottom: 30px;
     color: #333;
     text-align: center;
@@ -35,7 +33,6 @@
 
 .productDetails h3 {
     font-size: 18px;
-    font-weight: bold;
     margin-bottom: 10px;
     color: #333;
 }
@@ -60,7 +57,6 @@
 .formGroup label {
     display: block;
     margin-bottom: 8px;
-    font-weight: bold;
     color: #333;
 }
 
@@ -76,8 +72,8 @@
 
 .textarea:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    border-color: #000;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
 }
 
 .input {
@@ -90,8 +86,8 @@
 
 .input:focus {
     outline: none;
-    border-color: #007bff;
-    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    border-color: #000;
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.1);
 }
 
 .buttonGroup {
@@ -120,17 +116,16 @@
 .submitButton {
     padding: 12px 24px;
     border: none;
-    background-color: #007bff;
+    background-color: #000;
     color: white;
     border-radius: 4px;
     cursor: pointer;
     font-size: 14px;
-    font-weight: bold;
     transition: all 0.2s ease;
 }
 
 .submitButton:hover {
-    background-color: #0056b3;
+    background-color: #333;
 }
 
 .loading {
@@ -191,7 +186,6 @@
     padding: 4px 12px;
     border-radius: 16px;
     font-size: 12px;
-    font-weight: 500;
     border: 1px solid #dee2e6;
     box-shadow: 0 1px 3px rgba(0,0,0,0.08);
     display: flex;
@@ -206,14 +200,12 @@
 }
 
 .optionKey {
-    font-weight: 600;
     color: #6c757d;
     font-size: 11px;
 }
 
 .optionValue {
     color: #495057;
-    font-weight: 500;
 }
 
 .fileInput {
@@ -227,8 +219,8 @@
 }
 
 .fileInput:hover {
-    border-color: #9e4b25;
-    background-color: #fef7e6;
+    border-color: #000;
+    background-color: #f5f5f5;
 }
 
 .fileInfo {
@@ -304,5 +296,4 @@
 .ratingText {
     font-size: 14px;
     color: #666;
-    font-weight: 500;
 }
