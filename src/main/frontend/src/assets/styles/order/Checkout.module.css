@@ -1,0 +1,548 @@
+.checkoutContainer {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background-color: #fef7e6;
+  border-radius: 12px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #333;
+}
+
+h1 {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  color: #9e4b25;
+  font-size: 2rem;
+}
+
+.gridForm {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 2rem;
+}
+
+/* 왼쪽 컬럼: 주문자 정보, 배송 정보, 결제 정보 */
+.leftColumn {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+/* 오른쪽 컬럼: 상품 정보 및 결제 금액 */
+.rightColumn {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  height: fit-content;
+  position: sticky;
+  top: 2rem;
+}
+
+.section {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.orderer,
+.shipping,
+.payment {
+  grid-column: 1;
+}
+
+.cart {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+legend {
+  font-weight: 700;
+  font-size: 1.2rem;
+  margin-bottom: 1.5rem;
+  color: #9e4b25;
+  padding-left: 8px;
+  border-left: 4px solid #9e4b25;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 1.2rem;
+  font-weight: 500;
+}
+
+label > span {
+  margin-bottom: 0.4rem;
+  font-size: 0.95rem;
+  color: #555;
+}
+
+input,
+select {
+  padding: 0.7rem;
+  font-size: 1rem;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+input:focus,
+select:focus {
+  border-color: #9e4b25;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(158, 75, 37, 0.1);
+}
+
+.cartItem {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+}
+
+.productInfo {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex: 1;
+}
+
+.productImage {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.productInfo h4 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: #333;
+  font-weight: 600;
+}
+
+.option {
+  margin: 0 0 0.3rem 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.quantity {
+  margin: 0.3rem 0 0 0;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.priceInfo {
+  text-align: right;
+  min-width: 120px;
+}
+
+.price {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.orderSummary {
+  margin-top: 0.5rem;
+}
+
+.totalSummary {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #eee;
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-size: 1rem;
+  color: #666;
+}
+
+.finalAmount {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 2px solid #9e4b25;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: #333;
+}
+
+.finalAmount span:last-child {
+  color: #9e4b25;
+  font-size: 1.3rem;
+}
+
+.submitButton {
+  width: 100%;
+  margin-top: 2rem;
+  background-color: #9e4b25;
+  color: white;
+  border: none;
+  padding: 1.2rem;
+  font-size: 1.2rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+  display: block;
+}
+
+.submitButton:hover {
+  background-color: #7c3b1d;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(158, 75, 37, 0.3);
+}
+
+.submitButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.submitButton:disabled:hover {
+  background-color: #ccc;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 반응형 디자인 */
+@media (max-width: 1024px) {
+  .checkoutContainer {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+
+  .gridForm {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .orderer,
+  .shipping,
+  .payment,
+  .cart {
+    grid-column: 1;
+  }
+
+  .cart {
+    grid-row: auto;
+  }
+
+  .productImage {
+    width: 80px;
+    height: 80px;
+  }
+}
+
+@media (max-width: 600px) {
+  .checkoutContainer {
+    margin: 0;
+    padding: 1rem;
+    border-radius: 0;
+  }
+
+  .cartItem {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .productInfo {
+    width: 100%;
+  }
+
+  .priceInfo {
+    width: 100%;
+    text-align: left;
+  }
+
+  .productImage {
+    width: 70px;
+    height: 70px;
+  }
+
+  .section {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.savedAddresses {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #eee;
+}
+
+.addressSelect {
+  width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  background-color: white;
+  margin-top: 0.4rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.addressSelect:focus {
+  border-color: #9e4b25;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(158, 75, 37, 0.1);
+}
+
+input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+.defaultAddressCheck {
+  margin-top: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.defaultAddressCheck input[type="checkbox"] {
+  width: auto;
+  margin: 0;
+}
+
+.infoBox {
+  background-color: #f8f9fa;
+  padding: 1rem;
+  border-radius: 6px;
+  margin-bottom: 1rem;
+}
+
+.infoRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.infoRow:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.infoRow span:first-child {
+  color: #666;
+  font-weight: 500;
+}
+
+.infoRow span:last-child {
+  color: #333;
+  font-weight: 600;
+}
+
+.addressInputs {
+  display: grid;
+  gap: 1rem;
+}
+
+.zipCodeInput {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.zipCodeInput input {
+  flex: 1;
+}
+
+.zipCodeInput button {
+  padding: 0.7rem 1rem;
+  background-color: #9e4b25;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.zipCodeInput button:hover {
+  background-color: #7c3b1d;
+}
+
+.zipCodeInput button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.error {
+  color: #dc3545;
+  font-size: 0.875rem;
+  margin-top: 0.25rem;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 200px;
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.productOptions {
+  margin: 8px 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.optionItem {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  color: #495057;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid #dee2e6;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.optionItem:hover {
+  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+.optionKey {
+  font-weight: 600;
+  color: #6c757d;
+  font-size: 11px;
+}
+
+.optionValue {
+  font-weight: 500;
+  background: rgba(158, 75, 37, 0.1);
+  color: #9e4b25;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  border: 1px solid rgba(158, 75, 37, 0.2);
+}
+
+/* 쿠폰 관련 스타일 */
+.coupons {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.couponSelection {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.couponSelect {
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 1.5px solid #ddd;
+  border-radius: 6px;
+  background-color: #fff;
+  transition: all 0.2s ease;
+}
+
+.couponSelect:focus {
+  border-color: #9e4b25;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(158, 75, 37, 0.1);
+}
+
+.selectedCoupon {
+  background-color: #f8f4e6;
+  border: 1px solid #d9b99b;
+  border-radius: 6px;
+  padding: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.selectedCoupon p {
+  margin: 0;
+  font-weight: 600;
+  color: #9e4b25;
+}
+
+.removeCouponBtn {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.removeCouponBtn:hover {
+  background-color: #c0392b;
+}
+
+.payment {
+  grid-column: 1;
+  max-height: 400px;
+  overflow-y: auto;
+  padding-right: 1rem;
+}
+
+.payment::-webkit-scrollbar {
+  width: 6px;
+}
+
+.payment::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.payment::-webkit-scrollbar-thumb {
+  background: #9e4b25;
+  border-radius: 3px;
+}
+
+.payment::-webkit-scrollbar-thumb:hover {
+  background: #7c3b1d;
+}
+
+.postCodeBtn {
+  background-color: #7c3b1d;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.postCodeBtn:hover {
+  background-color: #5a2a13;
+}

@@ -59,4 +59,13 @@ public class WishlistService {
                 .map(Wishlist::getProduct)
                 .toList();
     }
+
+    public boolean isProductInWishlist(Integer memberId, Integer productId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("회원 없음"));
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new IllegalArgumentException("상품 없음"));
+
+        return wishlistRepository.existsByMemberAndProduct(member, product);
+    }
 }

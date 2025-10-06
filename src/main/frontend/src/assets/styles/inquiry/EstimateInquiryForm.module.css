@@ -1,0 +1,106 @@
+.container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 2rem 3rem;
+    font-family: 'Noto Sans KR', sans-serif;
+    border: 1px solid #944c21;
+    border-radius: 12px;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.heading {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0.6rem;
+    color: #333;
+    padding-bottom: 0.5rem;
+}
+
+.line {
+    border: none;
+    border-top: 2px solid #944c21;
+    margin: 0.5rem 0;
+}
+
+.rowDouble {
+    display: flex;
+    flex-direction: row;
+    gap: 2rem;
+    margin-bottom: 1.3rem;
+    align-items: flex-start;
+}
+
+.col {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 1.3rem;
+}
+
+input,
+textarea,
+select {
+    padding: 0.9rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: #fafafa;
+    box-sizing: border-box;
+}
+
+input[type="file"] {
+    padding: 0.6rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #fafafa;
+    font-family: inherit;
+}
+
+input:focus,
+textarea:focus,
+select:focus,
+input[type="file"]:focus {
+    outline: none;
+    border: 2px solid #944c21;
+}
+
+label {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0.3rem 0rem 0.6rem 0rem;
+    color: #333;
+}
+
+.buttonRow {
+    text-align: right;
+    margin-top: 2rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
+}
+
+.submitButton,
+.backButton {
+    background-color: #f2f2f2;
+    color: #333;
+    font-weight: bold;
+    font-size: 1rem;
+    padding: 0.75rem 2rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.submitButton:hover,
+.backButton:hover {
+    color: #fff;
+    background-color: #944c21;
+}

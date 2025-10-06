@@ -1,0 +1,132 @@
+.checkoutContainer {
+  max-width: 700px;
+  margin: 3rem auto;
+  padding: 2rem 2.5rem;
+  background-color: #fff;
+  border: 2px solid #9e4b25;
+  border-radius: 10px;
+  font-family: 'Noto Sans KR', sans-serif;
+  color: #4a2c10;
+}
+
+h1 {
+  font-size: 2.3rem;
+  font-weight: 900;
+  color: #9e4b25;
+  margin-bottom: 1.8rem;
+  text-align: center;
+}
+
+p {
+  font-size: 1.1rem;
+  margin: 0.5rem 0;
+  font-weight: 600;
+  color: #6a4c35;
+}
+
+strong {
+  color: #9e4b25;
+}
+
+.section {
+  margin-top: 2rem;
+  padding: 1.4rem 1.6rem;
+  border: 1.8px solid #9e4b25;
+  border-radius: 8px;
+  background-color: #fff2e6;
+}
+
+legend {
+  font-weight: 700;
+  font-size: 1.25rem;
+  margin-bottom: 1rem;
+  color: #9e4b25;
+  padding-left: 6px;
+  border-left: 5px solid #9e4b25;
+}
+
+.cartItem {
+  margin-bottom: 1rem;
+  border-bottom: 1px solid #d9b18c;
+  padding-bottom: 0.7rem;
+  color: #5b3a1a;
+}
+
+.discount {
+  font-weight: 700;
+  color: #d43f3a;
+  margin-top: 0.2rem;
+  font-size: 1rem;
+}
+
+h3 {
+  margin-top: 1.2rem;
+  font-size: 1.6rem;
+  font-weight: 900;
+  color: #9e4b25;
+}
+
+.submitBtn {
+  margin-top: 2.5rem;
+  width: 100%;
+  padding: 1rem 0;
+  background-color: #9e4b25;
+  border: none;
+  border-radius: 30px;
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submitBtn:hover {
+  background-color: #7c3b1d;
+}
+
+.productInfo {
+    margin-bottom: 10px;
+}
+
+.productOptions {
+    margin: 8px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.optionItem {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #495057;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+}
+
+.optionItem:hover {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
+}
+
+.optionKey {
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 11px;
+}
+
+.optionValue {
+    font-weight: 500;
+    background: rgba(158, 75, 37, 0.1);
+    color: #9e4b25;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    border: 1px solid rgba(158, 75, 37, 0.2);
+}

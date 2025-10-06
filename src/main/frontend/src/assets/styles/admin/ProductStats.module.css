@@ -1,0 +1,156 @@
+.container {
+  max-width: 100%;
+  margin: 0 auto;
+  padding: 1.25rem 13rem 0rem 13rem;
+  color: #3a3a3a;
+  border-radius: 12px;
+}
+
+.titleSection {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.title {
+  font-size: 28px;
+  color: #000;
+}
+
+.filterButton {
+  background: transparent;
+  border: 2px solid #000;
+  color: #000;
+  padding: 8px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: all 0.3s ease;
+  font-size: 16px;
+}
+
+.filterButton:first-child {
+  margin-left: 0;
+}
+
+.filterButton:hover {
+  background: #000;
+  color: white;
+}
+
+.activeBtn {
+  background: #000;
+  color: white;
+  cursor: default;
+}
+
+.activeBtn:hover {
+  background: #000;
+  color: white;
+}
+
+.cardsSection {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 35px;
+  flex-wrap: wrap;
+}
+
+.card {
+  background: white;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  border-radius: 12px;
+  flex: 1 1 20%;
+  min-width: 150px;
+  padding: 20px 25px;
+  text-align: center;
+  transition: transform 0.3s ease;
+  border: 1.5px solid #dcdcdc;
+}
+
+.card h3 {
+  font-size: 16px;
+  color: #555;
+  margin-bottom: 12px;
+}
+
+.card p {
+  font-size: 22px;
+  color: #000;
+}
+
+.positive {
+  color: #00a676;
+}
+
+.negative {
+  color: #e85a4f;
+}
+
+.chartSection {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.chartSectionTwoColumns {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr); /* 2열 고정 */
+  gap: 24px;
+  margin-bottom: 40px;
+}
+
+.chartBox {
+  background: white;
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 1.5px solid #dcdcdc;
+}
+
+.chartBox h2 {
+  color: #000;
+  margin-bottom: 18px;
+  font-size: 20px;
+  text-align: center;
+}
+
+.summaryBox {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  flex: 1 1 auto;
+  min-width: auto;
+  margin-bottom: 40px;
+}
+
+@media screen and (max-width: 900px) {
+  .cardsSection,
+  .chartSection,
+  .chartSectionTwoColumns {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .card {
+    flex: 1 1 100%;
+    margin-bottom: 15px;
+  }
+
+  .chartBox, .summaryBox {
+    flex: 1 1 100%;
+    min-width: auto;
+  }
+
+  .summaryBox {
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,237 @@
+/* InquiryPage.module.css */
+
+.container {
+    display: flex;
+    flex-direction: column;
+    height: 80vh;
+    padding: 1.5rem 4rem;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+}
+
+.title {
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.7rem 0 1rem 1.3rem;
+}
+
+.tabContainer {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.tab {
+    font-size: 1.3rem;
+    padding: 0.5rem 1.7rem;
+    border: 1px solid #333;
+    background-color: white;
+    border-radius: 6px;
+    color: black;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.tab:hover {
+    background-color: #f4f4f4;
+}
+
+.active {
+    background-color: #000;
+    color: white;
+    border: none;
+}
+
+.line {
+    border: none;
+    border-top: 3px solid #000;
+    margin: 0.5rem 0;
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    position: relative;
+    padding-top: 0.5rem;
+}
+
+.noInquiry {
+    font-size: 1.5rem;
+    color: #777;
+    margin-top: 2rem;
+}
+
+.footerButtonWrapper {
+    text-align: right;      /* 오른쪽으로 붙이고 싶다면 */
+    margin: 16px 0;         /* 상하 여백 */
+}
+
+/* “문의하기” 버튼 */
+.inquiryButton {
+    background-color: #ffffff;
+    color: #333;
+    padding: 1rem 1.3rem;
+    border: 1px solid #000;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+.inquiryButton:hover {
+    color: #fff;
+    background-color: #000;
+}
+
+/* ======================================
+   테이블 기본 스타일
+   ====================================== */
+.inquiryTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 2rem;
+}
+
+.inquiryTable th {
+    padding: 0.75rem 0.5rem;
+    font-size: 1rem;
+    text-align: center;
+    color: #444;
+    border-bottom: 2px solid #ddd;
+}
+
+.inquiryTable td {
+    padding: 0.85rem 0.5rem;
+    font-size: 0.95rem;
+    color: #333;
+    text-align: center;
+    border-bottom: 1px solid #eee;
+}
+
+.inquiryTable tr:nth-child(even) {
+    background-color: #fafafa;
+}
+
+/* ────────────────────────────────────
+   개별 컬럼 너비 및 정렬
+──────────────────────────────────── */
+.headerNumber {
+    width: 8%;
+}
+
+.headerProduct {
+    width: 20%;
+    text-align: center;  /* 상품정보 열 전체를 가운데 정렬 */
+}
+
+.headerTitle {
+    width: 40%;
+    text-align: left;    /* 제목은 왼쪽 정렬 유지 */
+}
+
+.headerAuthor {
+    width: 12%;
+}
+
+.headerDate {
+    width: 12%;
+}
+
+.headerViews {
+    width: 8%;
+}
+
+/* 행 호버 효과 */
+.inquiryTable tbody tr:hover {
+    background-color: #f5f5f5;
+}
+
+/* ======================================
+   “상품정보” 열: 오직 “문의 유형”만 가운데 정렬
+   ====================================== */
+.inquiryTypeOnly {
+    font-size: 0.95rem;
+    color: #555;
+    /* 가운데 정렬을 위해 텍스트 정렬과 flex 속성 사용 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+}
+
+/* ======================================
+   제목 옆 자물쇠 아이콘
+   ====================================== */
+.iconLock {
+    margin-right: 0.3rem;
+    color: #555;
+}
+
+/* ======================================
+   제목 안에 들어가는 NEW 뱃지
+   ====================================== */
+.badgeNew {
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.1rem 0.3rem;
+    background-color: #000;
+    color: white;
+    font-size: 0.7rem;
+    border-radius: 3px;
+}
+
+/* 페이지네이션 버튼 묶음 */
+.pagination {
+    text-align: center;
+    margin: 16px 0;
+}
+
+.pagination button {
+    margin: 0 4px;
+    padding: 4px 8px;
+    border: 1px solid #ddd;
+    background: white;
+    cursor: pointer;
+}
+
+.pagination button:hover {
+    background: #f5f5f5;
+}
+
+.pagination .activePage {
+    border-color: #000;
+    color: #000;
+}
+
+/* footer 문의하기 버튼 우측 정렬 */
+.footerButtonWrapper {
+    text-align: right;
+    margin-top: 8px;
+    margin-bottom: 16px;
+}
+
+/* 반응형: 화면 좁아질 때 */
+@media (max-width: 600px) {
+    .container {
+        padding: 1rem 2rem;
+    }
+    .inquiryTable th,
+    .inquiryTable td {
+        font-size: 0.85rem;
+        padding: 0.6rem 0.3rem;
+    }
+    .inquiryButton {
+        bottom: 0.5rem;
+        right: 0.5rem;
+        padding: 0.8rem 1rem;
+        font-size: 0.9rem;
+    }
+}

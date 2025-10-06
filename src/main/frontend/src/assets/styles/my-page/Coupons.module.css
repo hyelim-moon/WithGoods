@@ -1,0 +1,118 @@
+.couponsContainer {
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 0 20px;
+    font-family: 'Noto Sans KR', sans-serif;
+}
+
+.title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    text-align: center;
+    color: #7c3b1d; /* 갈색 포인트 */
+}
+
+.noCoupons {
+    text-align: center;
+    color: #999;
+    font-size: 1.1rem;
+}
+
+.error {
+    text-align: center;
+    color: #e74c3c;
+    font-size: 1.1rem;
+}
+
+.couponList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.couponItem {
+    position: relative;
+    background: #fff7eb;
+    border: 2px solid #d9b99b;
+    border-radius: 10px;
+    padding: 20px 25px;
+    margin-bottom: 16px;
+    box-shadow: 2px 2px 6px rgba(124, 59, 29, 0.15);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+}
+
+.couponItem:hover {
+    transform: translateY(-3px);
+    box-shadow: 4px 4px 10px rgba(124, 59, 29, 0.3);
+}
+
+.couponTitle {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: #7c3b1d;
+}
+
+.couponDesc {
+    font-size: 1rem;
+    margin-bottom: 6px;
+    color: #5a3e23;
+}
+
+.couponExpiry {
+    font-size: 0.9rem;
+    color: #925e3d;
+}
+
+.usedBadge {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    background: #c2a488;
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 3px 8px;
+    border-radius: 8px;
+}
+
+.availableBadge {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    background: #27ae60;
+    color: white;
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 3px 8px;
+    border-radius: 8px;
+}
+
+.used {
+    opacity: 0.5;
+}
+
+.deleteButton {
+    position: absolute;
+    bottom: 12px;
+    right: 15px;
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.deleteButton:hover {
+    background: #c0392b;
+}
+
+.deleteButton:active {
+    transform: translateY(1px);
+} 

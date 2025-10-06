@@ -7,9 +7,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
+public interface WishlistRepository extends JpaRepository<Wishlist, Integer> {
+    List<Wishlist> findAllByMember(Member member);
     boolean existsByMemberAndProduct(Member member, Product product);
     void deleteByMemberAndProduct(Member member, Product product);
-    List<Wishlist> findAllByMember(Member member);
 }
 

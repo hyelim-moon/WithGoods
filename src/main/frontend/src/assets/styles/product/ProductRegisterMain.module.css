@@ -1,0 +1,28 @@
+/* ProductRegisterMain.module.css */
+
+.productNav {
+  display: flex;
+  gap: 20px;
+  padding: 12px 24px;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.productNav a {
+  text-decoration: none;
+  color: #5a3b20;
+  font-weight: 600;
+  padding: 8px 16px;
+  border-bottom: 2px solid transparent; /* 기본적으로 밑줄이 없도록 설정 */
+  transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.productNav a:hover {
+  color: #9e4b25; /* 마우스 오버 시 글자색 변경 */
+  border-color: #9e4b25; /* 밑줄 색상 변경 */
+}
+
+.productNav .active {
+  color: #9e4b25;
+  border-color: #9e4b25; /* 활성화된 탭에 밑줄 추가 */
+  font-weight: bold; /* 활성화된 탭 강조 */
+}

@@ -30,6 +30,9 @@ public class Cart {
     @Column(name = "product_Quantity", nullable = false)
     private Integer productQuantity;
 
+    @Column(name = "product_Option")
+    private String productOption;
+
     @Column(name = "added_Date")
     private LocalDateTime addedDate;
 
