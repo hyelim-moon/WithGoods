@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../../assets/styles/admin/AdminDashboard.module.css";
-import memberStyles from "../../assets/styles/admin/AdminMemberManagement.module.css";
+import memberStyles from "../../assets/styles/admin/MemberManagement.module.css";
 import { FiHome, FiUsers, FiPackage, FiShoppingCart, FiFileText, FiBell, FiUser, FiLogOut } from "react-icons/fi";
 import axios from "axios";
 import { useAuth } from "../../context/AuthContext";
