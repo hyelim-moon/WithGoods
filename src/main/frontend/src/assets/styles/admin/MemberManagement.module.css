@@ -1,12 +1,13 @@
 .container {
     padding: 20px;
     background-color: #f9f9f9;
+    transition: margin-right 0.3s ease; /* 사이드 패널 열릴 때 컨테이너 이동 애니메이션 */
 }
 
 .statsContainer {
     display: flex;
     gap: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 60px; /* 간격 더 증가 */
 }
 
 .statBox {
@@ -16,6 +17,24 @@
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     flex: 1;
     text-align: center;
+    cursor: pointer; /* 클릭 가능하도록 커서 변경 */
+    transition: all 0.2s ease-in-out;
+}
+
+.statBox:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.statBox:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.activeStatBox {
+    border: 2px solid #007bff;
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.2);
+    background-color: #e7f3ff;
 }
 
 .statBox h2 {
@@ -50,6 +69,25 @@
     font-size: 14px;
 }
 
+.searchBar input:focus {
+    outline: none;
+    border-color: #ccc;
+    box-shadow: none;
+}
+
+.searchCondition {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    background-color: white;
+}
+
+.searchCondition:focus {
+    outline: none;
+    box-shadow: none;
+}
+
 .searchBar button,
 .addMemberBtn {
     padding: 8px 16px;
@@ -61,8 +99,47 @@
     font-size: 14px;
 }
 
+.searchBar button:focus,
+.addMemberBtn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
 .addMemberBtn {
     background-color: #28a745;
+}
+
+.actionButtons {
+    display: flex;
+    gap: 10px;
+}
+
+.distributeCouponBtn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: #ffc107;
+    color: #333;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.distributeCouponBtn:hover {
+    background-color: #e0a800;
+}
+
+.distributeCouponBtn:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    color: #666666;
+}
+
+.distributeCouponBtn:focus {
+    outline: none;
+    box-shadow: none;
 }
 
 .memberTable {
@@ -92,6 +169,339 @@
     cursor: pointer;
 }
 
+.memberTable input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.memberRow {
+    cursor: pointer;
+}
+
+.memberRow:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.loading, .error {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+}
+
+/* Coupon Distribution Modal Styles (kept for now) */
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    width: 400px;
+    max-width: 90%;
+    text-align: center;
+    position: relative;
+}
+
+.modalContent h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.4em;
+}
+
+.modalContent p {
+    margin-bottom: 15px;
+    font-size: 1.1em;
+    color: #555;
+}
+
+.couponSelect {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.couponSelect:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.modalPrimaryBtn,
+.modalSecondaryBtn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+}
+
+.modalPrimaryBtn {
+    background-color: #007bff;
+    color: white;
+}
+
+.modalPrimaryBtn:hover {
+    background-color: #0056b3;
+}
+
+.modalPrimaryBtn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.modalSecondaryBtn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.modalSecondaryBtn:hover {
+    background-color: #5a6268;
+}
+
+.modalSecondaryBtn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Side Panel Styles */
+.sidePanelContainer {
+    position: fixed;
+    top: 0;
+    right: -1000px; /* 초기에는 화면 밖으로 숨김 */
+    width: 1000px;
+    height: 100%;
+    background-color: #fff;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transition: right 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidePanelOpen {
+    right: 0; /* 열렸을 때 화면 안으로 */
+}
+
+.sidePanelHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    background-color: #f8f9fa;
+}
+
+.sidePanelHeader h3 {
+    margin: 0;
+    font-size: 1.3em;
+    color: #333;
+}
+
+.sidePanelCloseBtn {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #666;
+}
+
+.sidePanelCloseBtn:hover {
+    color: #333;
+}
+
+.sidePanelCloseBtn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.sidePanelBody {
+    padding: 20px;
+    overflow-y: auto;
+    flex-grow: 1;
+}
+
+.sidePanelRowGroup {
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+    margin-bottom: 10px;
+}
+
+.sidePanelRowGroup .sidePanelItem {
+    flex: 1;
+    margin-top: 0;
+}
+
+.sidePanelItem {
+    margin-top: 10px;
+    margin-bottom: 30px; /* 간격 증가 */
+    padding: 12px 15px;
+    font-size: 1em;
+    color: #333;
+    display: flex;
+    align-items: center;
+    background-color: #f8f8f8;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.couponItem {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.couponItem strong {
+    margin-bottom: 5px; /* 레이블과 목록 사이 간격 */
+}
+
+.orderHistoryItem {
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.orderHistoryItem strong {
+    margin-bottom: 5px; /* 레이블과 목록 사이 간격 */
+}
+
+.sidePanelBody > *:first-child {
+    margin-top: 0;
+}
+
+.sidePanelItem strong {
+    display: inline-block;
+    min-width: 70px;
+    max-width: 120px;
+    color: #555;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-right: 10px;
+}
+
+.sidePanelItem span {
+    flex-grow: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #222;
+    font-weight: 500;
+}
+
+.couponList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    flex-grow: 1;
+    margin-top: 5px; /* 쿠폰 목록 상단 간격 추가 */
+}
+
+.couponList li {
+    background-color: #e0e0e0;
+    color: #333;
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-size: 0.9em;
+}
+
+.orderList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    margin-top: 5px; /* 주문 목록 상단 간격 추가 */
+}
+
+.orderListItem {
+    background-color: #f0f0f0;
+    padding: 10px 15px;
+    border-radius: 5px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    font-size: 0.9em;
+    color: #444;
+}
+
+.orderListItem span {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+}
+
+.sidePanelActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.editMemberBtn,
+.deleteMemberBtn {
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 500;
+    transition: background-color 0.2s ease;
+}
+
+.editMemberBtn:hover {
+    background-color: #0056b3;
+}
+
+.editMemberBtn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.deleteMemberBtn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.deleteMemberBtn:hover {
+    background-color: #c82333;
+}
+
+.deleteMemberBtn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* Main content adjustment when panel is open */
+.mainWithPanel {
+    margin-right: 1000px; /* 사이드 패널 너비만큼 메인 컨텐츠 이동 */
+}
+
+/* 기존 모달 관련 스타일 중 사용하지 않는 것들은 제거 */
 .viewOrdersBtn {
     padding: 6px 12px;
     border: 1px solid #007bff;
@@ -106,8 +516,218 @@
     color: white;
 }
 
-.loading, .error {
-    text-align: center;
-    padding: 40px;
-    font-size: 18px;
+.productOptions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.optionItem {
+    background: #ffffff;
+    color: #495057;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 500;
+    border: 1px solid #f0f0f0;
+    box-shadow: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-right: 5px;
+    display: inline-block;
+}
+
+.optionItem:hover {
+    background: #ffffff;
+    box-shadow: none;
+}
+
+.optionKey {
+    font-weight: 600;
+    color: #6c757d;
+    font-size: 11px;
+}
+
+.optionValue {
+    font-weight: 500;
+    background: none;
+    color: #333;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    border: none;
+}
+
+/* New styles for Order History Modal */
+.viewOrderHistoryBtn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.2s ease;
+}
+
+.viewOrderHistoryBtn:hover {
+    background-color: #0056b3;
+}
+
+.viewOrderHistoryBtn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+}
+
+.modalContent h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.5rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.orderListModal {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.orderListItemModal {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 0.95rem;
+}
+
+.orderListItemModal span {
+    color: #555;
+}
+
+.orderListItemModal span:first-child {
+    font-weight: bold;
+    color: #333;
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.modalPrimaryBtn, .modalSecondaryBtn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.2s ease;
+}
+
+.modalPrimaryBtn {
+    background-color: #007bff;
+    color: white;
+}
+
+.modalPrimaryBtn:hover {
+    background-color: #0056b3;
+}
+
+.modalSecondaryBtn {
+    background-color: #6c757d;
+    color: white;
+}
+
+.modalSecondaryBtn:hover {
+    background-color: #5a6268;
+}
+
+/* 회원 추가/수정 모달 폼 그룹 스타일 */
+.formGroup {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.formGroup label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #555;
+}
+
+.formGroup input[type="text"],
+.formGroup input[type="email"],
+.formGroup input[type="tel"],
+.formGroup select {
+    width: calc(100% - 22px); /* padding 고려 */
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+
+.formGroup input[type="text"]:focus,
+.formGroup input[type="email"]:focus,
+.formGroup input[type="tel"]:focus,
+.formGroup select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.formGroup input[type="checkbox"] {
+    margin-left: 0;
+    transform: scale(1.2);
+    margin-right: 8px;
+    vertical-align: middle;
+}
+
+.formGroup input[type="checkbox"]:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+/* 모달 내 버튼 스타일 */
+.modalContent .modalPrimaryBtn,
+.modalContent .modalSecondaryBtn {
+    width: auto;
+    padding: 10px 20px;
+}
+
+select:focus {
+    outline: none;
+    box-shadow: none;
 }

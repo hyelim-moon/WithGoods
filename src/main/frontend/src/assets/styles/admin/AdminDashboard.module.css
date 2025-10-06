@@ -17,30 +17,6 @@ body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI
     background: var(--bg);
 }
 
-/* Sidebar */
-.sidebar {
-    background: #fff;
-    border-right: 1px solid var(--border);
-    padding: 20px 16px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-.logoRow { display: flex; align-items: center; gap: 10px; }
-.logoRow img {
-    width: 200px;
-    height: auto;
-}
-.logo { width: 40px; height: 40px; display: grid; place-items: center; font-size: 22px; border-radius: 12px; background: #f5f5f5; }
-.brand { font-weight: 800; letter-spacing: .5px; }
-.userRow { margin-top: 8px; padding: 10px 12px; background: #f3f4f6; border-radius: 10px; font-weight: 600; display:flex; align-items:center; gap:6px; }
-.nav { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
-.navItem { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; color: var(--text); cursor: pointer; }
-.navItem:hover { background: #f5f7ff; }
-.active { background: #edf2ff; color: var(--brand); }
-.navIcon { width: 22px; text-align: center; font-size: 18px; }
-.navLabel { font-weight: 600; }
-
 /* Main */
 .main { padding: 22px; }
 .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
@@ -140,21 +116,4 @@ body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI
 }
 @media (max-width: 640px) {
     .iconBtnLabel { display: none; }
-}
-
-/* 사이드바 하단 로그아웃 버튼(선택) */
-.sidebarLogoutBtn {
-    margin-top: auto;
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid var(--border);
-    background: #fff;
-    cursor: pointer;
-    font-weight: 700;
-}
-.sidebarLogoutBtn:hover {
-    background: #fef2f2;
 }

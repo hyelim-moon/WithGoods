@@ -43,6 +43,7 @@ import MyReviews from './components/my-page/MyReviews';
 import ReviewEdit from './components/my-page/ReviewEdit';
 import AdminOrderManagement from './components/admin/AdminOrderManagement';
 import MemberManagement from './components/admin/MemberManagement';
+import CouponManagement from './components/admin/CouponManagement'; // CouponManagement import
 import Coupons from './components/my-page/Coupons';
 
 // 로그인 필요 보호 라우트
@@ -65,7 +66,7 @@ const ProtectedAdminRoute = ({ children }) => {
 function AppContent() {
     const location = useLocation();
     // 관리자 대시보드에서도 헤더/네비 숨김
-    const hideLayout = ['/login', '/signup', '/Forgot', '/admin/dashboard', '/admin/members'].includes(location.pathname);
+    const hideLayout = ['/login', '/signup', '/Forgot', '/admin/dashboard', '/admin/members', '/admin/coupons'].includes(location.pathname); // /admin/coupons 추가
 
     const [hello, setHello] = React.useState('');
     const [error, setError] = React.useState('');
@@ -178,6 +179,14 @@ function AppContent() {
                     element={
                         <ProtectedAdminRoute>
                             <MemberManagement />
+                        </ProtectedAdminRoute>
+                    }
+                />
+                <Route
+                    path="/admin/coupons"
+                    element={
+                        <ProtectedAdminRoute>
+                            <CouponManagement />
                         </ProtectedAdminRoute>
                     }
                 />

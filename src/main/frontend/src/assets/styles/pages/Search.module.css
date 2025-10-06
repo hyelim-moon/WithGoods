@@ -48,16 +48,6 @@
     transition: all 0.2s ease-in-out;
 }
 
-.tabButton:hover {
-    color: #7c3b1d;
-}
-
-.activeTab {
-    color: #7c3b1d;
-    font-weight: bold;
-    border-bottom: 3px solid #7c3b1d;
-}
-
 .emptyMessage {
     padding: 2rem;
     font-size: 1rem;

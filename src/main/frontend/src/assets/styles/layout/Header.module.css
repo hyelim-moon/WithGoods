@@ -1,3 +1,7 @@
+:root {
+    --brand: #4f46e5; /* 브랜드 색상 정의 */
+}
+
 .mainHeader {
     width: 100%;
     padding: 0.8rem 1.5rem 0.8rem 0.5rem;
@@ -154,6 +158,12 @@
     background-color: #ffffff;
     color: #333;
     height: 40px;
+}
+
+.searchBox input:focus {
+    outline: none !important;
+    border-color: inherit;
+    box-shadow: none;
 }
 
 .searchBox button {
@@ -403,6 +413,7 @@
     top: 20px;
     right: 20px;
     width: 320px;
+    max-height: 400px;
     background: white;
     border-radius: 10px;
     box-shadow: 0 5px 20px rgba(0, 0, 0, 0.15);

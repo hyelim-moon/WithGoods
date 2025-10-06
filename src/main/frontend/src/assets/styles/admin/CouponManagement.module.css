@@ -1,0 +1,87 @@
+.container {
+    padding: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.toolbar h2 {
+    margin: 0;
+    font-size: 1.5em;
+    color: #333;
+}
+
+.createCouponBtn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.createCouponBtn:hover {
+    background-color: #0056b3;
+}
+
+.couponTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.couponTable th,
+.couponTable td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
+
+.couponTable th {
+    background-color: #f2f2f2;
+    font-weight: bold;
+    color: #555;
+}
+
+.couponTable tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.couponTable tr:hover {
+    background-color: #f1f1f1;
+}
+
+.actionBtn {
+    background-color: #6c757d;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+    font-size: 0.85em;
+}
+
+.actionBtn:hover {
+    background-color: #5a6268;
+}
+
+.loading,
+.error {
+    text-align: center;
+    padding: 20px;
+    font-size: 1.1em;
+    color: #666;
+}
+
+.error {
+    color: #dc3545;
+}

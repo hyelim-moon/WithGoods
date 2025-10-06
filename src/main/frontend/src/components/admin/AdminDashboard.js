@@ -6,21 +6,10 @@ import {
     PieChart, Pie, Cell
 } from "recharts";
 import {
-    FiHome, FiUsers, FiPackage, FiShoppingCart, FiFileText, FiBell,
-    FiUser, FiBox, FiCreditCard, FiTrendingUp, FiPercent, FiLogOut
+    FiUsers, FiShoppingCart, FiBell,
+    FiBox, FiCreditCard, FiTrendingUp, FiPercent
 } from "react-icons/fi";
-import axios from "axios";
-import { useAuth } from "../../context/AuthContext";
-import logo from '../../assets/images/logo.png';
-
-function SidebarItem({ icon, label, active, onClick }) {
-    return (
-        <div className={`${styles.navItem} ${active ? styles.active : ""}`} onClick={onClick}>
-            <span className={styles.navIcon}>{icon}</span>
-            <span className={styles.navLabel}>{label}</span>
-        </div>
-    );
-}
+import Sidebar from "./Sidebar"; // Sidebar 컴포넌트 import
 
 function StatCard({ title, value, icon }) {
     return (
@@ -135,41 +124,9 @@ function RecentActivity() {
 }
 
 function AdminDashboard() {
-    const navigate = useNavigate();
-    const { applyUser } = useAuth();
-
-    const handleLogout = async () => {
-        try {
-            await axios.post('http://localhost:8080/logout', {}, { withCredentials: true });
-        } catch (e) {
-            // 서버 응답 실패해도 클라이언트 상태는 정리
-            console.warn('logout call failed, but clearing client state');
-        } finally {
-            // 전역 상태/스토리지 정리
-            applyUser(null);
-            // 혹시 사용하는 곳이 있으면 커스텀 이벤트도 발행
-            window.dispatchEvent(new Event('auth:logout'));
-            navigate('/', { replace: true });
-        }
-    };
-
     return (
         <div className={styles.app}>
-            {/* Sidebar */}
-            <aside className={styles.sidebar}>
-                <div className={styles.logoRow}>
-                    <img src={logo} alt="WITH GOODS Logo" />
-                </div>
-                <div className={styles.userRow}><FiUser /> &nbsp;000님</div>
-
-                <nav className={styles.nav}>
-                    <SidebarItem icon={<FiHome />} label="대시보드" active onClick={() => navigate('/admin/dashboard')} />
-                    <SidebarItem icon={<FiUsers />} label="회원관리" onClick={() => navigate('/admin/members')} />
-                    <SidebarItem icon={<FiShoppingCart />} label="주문관리" />
-                    <SidebarItem icon={<FiPackage />} label="상품관리" />
-                    <SidebarItem icon={<FiFileText />} label="견적관리" />
-                </nav>
-            </aside>
+            <Sidebar activeLabel="대시보드" />
 
             {/* Main */}
             <main className={styles.main}>
@@ -178,10 +135,6 @@ function AdminDashboard() {
                     <div className={styles.headerActions}>
                         <button className={styles.iconBtn} aria-label="알림">
                             <FiBell />
-                        </button>
-                        <button className={styles.iconBtn} onClick={handleLogout}>
-                            <FiLogOut />
-                            <span className={styles.iconBtnLabel}>로그아웃</span>
                         </button>
                     </div>
                 </header>

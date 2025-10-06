@@ -1,0 +1,46 @@
+/* Sidebar */
+.sidebar {
+    background: #fff;
+    border-right: 1px solid var(--border);
+    padding: 20px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+.logoRow { display: flex; align-items: center; gap: 10px; }
+.logoRow img {
+    width: 200px;
+    height: auto;
+}
+.userRow { margin-top: 8px; padding: 10px 12px; background: #f3f4f6; border-radius: 10px; font-weight: 600; display:flex; align-items:center; justify-content: space-between; }
+.userActions { display: flex; align-items: center; gap: 8px; }
+.nav { margin-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.navItem { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; color: var(--text); cursor: pointer; }
+.navItem:hover { background: #f5f7ff; }
+.active { background: #edf2ff; color: var(--brand); }
+.navIcon { width: 22px; text-align: center; font-size: 18px; }
+.navLabel { font-weight: 600; }
+
+/* 아이콘 버튼 공통 */
+.iconBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #fff;
+    cursor: pointer;
+    font-weight: 700;
+}
+.iconBtn:hover {
+    background: #f5f7ff;
+}
+
+/* 좁은 화면에선 텍스트 라벨 숨김 */
+.iconBtnLabel {
+    margin-left: 2px;
+}
+@media (max-width: 640px) {
+    .iconBtnLabel { display: none; }
+}
