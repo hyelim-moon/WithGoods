@@ -11,9 +11,13 @@ import {
 } from "react-icons/fi";
 import Sidebar from "./Sidebar"; // Sidebar 컴포넌트 import
 
-function StatCard({ title, value, icon }) {
+function StatCard({ title, value, icon, onClick }) {
     return (
-        <div className={styles.statCard}>
+        <div
+            className={styles.statCard}
+            onClick={onClick}                        // ✅ 클릭 이벤트 추가
+            style={{ cursor: onClick ? "pointer" : "default" }}  // ✅ 클릭 가능 표시
+        >
             <div className={styles.statHeader}>
                 <span className={styles.statTitle}>{title}</span>
                 <span className={styles.statIcon}>{icon}</span>
@@ -39,15 +43,15 @@ const pieData = [
     { name: "키링", value: 13 },
     { name: "가전", value: 10 },
 ];
-const PIE_COLORS = ["#fca5a5", "#93c5fd", "#fdba74", "#86efac", "#c4b5fd"];
+const PIE_COLORS = ["#fca5a5", "#fdba74", "#86efac", "#93c5fd", "#c4b5fd"];
 
 function LineChartCard() {
     return (
         <div className={styles.chartCard}>
             <div className={styles.chartTitle}>월별 주문 현황</div>
             <div className={styles.chartBody}>
-                <ResponsiveContainer width="100%" height={220}>
-                    <LineChart data={lineData} margin={{ top: 5, right: 16, left: 0, bottom: 0 }}>
+                <ResponsiveContainer width="100%" height={500}>
+                    <LineChart data={lineData} margin={{ top: 5, right: 15, left: 0, bottom: 0 }}>
                         <CartesianGrid stroke="#eee" />
                         <XAxis dataKey="month" />
                         <YAxis />
@@ -65,7 +69,7 @@ function PieChartCard() {
         <div className={styles.chartCard}>
             <div className={styles.chartTitle}>상품별 매출</div>
             <div className={styles.chartBody}>
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={500}>
                     <PieChart>
                         <Pie
                             data={pieData}
@@ -73,8 +77,8 @@ function PieChartCard() {
                             nameKey="name"
                             cx="45%"
                             cy="50%"
-                            outerRadius={80}
-                            innerRadius={45}
+                            outerRadius={230}
+                            // innerRadius={100}
                             label
                         >
                             {pieData.map((_, i) => (
@@ -124,6 +128,8 @@ function RecentActivity() {
 }
 
 function AdminDashboard() {
+    const navigate = useNavigate();
+
     return (
         <div className={styles.app}>
             <Sidebar activeLabel="대시보드" />
@@ -141,7 +147,7 @@ function AdminDashboard() {
 
                 {/* Top stats */}
                 <section className={styles.statsGrid}>
-                    <StatCard title="총 회원 수" value="1,234" icon={<FiUsers />} />
+                    <StatCard title="총 회원 수" value="1,234" icon={<FiUsers />} onClick={() => navigate("/admin/members")}/>
                     <StatCard title="이번 달 주문" value="123" icon={<FiShoppingCart />} />
                     <StatCard title="총 상품 수" value="111" icon={<FiBox />} />
                     <StatCard title="이번 달 매출" value="1,394,321" icon={<FiCreditCard />} />
