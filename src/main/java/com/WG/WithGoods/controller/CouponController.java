@@ -3,7 +3,6 @@ package com.WG.WithGoods.controller;
 import com.WG.WithGoods.dto.CouponDTO;
 import com.WG.WithGoods.dto.MemberCouponDto;
 import com.WG.WithGoods.entity.Coupon;
-import com.WG.WithGoods.entity.MemberCoupon;
 import com.WG.WithGoods.service.CouponService;
 import com.WG.WithGoods.service.MemberCouponService;
 import lombok.RequiredArgsConstructor;
@@ -34,8 +33,14 @@ public class CouponController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> delete(@PathVariable Integer id) {
-        couponService.deleteCoupon(id);
-        return ResponseEntity.ok("쿠폰 삭제 완료: ID " + id);
+        try {
+            couponService.deleteCoupon(id);
+            return ResponseEntity.ok("쿠폰 삭제 완료: ID " + id);
+        } catch (org.springframework.dao.DataIntegrityViolationException e) {
+            // 발급된 회원 쿠폰으로 인해 FK 제약 위반 시 비활성화로 대체
+            couponService.deactivateCoupon(id);
+            return ResponseEntity.ok("발급 이력이 있어 삭제 대신 비활성화했습니다: ID " + id);
+        }
     }
 
     @GetMapping("/{id}")
@@ -76,50 +81,67 @@ public class CouponController {
         }
     }
 
-    // 테스트 데이터 생성
-    @PostMapping("/create-test-data")
-    public ResponseEntity<String> createTestData() {
+    // 쿠폰 발급 수량 조회
+    @GetMapping("/{id}/issued-count")
+    public ResponseEntity<Long> getIssuedCount(@PathVariable Integer id) {
+        Long count = couponService.getIssuedCount(id);
+        return ResponseEntity.ok(count);
+    }
+
+    // 특정 쿠폰을 보유한 회원 목록 조회
+    @GetMapping("/{id}/members")
+    public ResponseEntity<List<MemberCouponDto>> getCouponMembers(@PathVariable Integer id) {
+        List<MemberCouponDto> members = memberCouponService.getCouponMembers(id);
+        return ResponseEntity.ok(members);
+    }
+
+    // 만료된 쿠폰들 일괄 삭제
+    @DeleteMapping("/cleanup-expired")
+    public ResponseEntity<String> cleanupExpiredCoupons() {
         try {
-            // 정액 할인 쿠폰
-            CouponDTO fixedCoupon = CouponDTO.builder()
-                    .name("신규 회원 5,000원 할인")
-                    .event("신규 회원 가입")
-                    .couponType(Coupon.CouponType.FIXED_AMOUNT)
-                    .discountAmount(5000)
-                    .minOrderAmount(30000)
-                    .expiryDate(LocalDateTime.now().plusMonths(6))
-                    .isActive(true)
-                    .build();
-            couponService.createCoupon(fixedCoupon);
-
-            // 정률 할인 쿠폰
-            CouponDTO percentageCoupon = CouponDTO.builder()
-                    .name("대량 구매 15% 할인")
-                    .event("대량 구매 이벤트")
-                    .couponType(Coupon.CouponType.PERCENTAGE)
-                    .discountPercentage(15)
-                    .minOrderAmount(100000)
-                    .maxDiscountAmount(20000)
-                    .expiryDate(LocalDateTime.now().plusMonths(3))
-                    .isActive(true)
-                    .build();
-            couponService.createCoupon(percentageCoupon);
-
-            // 무료 배송 쿠폰
-            CouponDTO shippingCoupon = CouponDTO.builder()
-                    .name("무료 배송 쿠폰")
-                    .event("배송비 무료 이벤트")
-                    .couponType(Coupon.CouponType.FIXED_AMOUNT)
-                    .discountAmount(3000) // 배송비 상당액
-                    .minOrderAmount(50000)
-                    .expiryDate(LocalDateTime.now().plusMonths(1))
-                    .isActive(true)
-                    .build();
-            couponService.createCoupon(shippingCoupon);
-
-            return ResponseEntity.ok("테스트 쿠폰 데이터가 생성되었습니다.");
+            List<CouponDTO> allCoupons = couponService.getAllCoupons();
+            int deletedCount = 0;
+            int deactivatedCount = 0;
+            LocalDateTime now = LocalDateTime.now();
+            
+            for (CouponDTO coupon : allCoupons) {
+                if (coupon.getExpiryDate() != null && coupon.getExpiryDate().isBefore(now)) {
+                    try {
+                        // 먼저 삭제 시도
+                        couponService.deleteCoupon(coupon.getCouponId());
+                        deletedCount++;
+                    } catch (org.springframework.dao.DataIntegrityViolationException e) {
+                        // 발급 이력이 있어 삭제할 수 없는 경우 비활성화
+                        try {
+                            couponService.deactivateCoupon(coupon.getCouponId());
+                            deactivatedCount++;
+                        } catch (Exception deactivateException) {
+                            // 비활성화도 실패한 경우 로그만 남기고 계속 진행
+                            System.err.println("쿠폰 비활성화 실패: " + coupon.getCouponId() + " - " + deactivateException.getMessage());
+                        }
+                    } catch (Exception e) {
+                        // 기타 삭제 실패 시 로그만 남기고 계속 진행
+                        System.err.println("쿠폰 삭제 실패: " + coupon.getCouponId() + " - " + e.getMessage());
+                    }
+                }
+            }
+            
+            String message = "만료된 쿠폰 처리 완료: ";
+            if (deletedCount > 0) {
+                message += deletedCount + "개 삭제";
+            }
+            if (deactivatedCount > 0) {
+                if (deletedCount > 0) message += ", ";
+                message += deactivatedCount + "개 비활성화 (발급 이력 있음)";
+            }
+            if (deletedCount == 0 && deactivatedCount == 0) {
+                message += "처리할 만료된 쿠폰이 없습니다.";
+            }
+            
+            return ResponseEntity.ok(message);
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("테스트 데이터 생성 실패: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("만료된 쿠폰 삭제 실패: " + e.getMessage());
         }
     }
+
 }

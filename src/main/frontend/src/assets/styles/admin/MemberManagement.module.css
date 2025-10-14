@@ -200,7 +200,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    z-index: 3000;
 }
 
 .modalContent {
@@ -212,6 +212,7 @@
     max-width: 90%;
     text-align: center;
     position: relative;
+    z-index: 3001;
 }
 
 .modalContent h3 {
@@ -455,22 +456,31 @@
 
 .sidePanelActions {
     display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+    justify-content: flex-start;
+    gap: 8px;
     margin-top: 20px;
     padding-top: 15px;
     border-top: 1px solid #eee;
+    flex-wrap: wrap;
 }
 
 .editMemberBtn,
-.deleteMemberBtn {
-    padding: 8px 15px;
+.deleteMemberBtn,
+.viewWishlistBtn,
+.viewCartBtn {
+    padding: 8px 12px;
     border: none;
-    border-radius: 5px;
+    border-radius: 4px;
     cursor: pointer;
     font-size: 0.9em;
     font-weight: 500;
     transition: background-color 0.2s ease;
+    white-space: nowrap;
+}
+
+.editMemberBtn {
+    background-color: #007bff;
+    color: white;
 }
 
 .editMemberBtn:hover {
@@ -492,6 +502,34 @@
 }
 
 .deleteMemberBtn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.viewWishlistBtn {
+    background-color: #6f42c1;
+    color: white;
+}
+
+.viewWishlistBtn:hover {
+    background-color: #5a32a3;
+}
+
+.viewWishlistBtn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.viewCartBtn {
+    background-color: #28a745;
+    color: white;
+}
+
+.viewCartBtn:hover {
+    background-color: #218838;
+}
+
+.viewCartBtn:focus {
     outline: none;
     box-shadow: none;
 }
@@ -603,6 +641,7 @@
     max-height: 80vh;
     overflow-y: auto;
     position: relative;
+    z-index: 3001;
 }
 
 .modalContent h3 {
@@ -730,4 +769,235 @@
 select:focus {
     outline: none;
     box-shadow: none;
+}
+
+/* 찜한 상품 관련 스타일 */
+.wishlistModalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.wishlistModalContent {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    z-index: 10000;
+}
+
+.wishlistItem {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+.viewWishlistBtn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+
+.viewWishlistBtn:hover {
+    background-color: #0056b3;
+}
+
+.wishlistList {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 20px 0;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #f8f9fa;
+}
+
+.wishlistItems {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.wishlistItem {
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+    background-color: white;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.wishlistItem:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.wishlistItemContent {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.wishlistItemInfo {
+    flex: 1;
+}
+
+.wishlistItemInfo strong {
+    color: #333;
+    font-size: 1.1em;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.wishlistItemInfo small {
+    color: #666;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+/* 장바구니 관련 스타일 */
+.cartModalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.cartModalContent {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    z-index: 10000;
+}
+
+/* 주문내역 모달 관련 스타일 */
+.orderHistoryModalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.orderHistoryModalContent {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    z-index: 10000;
+}
+
+.cartItem {
+    border-bottom: 1px solid #eee;
+    padding-bottom: 15px;
+    margin-bottom: 15px;
+}
+
+.viewCartBtn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s;
+}
+
+.viewCartBtn:hover {
+    background-color: #218838;
+}
+
+.cartList {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 20px 0;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 15px;
+    background-color: #f8f9fa;
+}
+
+.cartItems {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.cartItem {
+    padding: 15px 0;
+    border-bottom: 1px solid #eee;
+    background-color: white;
+    margin-bottom: 10px;
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.cartItem:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.cartItemContent {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.cartItemInfo {
+    flex: 1;
+}
+
+.cartItemInfo strong {
+    color: #333;
+    font-size: 1.1em;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.cartItemInfo small {
+    color: #666;
+    font-size: 0.9em;
+    line-height: 1.4;
 }

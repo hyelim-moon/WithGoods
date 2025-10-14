@@ -3,6 +3,7 @@ import styles from "../../assets/styles/admin/AdminDashboard.module.css";
 import memberStyles from "../../assets/styles/admin/MemberManagement.module.css";
 import { FiBell, FiRefreshCw, FiGift, FiX } from "react-icons/fi";
 import Sidebar from "./Sidebar";
+import axios from "../../utils/axios";
 
 function MemberManagement() {
     // 회원 관리 상태
@@ -28,6 +29,12 @@ function MemberManagement() {
     // 회원 상세 정보 사이드 패널 관련 상태
     const [showSidePanel, setShowSidePanel] = useState(false);
     const [sidePanelMember, setSidePanelMember] = useState(null);
+    const [showWishlistModal, setShowWishlistModal] = useState(false);
+    const [memberWishlist, setMemberWishlist] = useState([]);
+    const [selectedMemberForWishlist, setSelectedMemberForWishlist] = useState(null);
+    const [showCartModal, setShowCartModal] = useState(false);
+    const [memberCart, setMemberCart] = useState([]);
+    const [selectedMemberForCart, setSelectedMemberForCart] = useState(null);
 
     // 주문 내역 모달 관련 상태 (새로 추가)
     const [showOrderHistoryModal, setShowOrderHistoryModal] = useState(false);
@@ -39,8 +46,7 @@ function MemberManagement() {
     const [isEditing, setIsEditing] = useState(false);
     const [memberToEdit, setMemberToEdit] = useState(null);
     const [newMemberData, setNewMemberData] = useState({
-        id: '', nickname: '', name: '', email: '', phoneNumber: '', isVip: false, joinDate: '', address: '',
-        totalOrders: 0, totalSpent: 0, coupons: [], orders: []
+        id: '', username: '', password: '', nickname: '', name: '', email: '', phoneNumber: '', gender: '', birthDate: '', address: ''
     });
 
     useEffect(() => {
@@ -85,37 +91,48 @@ function MemberManagement() {
         setFilteredMembers(results);
     }, [searchTerm, searchCondition, allMembers, currentFilter]);
 
-    const fetchMembers = () => {
+    const fetchMembers = async () => {
         setLoading(true);
-        const dummyMembers = [
-            { id: 'user01', nickname: '철수킴', name: '김철수', email: 'chulsoo@example.com', phoneNumber: '010-1234-5678', isVip: true, joinDate: '2023-01-15T10:00:00Z', address: '서울시 강남구 테헤란로 123', totalOrders: 10, totalSpent: 150000, coupons: [{ id: 'c1', name: '신규 회원 웰컴 쿠폰' }, { id: 'c2', name: '10% 할인 쿠폰' }], orders: [{ orderId: 'ORD001', date: '2023-10-26T10:00:00Z', totalAmount: 50000, status: '배송 완료' }, { orderId: 'ORD002', date: '2023-11-10T14:30:00Z', totalAmount: 100000, status: '배송 중' }] },
-            { id: 'user02', nickname: '영희리', name: '이영희', email: 'younghee@example.com', phoneNumber: '010-2345-6789', isVip: false, joinDate: new Date().toISOString(), address: '경기도 성남시 분당구 판교역로 1', totalOrders: 3, totalSpent: 45000, coupons: [], orders: [{ orderId: 'ORD003', date: '2023-12-01T09:00:00Z', totalAmount: 15000, status: '주문 완료' }] },
-            { id: 'user03', nickname: '지성팍', name: '박지성', email: 'jisung@example.com', phoneNumber: '010-3456-7890', isVip: true, joinDate: '2022-11-20T10:00:00Z', address: '인천시 연수구 송도동 123', totalOrders: 25, totalSpent: 500000, coupons: [{ id: 'c3', name: 'VIP 전용 20% 할인' }], orders: [{ orderId: 'ORD004', date: '2023-09-15T11:00:00Z', totalAmount: 200000, status: '배송 완료' }, { orderId: 'ORD005', date: '2023-10-01T13:00:00Z', totalAmount: 300000, status: '배송 완료' }] },
-            { id: 'user04', nickname: '연아킴', name: '김연아', email: 'yunakim@example.com', phoneNumber: '010-4567-8901', isVip: false, joinDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), address: '부산시 해운대구 마린시티 1로', totalOrders: 1, totalSpent: 20000, coupons: [{ id: 'c4', name: '첫 구매 감사 쿠폰' }], orders: [{ orderId: 'ORD006', date: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), totalAmount: 20000, status: '배송 준비중' }] },
-            { id: 'user05', nickname: '쏘니', name: '손흥민', email: 'sonny@example.com', phoneNumber: '010-5678-9012', isVip: true, joinDate: '2023-03-10T10:00:00Z', address: '런던 토트넘 홋스퍼 스타디움', totalOrders: 18, totalSpent: 300000, coupons: [{ id: 'c5', name: '생일 축하 쿠폰' }, { id: 'c6', name: '무료 배송 쿠폰' }], orders: [{ orderId: 'ORD007', date: '2023-08-01T10:00:00Z', totalAmount: 100000, status: '배송 완료' }, { orderId: 'ORD008', date: '2023-09-01T12:00:00Z', totalAmount: 200000, status: '배송 완료' }] },
-        ];
-
-        setTimeout(() => {
-            setAllMembers(dummyMembers);
-            setFilteredMembers(dummyMembers);
+        setError(null);
+        try {
+            const res = await axios.get('/api/admin/members');
+            const apiMembers = (res.data || []).map((m) => ({
+                id: m.memberId,
+                nickname: m.nickname,
+                name: m.name,
+                email: m.email,
+                phoneNumber: m.phoneNumber,
+                role: m.role || 'USER',
+                isVip: false,
+                joinDate: m.createdAt || new Date().toISOString(),
+                address: m.address,
+                totalOrders: m.totalOrders || 0,
+                totalSpent: m.totalSpent || 0,
+                coupons: [],
+                orders: []
+            }));
+            setAllMembers(apiMembers);
+            setFilteredMembers(apiMembers);
             setStats({
-                total: dummyMembers.length,
-                vip: dummyMembers.filter(m => m.isVip).length,
-                new: dummyMembers.filter(m => new Date(m.joinDate) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length
+                total: apiMembers.length,
+                vip: apiMembers.filter(m => m.isVip).length,
+                new: apiMembers.filter(m => new Date(m.joinDate) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length
             });
+        } catch (e) {
+            setError('회원 목록을 불러오지 못했습니다.');
+        } finally {
             setLoading(false);
-        }, 500);
+        }
     };
 
-    const fetchAvailableCoupons = () => {
-        const dummyCoupons = [
-            { id: 'coupon001', name: '신규 회원 웰컴 쿠폰 (10% 할인)' },
-            { id: 'coupon002', name: '첫 구매 감사 쿠폰 (5000원 할인)' },
-            { id: 'coupon003', name: 'VIP 전용 쿠폰 (20% 할인)' },
-        ];
-        setAvailableCoupons(dummyCoupons);
-        if (dummyCoupons.length > 0) {
-            setSelectedCouponToDistribute(dummyCoupons[0].id);
+    const fetchAvailableCoupons = async () => {
+        try {
+            const res = await axios.get('/api/coupons');
+            const list = (res.data || []).map(c => ({ id: c.couponId, name: c.name }));
+            setAvailableCoupons(list);
+            if (list.length > 0) setSelectedCouponToDistribute(list[0].id);
+        } catch (e) {
+            setAvailableCoupons([]);
         }
     };
 
@@ -124,11 +141,14 @@ function MemberManagement() {
         if (e) {
             e.stopPropagation();
         }
-        setSelectedMembers(prev =>
-            prev.includes(memberId)
-                ? prev.filter(id => id !== memberId)
-                : [...prev, memberId]
-        );
+        
+        setSelectedMembers(prev => {
+            if (prev.includes(memberId)) {
+                return prev.filter(id => id !== memberId);
+            } else {
+                return [...prev, memberId];
+            }
+        });
     };
 
     const handleSelectAll = (e) => {
@@ -155,7 +175,7 @@ function MemberManagement() {
         setSelectedMembers([]); // 선택된 회원 초기화
     };
 
-    const handleDistributeCoupon = () => {
+    const handleDistributeCoupon = async () => {
         if (selectedMembers.length === 0) {
             alert('쿠폰을 지급할 회원을 선택해주세요.');
             return;
@@ -165,34 +185,123 @@ function MemberManagement() {
             return;
         }
 
-        const couponName = availableCoupons.find(c => c.id === selectedCouponToDistribute)?.name;
-        const memberNames = filteredMembers
-            .filter(member => selectedMembers.includes(member.id))
-            .map(member => member.name)
-            .join(', ');
+        let successCount = 0;
+        let failCount = 0;
+        const failedMembers = [];
 
-        alert(`${memberNames} 회원에게 '${couponName}' 쿠폰을 지급했습니다.`);
-        setShowCouponModal(false);
-        setSelectedMembers([]);
+        try {
+            for (const memberId of selectedMembers) {
+                try {
+                    await axios.post(`/api/member-coupons/issue`, null, {
+                        params: { memberId, couponId: selectedCouponToDistribute }
+                    });
+                    successCount++;
+                } catch (error) {
+                    failCount++;
+                    const member = allMembers.find(m => m.id === memberId);
+                    const memberName = member ? member.name : `ID: ${memberId}`;
+                    failedMembers.push(`${memberName}: ${error.response?.data || error.message || '알 수 없는 오류'}`);
+                }
+            }
+            
+            let message = `쿠폰 지급 완료: ${successCount}명 성공`;
+            if (failCount > 0) {
+                message += `, ${failCount}명 실패\n\n실패한 회원:\n${failedMembers.join('\n')}`;
+            }
+            alert(message);
+            
+            // 쿠폰 지급 후 현재 열려있는 회원 상세정보 새로고침
+            if (showSidePanel && sidePanelMember) {
+                try {
+                    const couponRes = await axios.get(`/api/member-coupons/all?memberId=${sidePanelMember.id}`);
+                    const updatedMember = {
+                        ...sidePanelMember,
+                        coupons: couponRes.data || []
+                    };
+                    setSidePanelMember(updatedMember);
+                } catch (e) {
+                    // 새로고침 실패 시 무시
+                }
+            }
+        } catch (e) {
+            alert('쿠폰 지급 중 오류가 발생했습니다: ' + (e.response?.data || e.message));
+        } finally {
+            setShowCouponModal(false);
+            setSelectedMembers([]);
+        }
     };
 
-    const handleViewDetails = (member) => {
+    const handleViewDetails = async (member) => {
         if (showSidePanel && sidePanelMember && sidePanelMember.id === member.id) {
             // 이미 열려있는 상세 정보 패널의 회원과 같은 회원을 다시 클릭하면 닫기
             setShowSidePanel(false);
             setSidePanelMember(null);
         } else {
             // 다른 회원을 클릭하거나 패널이 닫혀있으면 열기
-            setSidePanelMember(member);
-            setShowSidePanel(true);
+            try {
+                // 회원의 쿠폰 정보와 통계 정보를 병렬로 조회
+                const [couponRes, statsRes] = await Promise.all([
+                    axios.get(`/api/member-coupons/all?memberId=${member.id}`),
+                    axios.get(`/api/admin/members/${member.id}/stats`)
+                ]);
+                
+                const memberWithDetails = {
+                    ...member,
+                    coupons: couponRes.data || [],
+                    totalOrders: statsRes.data.totalOrders || 0,
+                    totalSpent: statsRes.data.totalSpent || 0
+                };
+                setSidePanelMember(memberWithDetails);
+                setShowSidePanel(true);
+            } catch (e) {
+                // 조회 실패 시 기본 회원 정보만 표시
+                const memberWithDefaults = {
+                    ...member,
+                    coupons: [],
+                    totalOrders: 0,
+                    totalSpent: 0
+                };
+                setSidePanelMember(memberWithDefaults);
+                setShowSidePanel(true);
+            }
         }
     };
 
     // 주문 내역 보기 함수 (새로 추가)
-    const handleViewOrderHistory = (member) => {
-        setSelectedMemberOrders(member.orders);
-        setSelectedMemberNameForOrders(member.name);
-        setShowOrderHistoryModal(true);
+    const handleViewOrderHistory = async (member) => {
+        try {
+            const res = await axios.get(`/api/admin/orders/member/${member.id}`);
+            setSelectedMemberOrders(res.data.content || []);
+            setSelectedMemberNameForOrders(member.name);
+            setShowOrderHistoryModal(true);
+        } catch (e) {
+            console.error('주문 내역 조회 실패:', e);
+            alert('주문 내역을 불러오는데 실패했습니다.');
+        }
+    };
+
+    const handleViewWishlist = async (member) => {
+        try {
+            const res = await axios.get(`/api/admin/members/${member.id}/wishlist`);
+            setMemberWishlist(res.data || []);
+            setSelectedMemberForWishlist(member);
+            setShowWishlistModal(true);
+        } catch (e) {
+            console.error('찜한 상품 조회 실패:', e);
+            alert('찜한 상품을 불러오는데 실패했습니다.');
+        }
+    };
+
+    const handleViewCart = async (member) => {
+        try {
+            const res = await axios.get(`/api/admin/members/${member.id}/cart`);
+            setMemberCart(res.data || []);
+            setSelectedMemberForCart(member);
+            setShowCartModal(true);
+        } catch (e) {
+            console.error('장바구니 조회 실패:', e);
+            alert('장바구니를 불러오는데 실패했습니다.');
+        }
     };
 
     // 회원 추가 모달 열기
@@ -200,8 +309,7 @@ function MemberManagement() {
         setIsEditing(false);
         setMemberToEdit(null);
         setNewMemberData({
-            id: '', nickname: '', name: '', email: '', phoneNumber: '', isVip: false, joinDate: new Date().toISOString(), address: '',
-            totalOrders: 0, totalSpent: 0, coupons: [], orders: []
+            id: '', username: '', password: '', nickname: '', name: '', email: '', phoneNumber: '', gender: '', birthDate: '', address: ''
         });
         setShowAddEditModal(true);
     };
@@ -225,52 +333,84 @@ function MemberManagement() {
     };
 
     // 회원 추가/수정 저장
-    const handleSaveMember = () => {
-        if (!newMemberData.name || !newMemberData.email || !newMemberData.phoneNumber) {
-            alert('이름, 이메일, 전화번호는 필수 입력 항목입니다.');
-            return;
-        }
-
+    const handleSaveMember = async () => {
         if (isEditing) {
-            // 회원 수정 로직
-            setAllMembers(prev => prev.map(member =>
-                member.id === newMemberData.id ? newMemberData : member
-            ));
-            alert(`${newMemberData.name} 회원 정보가 수정되었습니다.`);
+            // 수정 시 필수 항목 체크
+            if (!newMemberData.name || !newMemberData.email || !newMemberData.phoneNumber) {
+                alert('이름, 이메일, 전화번호는 필수 입력 항목입니다.');
+                return;
+            }
         } else {
-            // 회원 추가 로직
-            const newId = `user${String(allMembers.length + 1).padStart(2, '0')}`; // 간단한 ID 생성
-            const memberToAdd = { ...newMemberData, id: newId, joinDate: new Date().toISOString() };
-            setAllMembers(prev => [...prev, memberToAdd]);
-            alert(`${newMemberData.name} 회원이 추가되었습니다.`);
+            // 추가 시 필수 항목 체크
+            if (!newMemberData.username || !newMemberData.password || !newMemberData.name || !newMemberData.email || !newMemberData.phoneNumber) {
+                alert('아이디, 비밀번호, 이름, 이메일, 전화번호는 필수 입력 항목입니다.');
+                return;
+            }
         }
-        setShowAddEditModal(false);
-        setMemberToEdit(null);
-        setNewMemberData({
-            id: '', nickname: '', name: '', email: '', phoneNumber: '', isVip: false, joinDate: '', address: '',
-            totalOrders: 0, totalSpent: 0, coupons: [], orders: []
-        });
-        fetchMembers(); // 목록 새로고침 (더미 데이터에서는 전체 다시 불러오기)
+        
+        try {
+            if (isEditing) {
+                const payload = {
+                    nickname: newMemberData.nickname,
+                    name: newMemberData.name,
+                    email: newMemberData.email,
+                    phoneNumber: newMemberData.phoneNumber,
+                    address: newMemberData.address,
+                    role: (memberToEdit && memberToEdit.role) ? memberToEdit.role : 'USER'
+                };
+                await axios.put(`/api/admin/members/${newMemberData.id}`, payload);
+                alert(`${newMemberData.name} 회원 정보가 수정되었습니다.`);
+            } else {
+                const payload = {
+                    username: newMemberData.username,
+                    password: newMemberData.password,
+                    nickname: newMemberData.nickname,
+                    name: newMemberData.name,
+                    email: newMemberData.email,
+                    phoneNumber: newMemberData.phoneNumber,
+                    gender: newMemberData.gender,
+                    birthDate: newMemberData.birthDate,
+                    address: newMemberData.address
+                };
+                await axios.post('/signup', payload);
+                alert(`${newMemberData.name} 회원이 추가되었습니다.`);
+            }
+        } catch (e) {
+            const errorMessage = e.response?.data?.message || '회원 저장에 실패했습니다.';
+            alert(errorMessage);
+        } finally {
+            setShowAddEditModal(false);
+            setMemberToEdit(null);
+            setNewMemberData({
+                id: '', username: '', password: '', nickname: '', name: '', email: '', phoneNumber: '', gender: '', birthDate: '', address: ''
+            });
+            fetchMembers();
+        }
     };
 
     const closeAddEditModal = () => {
         setShowAddEditModal(false);
         setMemberToEdit(null);
         setNewMemberData({
-            id: '', nickname: '', name: '', email: '', phoneNumber: '', isVip: false, joinDate: '', address: '',
-            totalOrders: 0, totalSpent: 0, coupons: [], orders: []
+            id: '', username: '', password: '', nickname: '', name: '', email: '', phoneNumber: '', gender: '', birthDate: '', address: ''
         });
     };
 
-    const handleDeleteMember = () => {
-        if (window.confirm(`${sidePanelMember.name} 회원을 정말로 탈퇴시키겠습니까?`)) {
-            setAllMembers(prev => prev.filter(member => member.id !== sidePanelMember.id));
+    const handleDeleteMember = async () => {
+        if (!sidePanelMember) return;
+        if (!window.confirm(`${sidePanelMember.name} 회원을 정말로 탈퇴시키겠습니까?`)) return;
+        try {
+            await axios.delete(`/api/admin/members/${sidePanelMember.id}`);
             alert(`${sidePanelMember.name} 회원이 탈퇴 처리되었습니다.`);
-            setShowSidePanel(false); // 탈퇴 후 사이드 패널 닫기
+        } catch (e) {
+            alert('회원 탈퇴에 실패했습니다.');
+        } finally {
+            setShowSidePanel(false);
             setSidePanelMember(null);
-            fetchMembers(); // 목록 새로고침
+            fetchMembers();
         }
     };
+
 
     const renderContent = () => {
         if (loading) {
@@ -349,18 +489,22 @@ function MemberManagement() {
                             <th>이름</th>
                             <th>이메일</th>
                             <th>전화번호</th>
-                            <th>등급</th> {/* 등급 컬럼 추가 */}
-                            <th>주문 내역</th> {/* 새로 추가된 주문 내역 컬럼 */}
+                            <th>등급</th>
+                            <th>주문 내역</th>
                         </tr>
                     </thead>
                     <tbody>
                         {filteredMembers.map(member => (
                             <tr key={member.id} onClick={() => handleViewDetails(member)} className={memberStyles.memberRow}>
-                                <td>
+                                <td onClick={(e) => e.stopPropagation()}>
                                     <input
                                         type="checkbox"
                                         checked={selectedMembers.includes(member.id)}
-                                        onChange={(e) => handleMemberSelect(member.id, e)}
+                                        onChange={(e) => {
+                                            e.stopPropagation();
+                                            handleMemberSelect(member.id, e);
+                                        }}
+                                        onClick={(e) => e.stopPropagation()}
                                     />
                                 </td>
                                 <td className={memberStyles.memberIdCell}>{member.id}</td>
@@ -368,12 +512,12 @@ function MemberManagement() {
                                 <td>{member.name}</td>
                                 <td>{member.email}</td>
                                 <td>{member.phoneNumber}</td>
-                                <td>{member.isVip ? 'VIP' : '일반'}</td> {/* 등급 데이터 추가 */}
-                                <td> {/* 주문 내역 버튼 추가 */}
+                                <td>{member.isVip ? 'VIP' : '일반'}</td>
+                                <td onClick={(e) => e.stopPropagation()}>
                                     <button
                                         className={memberStyles.viewOrderHistoryBtn}
                                         onClick={(e) => {
-                                            e.stopPropagation(); // 행 클릭 이벤트 전파 방지
+                                            e.stopPropagation();
                                             handleViewOrderHistory(member);
                                         }}
                                     >
@@ -387,8 +531,8 @@ function MemberManagement() {
 
                 {/* 쿠폰 지급 모달 */}
                 {showCouponModal && (
-                    <div className={memberStyles.modalOverlay}>
-                        <div className={memberStyles.modalContent}>
+                    <div className={memberStyles.modalOverlay} onClick={() => setShowCouponModal(false)}>
+                        <div className={memberStyles.modalContent} onClick={(e) => e.stopPropagation()}>
                             <h3>선택된 회원에게 쿠폰 지급</h3>
                             <p>선택된 회원: {selectedMembers.length}명</p>
                             <select
@@ -412,17 +556,34 @@ function MemberManagement() {
 
                 {/* 주문 내역 모달 (새로 추가) */}
                 {showOrderHistoryModal && (
-                    <div className={memberStyles.modalOverlay}>
-                        <div className={memberStyles.modalContent}>
+                    <div className={memberStyles.orderHistoryModalOverlay} onClick={() => setShowOrderHistoryModal(false)}>
+                        <div className={memberStyles.orderHistoryModalContent} onClick={(e) => e.stopPropagation()}>
                             <h3>{selectedMemberNameForOrders ? `${selectedMemberNameForOrders}님의 주문 내역` : '주문 내역'}</h3>
                             {selectedMemberOrders && selectedMemberOrders.length > 0 ? (
                                 <ul className={memberStyles.orderListModal}>
                                     {selectedMemberOrders.map(order => (
                                         <li key={order.orderId} className={memberStyles.orderListItemModal}>
-                                            <span>주문 ID: {order.orderId}</span>
-                                            <span>날짜: {new Date(order.date).toLocaleDateString()}</span>
-                                            <span>금액: {order.totalAmount.toLocaleString()}원</span>
-                                            <span>상태: {order.status}</span>
+                                            <div>
+                                                <strong>주문 ID: {order.orderId}</strong>
+                                                <br />
+                                                <span>주문일: {new Date(order.orderDate).toLocaleDateString()}</span>
+                                                <br />
+                                                <span>총 금액: {order.orderSummary?.finalAmount?.toLocaleString() || '0'}원</span>
+                                                <br />
+                                                <span>상태: {order.status}</span>
+                                                {order.shippingInfo?.address && (
+                                                    <>
+                                                        <br />
+                                                        <span>배송지: {order.shippingInfo.address}</span>
+                                                    </>
+                                                )}
+                                                {order.ordererInfo?.name && (
+                                                    <>
+                                                        <br />
+                                                        <span>주문자: {order.ordererInfo.name}</span>
+                                                    </>
+                                                )}
+                                            </div>
                                         </li>
                                     ))}
                                 </ul>
@@ -436,11 +597,127 @@ function MemberManagement() {
                     </div>
                 )}
 
+                {/* 찜한 상품 모달 */}
+                {showWishlistModal && (
+                    <div className={memberStyles.wishlistModalOverlay} onClick={() => setShowWishlistModal(false)}>
+                        <div className={memberStyles.wishlistModalContent} onClick={(e) => e.stopPropagation()}>
+                            <h3>{selectedMemberForWishlist ? `${selectedMemberForWishlist.name}님의 찜한 상품` : '찜한 상품'}</h3>
+                            <div className={memberStyles.wishlistList}>
+                                {memberWishlist && memberWishlist.length > 0 ? (
+                                    <ul className={memberStyles.wishlistItems}>
+                                        {memberWishlist.map(item => (
+                                            <li key={item.wishlistId} className={memberStyles.wishlistItem}>
+                                                <div className={memberStyles.wishlistItemContent}>
+                                                    <div className={memberStyles.wishlistItemInfo}>
+                                                        <strong>{item.productName}</strong>
+                                                        <br />
+                                                        <small>
+                                                            상품 ID: {item.productId} | 
+                                                            가격: {item.productPrice?.toLocaleString() || '0'}원 | 
+                                                            찜한 날짜: {new Date(item.addedAt).toLocaleDateString()}
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p>찜한 상품이 없습니다.</p>
+                                )}
+                            </div>
+                            <div className={memberStyles.modalActions}>
+                                <button 
+                                    className={memberStyles.modalSecondaryBtn} 
+                                    onClick={() => setShowWishlistModal(false)}
+                                >
+                                    닫기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* 장바구니 모달 */}
+                {showCartModal && (
+                    <div className={memberStyles.cartModalOverlay} onClick={() => setShowCartModal(false)}>
+                        <div className={memberStyles.cartModalContent} onClick={(e) => e.stopPropagation()}>
+                            <h3>{selectedMemberForCart ? `${selectedMemberForCart.name}님의 장바구니` : '장바구니'}</h3>
+                            <div className={memberStyles.cartList}>
+                                {memberCart && memberCart.length > 0 ? (
+                                    <ul className={memberStyles.cartItems}>
+                                        {memberCart.map(item => (
+                                            <li key={item.cartId} className={memberStyles.cartItem}>
+                                                <div className={memberStyles.cartItemContent}>
+                                                    <div className={memberStyles.cartItemInfo}>
+                                                        <strong>{item.productName}</strong>
+                                                        <br />
+                                                        <small>
+                                                            상품 ID: {item.productId} | 
+                                                            단가: {item.productPrice?.toLocaleString() || '0'}원 | 
+                                                            수량: {item.quantity}개 | 
+                                                            총액: {item.totalPrice?.toLocaleString() || '0'}원
+                                                        </small>
+                                                        <br />
+                                                        <small style={{ color: '#666' }}>
+                                                            담은 날짜: {new Date(item.addedAt).toLocaleDateString()}
+                                                        </small>
+                                                    </div>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p>장바구니가 비어있습니다.</p>
+                                )}
+                            </div>
+                            <div className={memberStyles.modalActions}>
+                                <button 
+                                    className={memberStyles.modalSecondaryBtn} 
+                                    onClick={() => setShowCartModal(false)}
+                                >
+                                    닫기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
                 {/* 회원 추가/수정 모달 (새로 추가) */}
                 {showAddEditModal && (
-                    <div className={memberStyles.modalOverlay}>
-                        <div className={memberStyles.modalContent}>
+                    <div className={memberStyles.modalOverlay} onClick={() => setShowAddEditModal(false)}>
+                        <div className={memberStyles.modalContent} onClick={(e) => e.stopPropagation()}>
                             <h3>{isEditing ? '회원 정보 수정' : '새 회원 추가'}</h3>
+                            
+                            {!isEditing && (
+                                <div className={memberStyles.formGroup}>
+                                    <label htmlFor="username">아이디:</label>
+                                    <input
+                                        type="text"
+                                        id="username"
+                                        name="username"
+                                        value={newMemberData.username}
+                                        onChange={handleNewMemberDataChange}
+                                        required
+                                        placeholder="로그인에 사용할 아이디"
+                                    />
+                                </div>
+                            )}
+                            
+                            {!isEditing && (
+                                <div className={memberStyles.formGroup}>
+                                    <label htmlFor="password">비밀번호:</label>
+                                    <input
+                                        type="password"
+                                        id="password"
+                                        name="password"
+                                        value={newMemberData.password}
+                                        onChange={handleNewMemberDataChange}
+                                        required
+                                        placeholder="비밀번호를 입력하세요"
+                                    />
+                                </div>
+                            )}
+                            
                             <div className={memberStyles.formGroup}>
                                 <label htmlFor="name">이름:</label>
                                 <input
@@ -452,6 +729,7 @@ function MemberManagement() {
                                     required
                                 />
                             </div>
+                            
                             <div className={memberStyles.formGroup}>
                                 <label htmlFor="nickname">닉네임:</label>
                                 <input
@@ -462,6 +740,7 @@ function MemberManagement() {
                                     onChange={handleNewMemberDataChange}
                                 />
                             </div>
+                            
                             <div className={memberStyles.formGroup}>
                                 <label htmlFor="email">이메일:</label>
                                 <input
@@ -473,6 +752,7 @@ function MemberManagement() {
                                     required
                                 />
                             </div>
+                            
                             <div className={memberStyles.formGroup}>
                                 <label htmlFor="phoneNumber">전화번호:</label>
                                 <input
@@ -484,6 +764,32 @@ function MemberManagement() {
                                     required
                                 />
                             </div>
+                            
+                            <div className={memberStyles.formGroup}>
+                                <label htmlFor="gender">성별:</label>
+                                <select
+                                    id="gender"
+                                    name="gender"
+                                    value={newMemberData.gender}
+                                    onChange={handleNewMemberDataChange}
+                                >
+                                    <option value="">선택하세요</option>
+                                    <option value="M">남성</option>
+                                    <option value="F">여성</option>
+                                </select>
+                            </div>
+                            
+                            <div className={memberStyles.formGroup}>
+                                <label htmlFor="birthDate">생년월일:</label>
+                                <input
+                                    type="date"
+                                    id="birthDate"
+                                    name="birthDate"
+                                    value={newMemberData.birthDate}
+                                    onChange={handleNewMemberDataChange}
+                                />
+                            </div>
+                            
                             <div className={memberStyles.formGroup}>
                                 <label htmlFor="address">주소:</label>
                                 <input
@@ -494,16 +800,7 @@ function MemberManagement() {
                                     onChange={handleNewMemberDataChange}
                                 />
                             </div>
-                            <div className={memberStyles.formGroup}>
-                                <label htmlFor="isVip">VIP 여부:</label>
-                                <input
-                                    type="checkbox"
-                                    id="isVip"
-                                    name="isVip"
-                                    checked={newMemberData.isVip}
-                                    onChange={handleNewMemberDataChange}
-                                />
-                            </div>
+                            
                             <div className={memberStyles.modalActions}>
                                 <button onClick={handleSaveMember} className={memberStyles.modalPrimaryBtn}>
                                     {isEditing ? '수정' : '추가'}
@@ -566,7 +863,7 @@ function MemberManagement() {
                                 <strong>등급:</strong> <span>{sidePanelMember.isVip ? 'VIP' : '일반'}</span>
                             </div>
                             <div className={memberStyles.sidePanelItem}>
-                                <strong>가입일:</strong> <span>{new Date(sidePanelMember.joinDate).toLocaleDateString()}</span>
+                                <strong>가입일:</strong> <span>{sidePanelMember.joinDate ? new Date(sidePanelMember.joinDate).toLocaleDateString() : '-'}</span>
                             </div>
                             <div className={memberStyles.sidePanelItem}>
                                 <strong>주소:</strong> <span>{sidePanelMember.address}</span>
@@ -582,11 +879,21 @@ function MemberManagement() {
                                 {sidePanelMember.coupons && sidePanelMember.coupons.length > 0 ? (
                                     <ul className={memberStyles.couponList}>
                                         {sidePanelMember.coupons.map(coupon => (
-                                            <li key={coupon.id}>{coupon.name}</li>
+                                            <li key={coupon.memberCouponId}>
+                                                <div>
+                                                    <strong>{coupon.couponName}</strong>
+                                                    <br />
+                                                    <small>
+                                                        발급일: {new Date(coupon.issuedAt).toLocaleDateString()} | 
+                                                        만료일: {new Date(coupon.expiresAt).toLocaleDateString()} | 
+                                                        상태: {coupon.isUsed ? '사용됨' : '사용가능'}
+                                                    </small>
+                                                </div>
+                                            </li>
                                         ))}
                                     </ul>
                                 ) : (
-                                    <span>없음</span>
+                                    <span>보유한 쿠폰이 없습니다.</span>
                                 )}
                             </div>
                             {/* 기존 주문 내역은 사이드 패널에서 제거하거나, 필요에 따라 유지 */}
@@ -610,6 +917,18 @@ function MemberManagement() {
                             <div className={memberStyles.sidePanelActions}>
                                 <button className={memberStyles.editMemberBtn} onClick={() => handleEditMemberClick(sidePanelMember)}>회원 수정</button>
                                 <button className={memberStyles.deleteMemberBtn} onClick={handleDeleteMember}>회원 탈퇴</button>
+                                <button 
+                                    className={memberStyles.viewWishlistBtn}
+                                    onClick={() => handleViewWishlist(sidePanelMember)}
+                                >
+                                    찜한 상품
+                                </button>
+                                <button 
+                                    className={memberStyles.viewCartBtn}
+                                    onClick={() => handleViewCart(sidePanelMember)}
+                                >
+                                    장바구니
+                                </button>
                             </div>
                         </>
                     ) : (

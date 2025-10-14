@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../../assets/styles/admin/AdminDashboard.module.css";
 import {
@@ -10,6 +10,7 @@ import {
     FiBox, FiCreditCard, FiTrendingUp, FiPercent
 } from "react-icons/fi";
 import Sidebar from "./Sidebar"; // Sidebar 컴포넌트 import
+import axios from "../../utils/axios";
 
 function StatCard({ title, value, icon, onClick }) {
     return (
@@ -27,31 +28,15 @@ function StatCard({ title, value, icon, onClick }) {
     );
 }
 
-const lineData = [
-    { month: "1월", order: 62 },
-    { month: "2월", order: 76 },
-    { month: "3월", order: 80 },
-    { month: "4월", order: 104 },
-    { month: "5월", order: 98 },
-    { month: "6월", order: 120 },
-];
-
-const pieData = [
-    { name: "인형", value: 50 },
-    { name: "문구", value: 30 },
-    { name: "패션", value: 20 },
-    { name: "키링", value: 13 },
-    { name: "가전", value: 10 },
-];
 const PIE_COLORS = ["#fca5a5", "#fdba74", "#86efac", "#93c5fd", "#c4b5fd"];
 
-function LineChartCard() {
+function LineChartCard({ data }) {
     return (
         <div className={styles.chartCard}>
             <div className={styles.chartTitle}>월별 주문 현황</div>
             <div className={styles.chartBody}>
                 <ResponsiveContainer width="100%" height={500}>
-                    <LineChart data={lineData} margin={{ top: 5, right: 15, left: 0, bottom: 0 }}>
+                    <LineChart data={data} margin={{ top: 5, right: 15, left: 0, bottom: 0 }}>
                         <CartesianGrid stroke="#eee" />
                         <XAxis dataKey="month" />
                         <YAxis />
@@ -64,7 +49,7 @@ function LineChartCard() {
     );
 }
 
-function PieChartCard() {
+function PieChartCard({ data }) {
     return (
         <div className={styles.chartCard}>
             <div className={styles.chartTitle}>상품별 매출</div>
@@ -72,7 +57,7 @@ function PieChartCard() {
                 <ResponsiveContainer width="100%" height={500}>
                     <PieChart>
                         <Pie
-                            data={pieData}
+                            data={data}
                             dataKey="value"
                             nameKey="name"
                             cx="45%"
@@ -81,14 +66,14 @@ function PieChartCard() {
                             // innerRadius={100}
                             label
                         >
-                            {pieData.map((_, i) => (
+                            {data.map((_, i) => (
                                 <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                             ))}
                         </Pie>
                     </PieChart>
                 </ResponsiveContainer>
                 <ul className={styles.legend}>
-                    {pieData.map((d, i) => (
+                    {data.map((d, i) => (
                         <li key={d.name}>
                             <span className={styles.legendDot} style={{ background: PIE_COLORS[i] }} />
                             {d.name}
@@ -112,16 +97,28 @@ function SmallCard({ title, value, icon }) {
     );
 }
 
-function RecentActivity() {
-    const items = [
-        "○○○님에게 환불 요청이 들어왔으나 처리 부탁드립니다.",
-        "○○○님의 상품이 배송이 잘못되었다고 하니 확인 부탁드립니다.",
-    ];
+function RecentActivity({ activities, onViewAll }) {
+    const recentActivities = activities ? activities.slice(0, 3) : [];
+    
     return (
         <div className={styles.activityCard}>
-            <div className={styles.chartTitle}>최근 활동</div>
+            <div className={styles.chartTitle}>
+                최근 활동
+                {activities && activities.length > 3 && (
+                    <button 
+                        className={styles.viewAllBtn} 
+                        onClick={onViewAll}
+                    >
+                        전체보기
+                    </button>
+                )}
+            </div>
             <ul className={styles.activityList}>
-                {items.map((t, i) => <li key={i}>{t}</li>)}
+                {recentActivities.length > 0 ? (
+                    recentActivities.map((activity, i) => <li key={i}>{activity}</li>)
+                ) : (
+                    <li>최근 활동이 없습니다.</li>
+                )}
             </ul>
         </div>
     );
@@ -129,6 +126,51 @@ function RecentActivity() {
 
 function AdminDashboard() {
     const navigate = useNavigate();
+    const [dashboardData, setDashboardData] = useState({
+        totalMembers: 0,
+        monthlyOrders: 0,
+        totalProducts: 0,
+        monthlyRevenue: 0,
+        monthlyOrderStats: [],
+        productStats: [],
+        visitors: 0,
+        cancelRate: "0%"
+    });
+    const [recentActivities, setRecentActivities] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [showAllActivities, setShowAllActivities] = useState(false);
+
+    useEffect(() => {
+        fetchDashboardData();
+    }, []);
+
+    const fetchDashboardData = async () => {
+        try {
+            const [statsRes, activitiesRes] = await Promise.all([
+                axios.get('/api/admin/dashboard/stats'),
+                axios.get('/api/admin/dashboard/recent-activity')
+            ]);
+            setDashboardData(statsRes.data);
+            setRecentActivities(activitiesRes.data);
+        } catch (e) {
+            console.error('대시보드 데이터 로드 실패:', e);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className={styles.app}>
+                <Sidebar activeLabel="대시보드" />
+                <main className={styles.main}>
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+                        <div>대시보드 데이터를 불러오는 중...</div>
+                    </div>
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className={styles.app}>
@@ -147,24 +189,72 @@ function AdminDashboard() {
 
                 {/* Top stats */}
                 <section className={styles.statsGrid}>
-                    <StatCard title="총 회원 수" value="1,234" icon={<FiUsers />} onClick={() => navigate("/admin/members")}/>
-                    <StatCard title="이번 달 주문" value="123" icon={<FiShoppingCart />} />
-                    <StatCard title="총 상품 수" value="111" icon={<FiBox />} />
-                    <StatCard title="이번 달 매출" value="1,394,321" icon={<FiCreditCard />} />
+                    <StatCard 
+                        title="총 회원 수" 
+                        value={dashboardData.totalMembers.toLocaleString()} 
+                        icon={<FiUsers />} 
+                        onClick={() => navigate("/admin/members")}
+                    />
+                    <StatCard 
+                        title="이번 달 주문" 
+                        value={dashboardData.monthlyOrders.toLocaleString()} 
+                        icon={<FiShoppingCart />} 
+                    />
+                    <StatCard 
+                        title="총 상품 수" 
+                        value={dashboardData.totalProducts.toLocaleString()} 
+                        icon={<FiBox />} 
+                    />
+                    <StatCard 
+                        title="이번 달 매출" 
+                        value={`₩${dashboardData.monthlyRevenue.toLocaleString()}`} 
+                        icon={<FiCreditCard />} 
+                    />
                 </section>
 
                 {/* Charts */}
                 <section className={styles.chartsGrid}>
-                    <LineChartCard />
-                    <PieChartCard />
+                    <LineChartCard data={dashboardData.monthlyOrderStats} />
+                    <PieChartCard data={dashboardData.productStats} />
                 </section>
 
                 {/* Bottom */}
                 <section className={styles.bottomGrid}>
-                    <SmallCard title="방문자 수" value="219" icon={<FiTrendingUp />} />
-                    <SmallCard title="취소/반품율" value="1234" icon={<FiPercent />} />
-                    <RecentActivity />
+                    <SmallCard title="방문자 수" value={dashboardData.visitors.toLocaleString()} icon={<FiTrendingUp />} />
+                    <SmallCard title="취소/반품율" value={dashboardData.cancelRate} icon={<FiPercent />} />
+                    <RecentActivity 
+                        activities={recentActivities} 
+                        onViewAll={() => setShowAllActivities(true)}
+                    />
                 </section>
+
+                {/* 전체 활동내역 모달 */}
+                {showAllActivities && (
+                    <div className={styles.modalOverlay}>
+                        <div className={styles.modalContent}>
+                            <h3>전체 활동내역</h3>
+                            <div className={styles.allActivitiesList}>
+                                {recentActivities && recentActivities.length > 0 ? (
+                                    <ul>
+                                        {recentActivities.map((activity, i) => (
+                                            <li key={i}>{activity}</li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p>활동내역이 없습니다.</p>
+                                )}
+                            </div>
+                            <div className={styles.modalActions}>
+                                <button 
+                                    className={styles.cleanupBtn} 
+                                    onClick={() => setShowAllActivities(false)}
+                                >
+                                    닫기
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </main>
         </div>
     );

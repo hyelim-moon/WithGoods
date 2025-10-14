@@ -13,6 +13,10 @@ import java.time.LocalDateTime;
 @Builder
 public class MemberCouponDto {
     private Integer memberCouponId;
+    private Integer memberId;
+    private String memberName;
+    private String memberNickname;
+    private String memberEmail;
     private Integer couponId;
     private String couponName;
     private String event;
@@ -30,9 +34,14 @@ public class MemberCouponDto {
 
     public static MemberCouponDto from(MemberCoupon memberCoupon) {
         Coupon coupon = memberCoupon.getCoupon();
+        com.WG.WithGoods.entity.Member member = memberCoupon.getMember();
         
         return MemberCouponDto.builder()
                 .memberCouponId(memberCoupon.getMemberCouponId())
+                .memberId(member.getMemberId())
+                .memberName(member.getName())
+                .memberNickname(member.getNickname())
+                .memberEmail(member.getEmail())
                 .couponId(coupon.getCouponId())
                 .couponName(coupon.getName())
                 .event(coupon.getEvent())

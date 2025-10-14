@@ -85,3 +85,163 @@
 .error {
     color: #dc3545;
 }
+
+.toolbarButtons {
+    display: flex;
+    gap: 10px;
+}
+
+.cleanupBtn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+}
+
+.cleanupBtn:hover {
+    background-color: #c82333;
+}
+
+.editBtn {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-right: 5px;
+    font-size: 0.85em;
+}
+
+.editBtn:hover {
+    background-color: #218838;
+}
+
+.deleteBtn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+}
+
+.deleteBtn:hover {
+    background-color: #c82333;
+}
+
+.couponRow {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.couponRow:hover {
+    background-color: #e3f2fd !important;
+}
+
+.modalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modalContent {
+    background: white;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    max-width: 500px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modalContent h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.3em;
+    text-align: center;
+}
+
+.formRow {
+    margin-bottom: 15px;
+}
+
+.formRow label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 600;
+    color: #555;
+}
+
+.formRow input,
+.formRow select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    box-sizing: border-box;
+}
+
+.formRow input:focus,
+.formRow select:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.modalActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+}
+
+.membersList {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 20px 0;
+}
+
+.membersList ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.membersList li {
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    background-color: #f8f9fa;
+}
+
+.membersList li:last-child {
+    margin-bottom: 0;
+}
+
+.membersList strong {
+    color: #333;
+    font-size: 1.1em;
+}
+
+.membersList small {
+    color: #666;
+    font-size: 0.9em;
+}

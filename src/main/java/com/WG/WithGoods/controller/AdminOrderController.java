@@ -68,4 +68,14 @@ public class AdminOrderController {
             return ResponseEntity.badRequest().build();
         }
     }
+
+    // 특정 회원의 주문 목록 조회 (관리자용)
+    @GetMapping("/member/{memberId}")
+    public ResponseEntity<Page<OrderResponseDto>> getMemberOrders(
+            @PathVariable Integer memberId,
+            @PageableDefault(size = 20) Pageable pageable
+    ) {
+        Page<OrderResponseDto> orders = orderService.getMemberOrders(memberId, pageable);
+        return ResponseEntity.ok(orders);
+    }
 } 

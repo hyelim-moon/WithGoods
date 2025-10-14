@@ -3,6 +3,7 @@ package com.WG.WithGoods.service;
 import com.WG.WithGoods.dto.CouponDTO;
 import com.WG.WithGoods.entity.Coupon;
 import com.WG.WithGoods.repository.CouponRepository;
+import com.WG.WithGoods.repository.MemberCouponRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 public class CouponService {
 
     private final CouponRepository couponRepository;
+    private final MemberCouponRepository memberCouponRepository;
 
     // Create
     public CouponDTO createCoupon(CouponDTO dto) {
@@ -63,6 +65,15 @@ public class CouponService {
         couponRepository.deleteById(id);
     }
 
+    // Deactivate (soft-delete substitute)
+    public CouponDTO deactivateCoupon(Integer id) {
+        Coupon coupon = couponRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("쿠폰을 찾을 수 없습니다: " + id));
+        coupon.setIsActive(false);
+        Coupon saved = couponRepository.save(coupon);
+        return CouponDTO.fromEntity(saved);
+    }
+
     // Read by ID (DTO 반환)
     public CouponDTO getCouponById(Integer id) {
         Coupon coupon = couponRepository.findById(id)
@@ -81,6 +92,18 @@ public class CouponService {
         return couponRepository.findAll().stream()
                 .map(CouponDTO::fromEntity)
                 .collect(Collectors.toList());
+    }
+    
+    // 활성화된 쿠폰만 조회
+    public List<CouponDTO> getActiveCoupons() {
+        return couponRepository.findByIsActiveTrue().stream()
+                .map(CouponDTO::fromEntity)
+                .collect(Collectors.toList());
+    }
+    
+    // 쿠폰 발급 수량 조회
+    public Long getIssuedCount(Integer couponId) {
+        return memberCouponRepository.countByCouponCouponIdAndIsDeletedFalse(couponId);
     }
 
     // 쿠폰 유효성 검사

@@ -35,7 +35,13 @@ public class MemberCouponService {
         
         // 쿠폰 유효성 검사
         if (!couponService.isValidCoupon(coupon)) {
-            throw new IllegalArgumentException("유효하지 않은 쿠폰입니다.");
+            throw new IllegalArgumentException("유효하지 않은 쿠폰입니다. 쿠폰이 비활성화되었거나 만료되었을 수 있습니다.");
+        }
+        
+        // 이미 해당 쿠폰을 보유하고 있는지 확인
+        boolean alreadyHasCoupon = memberCouponRepository.existsByMemberAndCouponAndIsDeletedFalse(member, coupon);
+        if (alreadyHasCoupon) {
+            throw new IllegalArgumentException("이미 보유하고 있는 쿠폰입니다.");
         }
         
         MemberCoupon memberCoupon = MemberCoupon.builder()
@@ -48,8 +54,12 @@ public class MemberCouponService {
         
         MemberCoupon savedMemberCoupon = memberCouponRepository.save(memberCoupon);
         
-        // 쿠폰 발급 알림 생성
-        notificationService.createCouponIssuedNotification(memberId, coupon.getName(), coupon.getEvent());
+        // 쿠폰 발급 알림 생성 (예외 발생 시에도 쿠폰 발급은 유지)
+        try {
+            notificationService.createCouponIssuedNotification(memberId, coupon.getName(), coupon.getEvent());
+        } catch (Exception e) {
+            // 알림 생성 실패해도 쿠폰 발급은 성공으로 처리
+        }
         
         return savedMemberCoupon;
     }
@@ -170,5 +180,13 @@ public class MemberCouponService {
                 .orElseThrow(() -> new IllegalArgumentException("쿠폰을 찾을 수 없습니다."));
         memberCoupon.setIsDeleted(true);
         memberCouponRepository.save(memberCoupon);
+    }
+    
+    // 특정 쿠폰을 보유한 회원 목록 조회
+    public List<MemberCouponDto> getCouponMembers(Integer couponId) {
+        List<MemberCoupon> memberCoupons = memberCouponRepository.findByCouponCouponIdAndIsDeletedFalseOrderByIssuedAtDesc(couponId);
+        return memberCoupons.stream()
+                .map(MemberCouponDto::from)
+                .collect(Collectors.toList());
     }
 } 
