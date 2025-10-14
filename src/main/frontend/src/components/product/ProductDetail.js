@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { FaHeart, FaCartPlus, FaShoppingCart, FaLock} from 'react-icons/fa'; // 아이콘 가져오기
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import ProductBadge from '../ui/ProductBadge';
@@ -36,7 +36,7 @@ function ProductDetail() {
 
     useEffect(() => {
         if (!id) return;
-        axios.get(`http://localhost:8080/inquiries/product/${id}`, {
+        axios.get(`http://localhost:8080/inquiries?productId=${id}`, {
             withCredentials: true
         })
             .then(res => setQnaList(res.data))
@@ -95,16 +95,9 @@ function ProductDetail() {
                 });
 
                 if (productResponse.data) {
-                    const dto = productResponse.data;
-                    setProduct({
-                        ...dto,
-                        options: typeof dto.options === 'string'
-                            ? JSON.parse(dto.options)
-                            : dto.options
-                    });
+                    setProduct(productResponse.data);
 
-                    // Fetch wishlist status only if product fetch is successful
-                    if (user) { // only check wishlist if user is logged in
+                    if (user) {
                         const wishlistResponse = await axios.get(`http://localhost:8080/api/wishlist/check/${id}`, {
                             withCredentials: true
                         });
@@ -117,7 +110,6 @@ function ProductDetail() {
             } catch (err) {
                 if (err.response) {
                     if (err.response?.status === 401) {
-                        // This might happen for wishlist check if not logged in, which is fine.
                         setIsFavorited(false);
                     } else {
                         setError('상품 정보를 불러오는데 실패했습니다.');
@@ -156,12 +148,10 @@ function ProductDetail() {
         fetchReviews();
     }, [product?.productId]);
 
-    // 날짜 포맷팅
     const formatDate = (dateString) => {
         return new Date(dateString).toLocaleDateString('ko-KR');
     };
 
-    // 남은 시간 계산 함수
     const calculateTimeLeft = (endDate) => {
         const now = new Date();
         const end = new Date(endDate);
@@ -178,12 +168,11 @@ function ProductDetail() {
         return `${days}일 ${hours}시간 ${minutes}분`;
     };
 
-    // 한정판 상품의 남은 시간 업데이트
     useEffect(() => {
         if (product?.endDate) {
             const timer = setInterval(() => {
                 setTimeLeft(calculateTimeLeft(product.endDate));
-            }, 60000); // 1분마다 업데이트
+            }, 60000);
 
             setTimeLeft(calculateTimeLeft(product.endDate));
 
@@ -191,12 +180,10 @@ function ProductDetail() {
         }
     }, [product]);
 
-    // 수량이 적을 때 urgentStock 클래스 적용
     const getStockClassName = (stock) => {
         return stock <= 5 ? `${styles.stockValue} ${styles.urgentStock}` : styles.stockValue;
     };
 
-    // 옵션 선택 처리
     const handleOptionSelect = (groupName, option) => {
         setSelectedOptions(prev => ({
             ...prev,
@@ -208,14 +195,36 @@ function ProductDetail() {
         setExpandedSecret(prev => (prev === qId ? null : qId));
     };
 
-    // 모든 필수 옵션이 선택되었는지 확인
+    const groupedOptions = useMemo(() => {
+        const groups = {};
+        if (product && product.options && Array.isArray(product.options)) {
+            product.options.forEach(option => {
+                if (!groups[option.optionName]) {
+                    groups[option.optionName] = [];
+                }
+                groups[option.optionName].push({
+                    value: option.optionValue,
+                    price: option.price
+                });
+            });
+        }
+        return groups;
+    }, [product]);
+
     const areAllOptionsSelected = () => {
-        if (!product?.options) return true;
-        const optionsObj = typeof product.options === 'string' ? JSON.parse(product.options) : product.options;
-        return Object.keys(optionsObj).every(group => selectedOptions[group]);
+        if (!product?.options || product.options.length === 0) return true;
+        return Object.keys(groupedOptions).every(group => selectedOptions[group]);
     };
 
-    // 장바구니에 추가
+    const totalPrice = useMemo(() => {
+        if (!product) return 0;
+        const basePrice = product.price || 0;
+        const optionPrice = Object.values(selectedOptions).reduce((sum, option) => {
+            return sum + (option.price || 0);
+        }, 0);
+        return (basePrice + optionPrice) * quantity;
+    }, [product, selectedOptions, quantity]);
+
     const handleAddToCart = async () => {
         if (!areAllOptionsSelected()) {
             alert('모든 옵션을 선택해주세요.');
@@ -226,8 +235,7 @@ function ProductDetail() {
             const cartItem = {
                 productId: product.productId,
                 quantity: quantity,
-                option: JSON.stringify(selectedOptions), // JSON 문자열로 변환
-                options: selectedOptions, // Map 형태도 함께 전송
+                options: selectedOptions,
             };
 
             await axios.post('http://localhost:8080/api/cart', cartItem, {
@@ -247,22 +255,18 @@ function ProductDetail() {
         }
     };
 
-    // 바로 구매
     const handlePurchase = () => {
-        // 로그인 체크
         if (!user) {
             alert('로그인이 필요한 서비스입니다.');
             navigate('/login');
             return;
         }
 
-        // 모든 옵션이 선택되었는지 확인
         if (product.options && !areAllOptionsSelected()) {
             alert('모든 옵션을 선택해주세요.');
             return;
         }
 
-        // 주문할 상품 정보 구성
         const orderItem = {
             productId: product.productId,
             name: product.name,
@@ -270,25 +274,23 @@ function ProductDetail() {
             imageUrl: product.imageUrl || product.mainImage,
             quantity: quantity,
             selectedOptions: selectedOptions,
-            totalPrice: product.price * quantity
+            totalPrice: totalPrice
         };
 
-        // Checkout 페이지로 이동하면서 상품 정보 전달
         navigate('/checkout', {
             state: {
                 products: [orderItem],
                 summary: {
-                    totalPrice: orderItem.totalPrice,
+                    totalPrice: totalPrice,
                     discountAmount: 0,
                     shippingFee: 0,
-                    finalAmount: orderItem.totalPrice
+                    finalAmount: totalPrice
                 },
-                isDirectPurchase: true // 바로 구매 여부 표시
+                isDirectPurchase: true
             }
         });
     };
 
-    // 즐겨찾기 토글
     const toggleFavorite = async () => {
         try {
             if (!user) {
@@ -336,13 +338,9 @@ function ProductDetail() {
     };
 
     const submitReport = () => {
-        // 신고 로직 구현
         setIsReportModalOpen(false);
     };
 
-    const averageRating = reviews.length
-        ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
-        : 0;
     if (loading) {
         return <div className={styles.loading}>상품 정보를 불러오는 중...</div>;
     }
@@ -355,16 +353,12 @@ function ProductDetail() {
         return <div className={styles.error}>상품을 찾을 수 없습니다.</div>;
     }
 
-    // 상품 이미지 배열 생성 (임시로 같은 이미지 반복)
     const productImages = product.imageUrl ? [product.imageUrl, product.imageUrl, product.imageUrl] : [];
-
-    // 리뷰 표시 개수 제한
     const displayedReviews = showAllReviews ? reviews : reviews.slice(0, 3);
 
     return (
         <div className={styles.detailContainer}>
             <div className={styles.productWrapper}>
-                {/* 이미지 영역 */}
                 <div className={styles.imageSection}>
                     <img
                         src={productImages[selectedImage] || 'https://via.placeholder.com/400'}
@@ -384,11 +378,9 @@ function ProductDetail() {
                     </div>
                 </div>
 
-                {/* 상품 정보 영역 */}
                 <div className={styles.infoSection}>
                     <h2 className={styles.productName}>{product.name}</h2>
 
-                    {/* 상품 평점 표시 */}
                     <div className={styles.productRating}>
                         <div className={styles.starRating}>
                             {[1, 2, 3, 4, 5].map(star => (
@@ -410,25 +402,23 @@ function ProductDetail() {
 
                     <p className={styles.productPrice}>₩{product.price?.toLocaleString()}</p>
 
-                    {/* 한정판/기념일 상품 정보 */}
                     <ProductBadge product={product} />
 
-                    {/* 옵션 선택 */}
-                    {product.options && (
+                    {product.options && product.options.length > 0 && (
                         <div className={styles.optionSection}>
-                            {Object.entries(typeof product.options === 'string' ? JSON.parse(product.options) : product.options).map(([groupName, options]) => (
+                            {Object.entries(groupedOptions).map(([groupName, options]) => (
                                 <div key={groupName} className={styles.optionGroup}>
                                     <div className={styles.optionTitle}>{groupName}</div>
                                     <div className={styles.optionButtons}>
                                         {options.map((option) => (
                                             <button
-                                                key={option}
+                                                key={option.value}
                                                 className={`${styles.optionButton} ${
-                                                    selectedOptions[groupName] === option ? styles.selected : ''
+                                                    selectedOptions[groupName]?.value === option.value ? styles.selected : ''
                                                 }`}
                                                 onClick={() => handleOptionSelect(groupName, option)}
                                             >
-                                                {option}
+                                                {option.value} {option.price > 0 ? `(+${option.price.toLocaleString()}원)` : ''}
                                             </button>
                                         ))}
                                     </div>
@@ -437,7 +427,6 @@ function ProductDetail() {
                         </div>
                     )}
 
-                    {/* 수량 조절 */}
                     <div className={styles.quantityRow}>
                         <label>수량:</label>
                         <div className={styles.quantityControls}>
@@ -457,12 +446,10 @@ function ProductDetail() {
                         )}
                     </div>
 
-                    {/* 총 상품 금액 */}
                     <p className={styles.totalPrice}>
-                        총 상품 금액: ₩{(product.price * quantity).toLocaleString()}
+                        총 상품 금액: ₩{totalPrice.toLocaleString()}
                     </p>
 
-                    {/* 버튼 영역 */}
                     <div className={styles.buttonRow}>
                         <button className={styles.favoriteBtn} onClick={toggleFavorite}>
                             <FaHeart color={isFavorited ? 'red' : 'gray'} />
@@ -485,7 +472,6 @@ function ProductDetail() {
                 </div>
             </div>
 
-            {/* 탭 네비게이션 */}
             <div className={styles.tabsContainer}>
                 <div
                     className={`${styles.tab} ${activeTab === 'detail' ? styles.activeTab : ''}`}
@@ -513,7 +499,6 @@ function ProductDetail() {
                 </div>
             </div>
 
-            {/* 상세정보 탭 */}
             {activeTab === 'detail' && (
                 <div className={styles.productDetailInfo}>
                     <h4>상품 설명</h4>
@@ -534,7 +519,6 @@ function ProductDetail() {
                 </div>
             )}
 
-            {/* 리뷰 탭 */}
             {activeTab === 'reviews' && (
                 <div className={styles.reviewsSection}>
                     <div className={styles.reviewsHeader}>
@@ -643,7 +627,6 @@ function ProductDetail() {
                                     </span>
                                 </div>
 
-                                {/* ── 본문 혹은 비밀번호 입력 ── */}
                                 {q.secret && expandedSecret === q.id && !unlocked[q.id] ? (
                                     <div className={styles.secretPrompt}>
                                         <p>이 글은 비밀글입니다. 비밀번호를 입력해주세요.</p>
@@ -753,7 +736,6 @@ function ProductDetail() {
                 </div>
             )}
 
-            {/* 신고하기 모달 */}
             {isReportModalOpen && (
                 <div className={styles.modalOverlay} style={{
                     position: 'fixed',

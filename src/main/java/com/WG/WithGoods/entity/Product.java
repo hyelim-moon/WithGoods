@@ -2,7 +2,6 @@ package com.WG.WithGoods.entity;
 
 import com.WG.WithGoods.dto.ProductOptionDto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.*;
@@ -10,7 +9,9 @@ import lombok.*;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Entity
@@ -81,18 +82,32 @@ public class Product {
         }
     }
 
-    public Map<String, Object> getOptionsAsMap() {
+    public List<Map<String, Object>> getOptionsAsList() {
         if (options == null || options.isEmpty()) {
-            return new HashMap<>();
+            return new ArrayList<>();
         }
         try {
-            return objectMapper.readValue(options, new TypeReference<Map<String, Object>>() {});
-        } catch (JsonParseException e) {
-            Map<String, Object> defaultMap = new HashMap<>();
-            defaultMap.put("option", options);
-            return defaultMap;
+            // New format is a list of maps
+            return objectMapper.readValue(options, new TypeReference<List<Map<String, Object>>>() {});
         } catch (IOException e) {
-            throw new RuntimeException("옵션 조회 중 오류가 발생했습니다.", e);
+            // Try parsing as the old format (Map<String, List<String>>) and convert it
+            try {
+                Map<String, List<String>> oldOptions = objectMapper.readValue(options, new TypeReference<Map<String, List<String>>>() {});
+                List<Map<String, Object>> newOptions = new ArrayList<>();
+                for (Map.Entry<String, List<String>> entry : oldOptions.entrySet()) {
+                    String optionName = entry.getKey();
+                    for (String optionValue : entry.getValue()) {
+                        Map<String, Object> newOption = new HashMap<>();
+                        newOption.put("optionName", optionName);
+                        newOption.put("optionValue", optionValue);
+                        newOption.put("price", 0); // Default price for old data
+                        newOptions.add(newOption);
+                    }
+                }
+                return newOptions;
+            } catch (IOException e2) {
+                throw new RuntimeException("옵션 조회 중 오류가 발생했습니다. 형식 변환에 실패했습니다.", e2);
+            }
         }
     }
 }
