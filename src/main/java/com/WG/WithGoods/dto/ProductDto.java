@@ -5,6 +5,8 @@ import com.WG.WithGoods.entity.ProductRole;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -18,7 +20,7 @@ public class ProductDto {
     private String description;
     private Integer price;
     private String category;
-    private String options;
+    private List<Map<String, Object>> options;
     private ProductRole role;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -39,7 +41,7 @@ public class ProductDto {
                 .description(product.getDescription())
                 .price(product.getPrice())
                 .category(product.getCategory())
-                .options(product.getOptions())
+                .options(product.getOptionsAsList())
                 .role(product.getRole())
                 .startDate(product.getStartDate())
                 .endDate(product.getEndDate())
@@ -60,7 +62,6 @@ public class ProductDto {
                 .description(this.description)
                 .price(this.price)
                 .category(this.category)
-                .options(this.options)
                 .role(this.role)
                 .startDate(this.startDate)
                 .endDate(this.endDate)

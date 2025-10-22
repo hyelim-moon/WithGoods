@@ -23,7 +23,7 @@ function GeneralProductForm() {
     detailDescription: '',
     hasOption: false,
     optionType: 'single',
-    singleOptions: [{ name: '', price: '' }],
+    singleOptions: [{ optionName: '기본', optionValue: '', price: 0 }],
     options: [],
   });
 
@@ -37,27 +37,26 @@ function GeneralProductForm() {
       .then(response => {
         const data = response.data;
         
-        let parsedOptions = null;
-        let detectedOptionType = 'single';
-        let singleOptions = [{ name: '', price: '' }];
+        let singleOptions = [{ optionName: '기본', optionValue: '', price: 0 }];
         let comboOptions = [];
+        let detectedOptionType = 'single';
 
-        if (data.options) {
-          try {
-            parsedOptions = JSON.parse(data.options);
-            if (Array.isArray(parsedOptions)) {
-              detectedOptionType = 'single';
-              singleOptions = parsedOptions.map(name => ({ name: name, price: '' }));
-            } else if (typeof parsedOptions === 'object' && parsedOptions !== null) {
-              detectedOptionType = 'combo';
-              comboOptions = Object.entries(parsedOptions).map(([group, values]) => ({
-                group,
-                values: values.map(name => ({ name: name, price: '' }))
-              }));
+        if (data.options && data.options.length > 0) {
+            // A simple heuristic to detect combo vs single options
+            if (data.options[0].optionName) { 
+                detectedOptionType = 'combo';
+                const groups = {};
+                data.options.forEach(opt => {
+                    if (!groups[opt.optionName]) {
+                        groups[opt.optionName] = [];
+                    }
+                    groups[opt.optionName].push({ name: opt.optionValue, price: opt.price });
+                });
+                comboOptions = Object.entries(groups).map(([group, values]) => ({ group, values }));
+            } else { // Fallback for old single-option format or simple new format
+                detectedOptionType = 'single';
+                singleOptions = data.options.map(opt => ({ optionName: '기본', optionValue: opt.optionValue || opt.name, price: opt.price || 0 }));
             }
-          } catch (e) {
-            console.error('Failed to parse options:', e);
-          }
         }
 
         setFormData({
@@ -72,7 +71,7 @@ function GeneralProductForm() {
           saleStartDate: data.startDate ? data.startDate.split('T')[0] : '',
           saleEndDate: data.endDate ? data.endDate.split('T')[0] : '',
           detailDescription: data.description || '',
-          hasOption: !!data.options,
+          hasOption: !!data.options && data.options.length > 0,
           optionType: detectedOptionType,
           singleOptions: singleOptions,
           options: comboOptions,
@@ -105,7 +104,7 @@ function GeneralProductForm() {
   const addSingleOption = () => {
     setFormData((prev) => ({
       ...prev,
-      singleOptions: [...prev.singleOptions, { name: '', price: '' }],
+      singleOptions: [...prev.singleOptions, { optionName: '기본', optionValue: '', price: 0 }],
     }));
   };
 
@@ -172,7 +171,7 @@ function GeneralProductForm() {
     setFormData((prev) => ({
       ...prev,
       optionType,
-      singleOptions: optionType === 'single' ? [{ name: '', price: '' }] : [],
+      singleOptions: optionType === 'single' ? [{ optionName: '기본', optionValue: '', price: 0 }] : [],
       options: optionType === 'combo' ? [{ group: '', values: [{ name: '', price: '' }] }] : [],
     }));
   };
@@ -180,9 +179,31 @@ function GeneralProductForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    let optionsPayload = null;
+    if (formData.hasOption) {
+        if (formData.optionType === 'single') {
+            optionsPayload = formData.singleOptions
+                .filter(opt => opt.optionValue)
+                .map(opt => ({
+                    optionName: '기본',
+                    optionValue: opt.optionValue,
+                    price: Number(opt.price) || 0
+                }));
+        } else { // combo
+            optionsPayload = formData.options.flatMap(group =>
+                group.values
+                    .filter(val => val.name)
+                    .map(val => ({
+                        optionName: group.group,
+                        optionValue: val.name,
+                        price: Number(val.price) || 0
+                    }))
+            );
+        }
+    }
+
     const productDto = {
-      id: isEditMode ? parseInt(id) : null,
-      role: formData.productType.toUpperCase(),
+      productType: formData.productType,
       category: formData.category,
       name: formData.name,
       price: Number(formData.price),
@@ -192,23 +213,7 @@ function GeneralProductForm() {
       discountRate: formData.hasDiscount ? Number(formData.discountRate) : null,
       startDate: formData.hasSalePeriod ? formData.saleStartDate : null,
       endDate: formData.hasSalePeriod ? formData.saleEndDate : null,
-      options: formData.hasOption
-        ? formData.optionType === 'single'
-          ? JSON.stringify(
-              formData.singleOptions.map(opt => opt.name).filter(Boolean)
-            )
-          : JSON.stringify(
-              formData.options.reduce((acc, group) => {
-                if (group.group && Array.isArray(group.values)) {
-                  const values = group.values.map(val => val.name).filter(Boolean);
-                  if (values.length > 0) {
-                    acc[group.group] = values;
-                  }
-                }
-                return acc;
-              }, {})
-            )
-        : null,
+      options: optionsPayload,
     };
 
     try {
@@ -337,7 +342,7 @@ function GeneralProductForm() {
               ...prev,
               hasOption: e.target.checked,
               optionType: 'single',
-              singleOptions: [{ name: '', price: '' }],
+              singleOptions: [{ optionName: '기본', optionValue: '', price: 0 }],
               options: [],
             }))
           }
@@ -366,9 +371,9 @@ function GeneralProductForm() {
               <div key={idx} className={styles.optionRow}>
                 <input
                   type="text"
-                  placeholder="옵션명"
-                  value={opt.name}
-                  onChange={(e) => handleSingleOptionChange(idx, 'name', e.target.value)}
+                  placeholder="옵션값"
+                  value={opt.optionValue}
+                  onChange={(e) => handleSingleOptionChange(idx, 'optionValue', e.target.value)}
                   className={styles.input}
                 />
                 <input

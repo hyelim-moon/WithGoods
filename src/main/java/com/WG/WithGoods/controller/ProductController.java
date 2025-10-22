@@ -1,6 +1,7 @@
 package com.WG.WithGoods.controller;
 
 import com.WG.WithGoods.dto.ProductDto;
+import com.WG.WithGoods.dto.ProductRequestDto;
 import com.WG.WithGoods.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,7 +19,7 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-    public ResponseEntity<ProductDto> create(@RequestBody ProductDto dto) {
+    public ResponseEntity<ProductDto> create(@RequestBody ProductRequestDto dto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(dto));
     }
 
@@ -63,7 +64,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductDto> update(@PathVariable("id") Integer id, @RequestBody ProductDto dto) {
+    public ResponseEntity<ProductDto> update(@PathVariable("id") Integer id, @RequestBody ProductRequestDto dto) {
         return ResponseEntity.ok(productService.updateProduct(id, dto));
     }
 

@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
 
 @Getter
 @Setter
@@ -15,7 +17,7 @@ public class ProductRequestDto {
     private String description;
     private Integer price;
     private String category;
-    private String options; // JSON 문자열
+    private List<Map<String, Object>> options;
     private String productType;
     private LocalDate startDate;
     private LocalDate endDate;

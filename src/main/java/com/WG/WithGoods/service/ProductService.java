@@ -1,6 +1,8 @@
 package com.WG.WithGoods.service;
 
 import com.WG.WithGoods.dto.ProductDto;
+import com.WG.WithGoods.dto.ProductOptionDto;
+import com.WG.WithGoods.dto.ProductRequestDto;
 import com.WG.WithGoods.entity.Product;
 import com.WG.WithGoods.entity.ProductRole;
 import com.WG.WithGoods.repository.ProductRepository;
@@ -20,21 +22,26 @@ public class ProductService {
     private final ReviewRepository reviewRepository;
 
     @Transactional
-    public ProductDto createProduct(ProductDto dto) {
-        Product product = dto.toEntity();
-        if (product.getRole() == null) {
-            product.setRole(ProductRole.NORMAL);
+    public ProductDto createProduct(ProductRequestDto dto) {
+        Product product = new Product();
+        product.setName(dto.getName());
+        product.setDescription(dto.getDescription());
+        product.setPrice(dto.getPrice());
+        product.setCategory(dto.getCategory());
+
+        if (dto.getOptions() != null) {
+            ProductOptionDto optionDto = new ProductOptionDto(dto.getOptions());
+            product.setOptionsFromDto(optionDto);
         }
-        if (product.getRating() == null) {
-            product.setRating(0.0);
-        }
-        // 할인 여부에 따라 할인율 처리
-        if (dto.getHasDiscount() == null || !dto.getHasDiscount()) {
-            product.setHasDiscount(false);
-            product.setDiscountRate(null);
-        } else {
-            product.setHasDiscount(true);
-        }
+
+        product.setRole(ProductRole.valueOf(dto.getProductType().toUpperCase()));
+        product.setStartDate(dto.getStartDate());
+        product.setEndDate(dto.getEndDate());
+        product.setStock(dto.getStock());
+        product.setHasDiscount(dto.getHasDiscount());
+        product.setDiscountRate(dto.getDiscountRate());
+        product.setRating(0.0);
+
         return toDto(productRepository.save(product));
     }
 
@@ -73,7 +80,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDto updateProduct(Integer id, ProductDto dto) {
+    public ProductDto updateProduct(Integer id, ProductRequestDto dto) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다."));
 
@@ -81,11 +88,13 @@ public class ProductService {
         if (dto.getDescription() != null) product.setDescription(dto.getDescription());
         if (dto.getPrice() != null) product.setPrice(dto.getPrice());
         if (dto.getCategory() != null) product.setCategory(dto.getCategory());
-        if (dto.getOptions() != null) product.setOptions(dto.getOptions());
-        if (dto.getRole() != null) product.setRole(dto.getRole());
+        if (dto.getOptions() != null) {
+            ProductOptionDto optionDto = new ProductOptionDto(dto.getOptions());
+            product.setOptionsFromDto(optionDto);
+        }
+        if (dto.getProductType() != null) product.setRole(ProductRole.valueOf(dto.getProductType().toUpperCase()));
         if (dto.getStock() != null) product.setStock(dto.getStock());
 
-        // 할인 여부 및 할인율 업데이트
         if (dto.getHasDiscount() != null) {
             product.setHasDiscount(dto.getHasDiscount());
             if (dto.getHasDiscount()) {
@@ -95,7 +104,6 @@ public class ProductService {
             }
         }
 
-        // 판매 기간 업데이트
         product.setStartDate(dto.getStartDate());
         product.setEndDate(dto.getEndDate());
 

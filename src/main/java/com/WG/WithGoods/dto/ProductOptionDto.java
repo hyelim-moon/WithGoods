@@ -13,5 +13,5 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProductOptionDto {
-    private Map<String, List<String>> options; // 옵션 그룹과 해당 옵션값들을 저장
-} 
+    private List<Map<String, Object>> options; // 옵션 그룹, 옵션 값, 가격을 저장
+}
