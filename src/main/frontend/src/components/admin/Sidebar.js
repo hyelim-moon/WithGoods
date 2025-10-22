@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../assets/styles/admin/Sidebar.module.css';
-import { FiHome, FiUsers, FiPackage, FiShoppingCart, FiFileText, FiUser, FiLogOut, FiGift } from 'react-icons/fi'; // FiGift 추가
+import { FiHome, FiUsers, FiPackage, FiShoppingCart, FiFileText, FiUser, FiLogOut, FiGift } from 'react-icons/fi';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import logo from '../../assets/images/logo.png';
@@ -48,10 +48,11 @@ function Sidebar({ activeLabel }) {
             <nav className={styles.nav}>
                 <SidebarItem icon={<FiHome />} label="대시보드" active={activeLabel === '대시보드'} onClick={() => navigate('/admin/dashboard')} />
                 <SidebarItem icon={<FiUsers />} label="회원관리" active={activeLabel === '회원관리'} onClick={() => navigate('/admin/members')} />
-                <SidebarItem icon={<FiGift />} label="쿠폰관리" active={activeLabel === '쿠폰관리'} onClick={() => navigate('/admin/coupons')} /> {/* 쿠폰관리 추가 */}
-                <SidebarItem icon={<FiShoppingCart />} label="주문관리" active={activeLabel === '주문관리'} />
-                <SidebarItem icon={<FiPackage />} label="상품관리" active={activeLabel === '상품관리'} />
-                <SidebarItem icon={<FiFileText />} label="견적관리" active={activeLabel === '견적관리'} />
+                <SidebarItem icon={<FiGift />} label="쿠폰관리" active={activeLabel === '쿠폰관리'} onClick={() => navigate('/admin/coupons')} />
+                <SidebarItem icon={<FiFileText />} label="문의관리" active={activeLabel === '문의관리'} onClick={() => navigate('/admin/inquiries')} />
+                <SidebarItem icon={<FiShoppingCart />} label="주문관리" active={activeLabel === '주문관리'} onClick={() => navigate('/admin/orders')} />
+                <SidebarItem icon={<FiPackage />} label="상품관리" active={activeLabel === '상품관리'} onClick={() => navigate('/admin/products')} />
+                <SidebarItem icon={<FiFileText />} label="견적관리" active={activeLabel === '견적관리'} onClick={() => navigate('/admin/estimates')} />
             </nav>
         </aside>
     );

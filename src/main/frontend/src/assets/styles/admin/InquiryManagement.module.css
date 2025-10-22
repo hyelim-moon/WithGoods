@@ -1,0 +1,56 @@
+.container {
+    padding: 20px;
+    background-color: white;
+    transition: margin-right 0.3s ease;
+}
+
+.loading, .error {
+    text-align: center;
+    padding: 40px;
+    font-size: 18px;
+}
+
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.toolbar h2 {
+    margin: 0;
+    font-size: 1.5em;
+    color: #333;
+}
+
+.memberTable {
+    width: 100%;
+    border-collapse: collapse;
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.memberTable th,
+.memberTable td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.memberTable th {
+    background-color: #f2f2f2;
+    font-weight: 600;
+}
+
+.memberTable tr:hover {
+    background-color: #f5f5f5;
+}
+
+.memberRow {
+    cursor: pointer;
+}
+
+.memberRow:focus {
+    outline: none;
+    box-shadow: none;
+}

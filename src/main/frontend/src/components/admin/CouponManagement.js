@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import styles from "../../assets/styles/admin/AdminDashboard.module.css";
-import couponStyles from "../../assets/styles/admin/CouponManagement.module.css";
+import memberStyles from "../../assets/styles/admin/MemberManagement.module.css"; // 변경
 import { FiBell } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 import axios from "../../utils/axios";
@@ -151,27 +151,26 @@ function CouponManagement() {
 
     const renderContent = () => {
         if (loading) {
-            return <div className={couponStyles.loading}>쿠폰 정보를 불러오는 중...</div>;
+            return <div className={memberStyles.loading}>쿠폰 정보를 불러오는 중...</div>;
         }
 
         if (error) {
-            return <div className={couponStyles.error}>{error}</div>;
+            return <div className={memberStyles.error}>{error}</div>;
         }
 
         return (
-            <div className={couponStyles.container}>
-                <div className={couponStyles.toolbar}>
-                    <h2>쿠폰 목록</h2>
-                    <div className={couponStyles.toolbarButtons}>
-                        <button className={couponStyles.createCouponBtn} onClick={() => {
+            <div className={memberStyles.container}>
+                <div className={memberStyles.toolbar}>
+                    <div className={memberStyles.actionButtons}>
+                        <button className={memberStyles.addMemberBtn} onClick={() => {
                             resetForm();
                             setShowCreate(true);
                         }}>새 쿠폰 생성</button>
-                        <button className={couponStyles.cleanupBtn} onClick={handleCleanupExpired}>만료된 쿠폰 삭제</button>
+                        <button className={memberStyles.deleteMemberBtn} onClick={handleCleanupExpired}>만료된 쿠폰 삭제</button>
                     </div>
                 </div>
 
-                <table className={couponStyles.couponTable}>
+                <table className={memberStyles.memberTable}>
                     <thead>
                         <tr>
                             <th>쿠폰 ID</th>
@@ -185,7 +184,7 @@ function CouponManagement() {
                     </thead>
                     <tbody>
                         {coupons.map(coupon => (
-                            <tr key={coupon.id} className={couponStyles.couponRow} onClick={() => handleViewMembers(coupon)}>
+                            <tr key={coupon.id} className={memberStyles.memberRow} onClick={() => handleViewMembers(coupon)}>
                                 <td>{coupon.id}</td>
                                 <td>{coupon.name}</td>
                                 <td>{coupon.discount}</td>
@@ -193,8 +192,8 @@ function CouponManagement() {
                                 <td>{coupon.quantity}</td>
                                 <td>{coupon.issued}</td>
                                 <td onClick={(e) => e.stopPropagation()}>
-                                    <button className={couponStyles.editBtn} onClick={() => handleEdit(coupon)}>수정</button>
-                                    <button className={couponStyles.deleteBtn} onClick={() => handleDelete(coupon.id)}>삭제</button>
+                                    <button className={memberStyles.editMemberBtn} onClick={() => handleEdit(coupon)}>수정</button>
+                                    <button className={memberStyles.deleteMemberBtn} onClick={() => handleDelete(coupon.id)}>삭제</button>
                                 </td>
                             </tr>
                         ))}
@@ -221,18 +220,18 @@ function CouponManagement() {
                 {renderContent()}
                 {/* 쿠폰 생성 모달 */}
                 {showCreate && (
-                    <div className={couponStyles.modalOverlay}>
-                        <div className={couponStyles.modalContent}>
+                    <div className={memberStyles.modalOverlay}>
+                        <div className={memberStyles.modalContent}>
                             <h3>쿠폰 생성</h3>
-                            <div className={couponStyles.formRow}>
+                            <div className={memberStyles.formGroup}>
                                 <label>쿠폰명</label>
                                 <input value={form.name} onChange={e=>setForm({...form, name:e.target.value})} />
                             </div>
-                            <div className={couponStyles.formRow}>
+                            <div className={memberStyles.formGroup}>
                                 <label>이벤트</label>
                                 <input value={form.event} onChange={e=>setForm({...form, event:e.target.value})} />
                             </div>
-                            <div className={couponStyles.formRow}>
+                            <div className={memberStyles.formGroup}>
                                 <label>타입</label>
                                 <select value={form.couponType} onChange={e=>setForm({...form, couponType:e.target.value})}>
                                     <option value="FIXED_AMOUNT">정액</option>
@@ -240,36 +239,35 @@ function CouponManagement() {
                                 </select>
                             </div>
                             {form.couponType === 'FIXED_AMOUNT' ? (
-                                <div className={couponStyles.formRow}>
+                                <div className={memberStyles.formGroup}>
                                     <label>할인금액</label>
                                     <input type="number" value={form.discountAmount} onChange={e=>setForm({...form, discountAmount:e.target.value})} />
                                 </div>
                             ) : (
                                 <>
-                                    <div className={couponStyles.formRow}>
+                                    <div className={memberStyles.formGroup}>
                                         <label>할인율(%)</label>
                                         <input type="number" value={form.discountPercentage} onChange={e=>setForm({...form, discountPercentage:e.target.value})} />
                                     </div>
-                                    <div className={couponStyles.formRow}>
+                                    <div className={memberStyles.formGroup}>
                                         <label>최대 할인 금액</label>
                                         <input type="number" value={form.maxDiscountAmount} onChange={e=>setForm({...form, maxDiscountAmount:e.target.value})} />
                                     </div>
-                                </>
-                            )}
-                            <div className={couponStyles.formRow}>
+                                </>)}
+                            <div className={memberStyles.formGroup}>
                                 <label>최소 주문 금액</label>
                                 <input type="number" value={form.minOrderAmount} onChange={e=>setForm({...form, minOrderAmount:e.target.value})} />
                             </div>
-                            <div className={couponStyles.formRow}>
+                            <div className={memberStyles.formGroup}>
                                 <label>사용 제한(건수)</label>
                                 <input type="number" value={form.usageLimit} onChange={e=>setForm({...form, usageLimit:e.target.value})} />
                             </div>
-                            <div className={couponStyles.formRow}>
+                            <div className={memberStyles.formGroup}>
                                 <label>만료일</label>
                                 <input type="datetime-local" value={form.expiryDate} onChange={e=>setForm({...form, expiryDate:e.target.value})} />
                             </div>
-                            <div className={couponStyles.modalActions}>
-                                <button className={couponStyles.createCouponBtn} onClick={async ()=>{
+                            <div className={memberStyles.modalActions}>
+                                <button className={memberStyles.modalPrimaryBtn} onClick={async ()=>{
                                     try {
                                         const payload = {
                                             name: form.name,
@@ -291,7 +289,7 @@ function CouponManagement() {
                                         alert('쿠폰 생성에 실패했습니다.');
                                     }
                                 }}>생성</button>
-                                <button className={couponStyles.cleanupBtn} onClick={()=>{
+                                <button className={memberStyles.modalSecondaryBtn} onClick={()=>{
                                     setShowCreate(false);
                                     resetForm();
                                 }}>취소</button>
@@ -302,18 +300,18 @@ function CouponManagement() {
 
                 {/* 쿠폰 수정 모달 */}
                 {showEdit && (
-                    <div className={couponStyles.modalOverlay}>
-                        <div className={couponStyles.modalContent}>
+                    <div className={memberStyles.modalOverlay}>
+                        <div className={memberStyles.modalContent}>
                             <h3>쿠폰 수정</h3>
-                            <div className={couponStyles.formRow}>
+                            <div className={memberStyles.formGroup}>
                                 <label>쿠폰명</label>
                                 <input value={form.name} onChange={e=>setForm({...form, name:e.target.value})} />
                             </div>
-                            <div className={couponStyles.formRow}>
+                            <div className={memberStyles.formGroup}>
                                 <label>이벤트</label>
                                 <input value={form.event} onChange={e=>setForm({...form, event:e.target.value})} />
                             </div>
-                            <div className={couponStyles.formRow}>
+                            <div className={memberStyles.formGroup}>
                                 <label>타입</label>
                                 <select value={form.couponType} onChange={e=>setForm({...form, couponType:e.target.value})}>
                                     <option value="FIXED_AMOUNT">정액</option>
@@ -321,40 +319,39 @@ function CouponManagement() {
                                 </select>
                             </div>
                             {form.couponType === 'FIXED_AMOUNT' ? (
-                                <div className={couponStyles.formRow}>
+                                <div className={memberStyles.formGroup}>
                                     <label>할인금액</label>
                                     <input type="number" value={form.discountAmount} onChange={e=>setForm({...form, discountAmount:e.target.value})} />
                                 </div>
                             ) : (
                                 <>
-                                    <div className={couponStyles.formRow}>
+                                    <div className={memberStyles.formGroup}>
                                         <label>할인율(%)</label>
                                         <input type="number" value={form.discountPercentage} onChange={e=>setForm({...form, discountPercentage:e.target.value})} />
                                     </div>
-                                    <div className={couponStyles.formRow}>
+                                    <div className={memberStyles.formGroup}>
                                         <label>최대 할인 금액</label>
                                         <input type="number" value={form.maxDiscountAmount} onChange={e=>setForm({...form, maxDiscountAmount:e.target.value})} />
                                     </div>
-                                </>
-                            )}
-                            <div className={couponStyles.formRow}>
+                                </>)}
+                            <div className={memberStyles.formGroup}>
                                 <label>최소 주문 금액</label>
                                 <input type="number" value={form.minOrderAmount} onChange={e=>setForm({...form, minOrderAmount:e.target.value})} />
                             </div>
-                            <div className={couponStyles.formRow}>
+                            <div className={memberStyles.formGroup}>
                                 <label>사용 제한(건수)</label>
                                 <input type="number" value={form.usageLimit} onChange={e=>setForm({...form, usageLimit:e.target.value})} />
                             </div>
-                            <div className={couponStyles.formRow}>
+                            <div className={memberStyles.formGroup}>
                                 <label>만료일</label>
                                 <input type="datetime-local" value={form.expiryDate} onChange={e=>setForm({...form, expiryDate:e.target.value})} />
                             </div>
-                            <div className={couponStyles.formRow}>
+                            <div className={memberStyles.formGroup}>
                                 <label>활성화</label>
                                 <input type="checkbox" checked={form.isActive} onChange={e=>setForm({...form, isActive:e.target.checked})} />
                             </div>
-                            <div className={couponStyles.modalActions}>
-                                <button className={couponStyles.editBtn} onClick={async ()=>{
+                            <div className={memberStyles.modalActions}>
+                                <button className={memberStyles.modalPrimaryBtn} onClick={async ()=>{
                                     try {
                                         const payload = {
                                             name: form.name,
@@ -377,7 +374,7 @@ function CouponManagement() {
                                         alert('쿠폰 수정에 실패했습니다.');
                                     }
                                 }}>수정</button>
-                                <button className={couponStyles.cleanupBtn} onClick={()=>{
+                                <button className={memberStyles.modalSecondaryBtn} onClick={()=>{
                                     setShowEdit(false);
                                     setEditingCoupon(null);
                                     resetForm();
@@ -389,10 +386,10 @@ function CouponManagement() {
 
                 {/* 쿠폰 보유 회원 모달 */}
                 {showMembersModal && (
-                    <div className={couponStyles.modalOverlay}>
-                        <div className={couponStyles.modalContent}>
+                    <div className={memberStyles.modalOverlay}>
+                        <div className={memberStyles.modalContent}>
                             <h3>{selectedCouponName} 쿠폰 보유 회원</h3>
-                            <div className={couponStyles.membersList}>
+                            <div className={memberStyles.membersList}>
                                 {couponMembers.length > 0 ? (
                                     <ul>
                                         {couponMembers.map(member => (
@@ -417,8 +414,8 @@ function CouponManagement() {
                                     <p>해당 쿠폰을 보유한 회원이 없습니다.</p>
                                 )}
                             </div>
-                            <div className={couponStyles.modalActions}>
-                                <button className={couponStyles.cleanupBtn} onClick={() => setShowMembersModal(false)}>닫기</button>
+                            <div className={memberStyles.modalActions}>
+                                <button className={memberStyles.modalSecondaryBtn} onClick={() => setShowMembersModal(false)}>닫기</button>
                             </div>
                         </div>
                     </div>

@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
 import styles from "../../assets/styles/admin/AdminDashboard.module.css";
 import memberStyles from "../../assets/styles/admin/MemberManagement.module.css";
 import { FiBell, FiRefreshCw, FiGift, FiX } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 import axios from "../../utils/axios";
 
+// Helper function to check if it's a member's birthday today
+const isBirthdayToday = (member) => {
+    if (!member.birthDate) return false;
+    const today = new Date();
+    const birth = new Date(member.birthDate);
+    return today.getMonth() === birth.getMonth() && today.getDate() === birth.getDate();
+};
+
 function MemberManagement() {
+    const navigate = useNavigate();
     // 회원 관리 상태
     const [allMembers, setAllMembers] = useState([]);
     const [filteredMembers, setFilteredMembers] = useState([]);
@@ -14,11 +24,11 @@ function MemberManagement() {
     const [selectedMembers, setSelectedMembers] = useState([]);
     const [searchCondition, setSearchCondition] = useState('name');
     const [searchTerm, setSearchTerm] = useState('');
-    const [currentFilter, setCurrentFilter] = useState('all'); // 'all', 'vip', 'new'
+    const [currentFilter, setCurrentFilter] = useState('all'); // 'all', 'new', 'birthday'
     const [stats, setStats] = useState({
         total: 0,
-        vip: 0,
-        new: 0
+        new: 0,
+        birthday: 0 // VIP 대신 생일인 회원 통계 추가
     });
 
     // 쿠폰 지급 관련 상태
@@ -36,12 +46,17 @@ function MemberManagement() {
     const [memberCart, setMemberCart] = useState([]);
     const [selectedMemberForCart, setSelectedMemberForCart] = useState(null);
 
-    // 주문 내역 모달 관련 상태 (새로 추가)
+    // 주문 내역 모달 관련 상태
     const [showOrderHistoryModal, setShowOrderHistoryModal] = useState(false);
     const [selectedMemberOrders, setSelectedMemberOrders] = useState([]);
     const [selectedMemberNameForOrders, setSelectedMemberNameForOrders] = useState('');
 
-    // 회원 추가/수정 모달 관련 상태 (새로 추가)
+    // 문의 내역 모달 관련 상태 (새로 추가)
+    const [showInquiryModal, setShowInquiryModal] = useState(false);
+    const [selectedMemberInquiries, setSelectedMemberInquiries] = useState([]);
+    const [selectedMemberNameForInquiries, setSelectedMemberNameForInquiries] = useState('');
+
+    // 회원 추가/수정 모달 관련 상태
     const [showAddEditModal, setShowAddEditModal] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
     const [memberToEdit, setMemberToEdit] = useState(null);
@@ -58,11 +73,11 @@ function MemberManagement() {
         let results = allMembers;
 
         // Apply stat box filters first
-        if (currentFilter === 'vip') {
-            results = results.filter(member => member.isVip);
-        } else if (currentFilter === 'new') {
+        if (currentFilter === 'new') {
             const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
             results = results.filter(member => new Date(member.joinDate) > thirtyDaysAgo);
+        } else if (currentFilter === 'birthday') { // 생일인 회원 필터링 추가
+            results = results.filter(isBirthdayToday);
         }
 
         // Then apply search term filtering
@@ -71,11 +86,7 @@ function MemberManagement() {
                 const value = member[searchCondition];
                 const term = searchTerm.toLowerCase();
 
-                if (searchCondition === 'isVip') {
-                    if ('vip'.includes(term)) return member.isVip;
-                    if ('일반'.includes(term)) return !member.isVip;
-                    return false;
-                }
+                // isVip 검색 조건 제거
 
                 if (typeof value === 'string') {
                     return value.toLowerCase().includes(term);
@@ -103,9 +114,10 @@ function MemberManagement() {
                 email: m.email,
                 phoneNumber: m.phoneNumber,
                 role: m.role || 'USER',
-                isVip: false,
+                // isVip 제거
                 joinDate: m.createdAt || new Date().toISOString(),
                 address: m.address,
+                birthDate: m.birthDate || null, // birthDate 추가
                 totalOrders: m.totalOrders || 0,
                 totalSpent: m.totalSpent || 0,
                 coupons: [],
@@ -113,10 +125,16 @@ function MemberManagement() {
             }));
             setAllMembers(apiMembers);
             setFilteredMembers(apiMembers);
+
+            const today = new Date();
+            const currentMonth = today.getMonth();
+            const currentDay = today.getDate();
+
             setStats({
                 total: apiMembers.length,
-                vip: apiMembers.filter(m => m.isVip).length,
-                new: apiMembers.filter(m => new Date(m.joinDate) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length
+                // vip 통계 제거
+                new: apiMembers.filter(m => new Date(m.joinDate) > new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)).length,
+                birthday: apiMembers.filter(isBirthdayToday).length // 생일인 회원 통계 추가
             });
         } catch (e) {
             setError('회원 목록을 불러오지 못했습니다.');
@@ -267,7 +285,7 @@ function MemberManagement() {
         }
     };
 
-    // 주문 내역 보기 함수 (새로 추가)
+    // 주문 내역 보기 함수
     const handleViewOrderHistory = async (member) => {
         try {
             const res = await axios.get(`/api/admin/orders/member/${member.id}`);
@@ -277,6 +295,19 @@ function MemberManagement() {
         } catch (e) {
             console.error('주문 내역 조회 실패:', e);
             alert('주문 내역을 불러오는데 실패했습니다.');
+        }
+    };
+
+    // 문의 내역 보기 함수 (새로 추가)
+    const handleViewInquiries = async (member) => {
+        try {
+            const res = await axios.get(`/api/inquiries/member/${member.id}`); // 가상의 API 엔드포인트
+            setSelectedMemberInquiries(res.data || []);
+            setSelectedMemberNameForInquiries(member.name);
+            setShowInquiryModal(true);
+        } catch (e) {
+            console.error('문의 내역 조회 실패:', e);
+            alert('문의 내역을 불러오는데 실패했습니다.');
         }
     };
 
@@ -356,7 +387,8 @@ function MemberManagement() {
                     email: newMemberData.email,
                     phoneNumber: newMemberData.phoneNumber,
                     address: newMemberData.address,
-                    role: (memberToEdit && memberToEdit.role) ? memberToEdit.role : 'USER'
+                    role: (memberToEdit && memberToEdit.role) ? memberToEdit.role : 'USER',
+                    birthDate: newMemberData.birthDate // 생년월일 추가
                 };
                 await axios.put(`/api/admin/members/${newMemberData.id}`, payload);
                 alert(`${newMemberData.name} 회원 정보가 수정되었습니다.`);
@@ -431,19 +463,20 @@ function MemberManagement() {
                         <h2>총 회원수</h2>
                         <p>{stats.total}명</p>
                     </div>
-                    <div 
-                        className={`${memberStyles.statBox} ${currentFilter === 'vip' ? memberStyles.activeStatBox : ''}`}
-                        onClick={() => handleStatBoxClick('vip')}
-                    >
-                        <h2>VIP 회원</h2>
-                        <p>{stats.vip}명</p>
-                    </div>
+                    {/* VIP 회원 통계 박스 제거 */}
                     <div 
                         className={`${memberStyles.statBox} ${currentFilter === 'new' ? memberStyles.activeStatBox : ''}`}
                         onClick={() => handleStatBoxClick('new')}
                     >
                         <h2>신규 회원</h2>
                         <p>{stats.new}명</p>
+                    </div>
+                    <div 
+                        className={`${memberStyles.statBox} ${currentFilter === 'birthday' ? memberStyles.activeStatBox : ''}`}
+                        onClick={() => handleStatBoxClick('birthday')}
+                    >
+                        <h2>생일 회원</h2>
+                        <p>{stats.birthday}명</p>
                     </div>
                 </div>
     
@@ -452,7 +485,7 @@ function MemberManagement() {
                         <select value={searchCondition} onChange={handleSearchConditionChange} className={memberStyles.searchCondition}>
                             <option value="name">이름</option>
                             <option value="email">이메일</option>
-                            <option value="isVip">등급</option>
+                            {/* 등급 검색 조건 제거 */}
                         </select>
                         <input
                             type="text"
@@ -489,8 +522,9 @@ function MemberManagement() {
                             <th>이름</th>
                             <th>이메일</th>
                             <th>전화번호</th>
-                            <th>등급</th>
+                            {/* 등급 컬럼 제거 */}
                             <th>주문 내역</th>
+                            <th>문의 내역</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -512,7 +546,7 @@ function MemberManagement() {
                                 <td>{member.name}</td>
                                 <td>{member.email}</td>
                                 <td>{member.phoneNumber}</td>
-                                <td>{member.isVip ? 'VIP' : '일반'}</td>
+                                {/* 등급 데이터 제거 */}
                                 <td onClick={(e) => e.stopPropagation()}>
                                     <button
                                         className={memberStyles.viewOrderHistoryBtn}
@@ -522,6 +556,17 @@ function MemberManagement() {
                                         }}
                                     >
                                         주문 내역 보기
+                                    </button>
+                                </td>
+                                <td onClick={(e) => e.stopPropagation()}>
+                                    <button
+                                        className={memberStyles.viewInquiriesBtn}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleViewInquiries(member);
+                                        }}
+                                    >
+                                        문의 내역 보기
                                     </button>
                                 </td>
                             </tr>
@@ -554,7 +599,7 @@ function MemberManagement() {
                     </div>
                 )}
 
-                {/* 주문 내역 모달 (새로 추가) */}
+                {/* 주문 내역 모달 */}
                 {showOrderHistoryModal && (
                     <div className={memberStyles.orderHistoryModalOverlay} onClick={() => setShowOrderHistoryModal(false)}>
                         <div className={memberStyles.orderHistoryModalContent} onClick={(e) => e.stopPropagation()}>
@@ -592,6 +637,37 @@ function MemberManagement() {
                             )}
                             <div className={memberStyles.modalActions}>
                                 <button onClick={() => setShowOrderHistoryModal(false)} className={memberStyles.modalSecondaryBtn}>닫기</button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* 문의 내역 모달 (새로 추가) */}
+                {showInquiryModal && (
+                    <div className={memberStyles.inquiryModalOverlay} onClick={() => setShowInquiryModal(false)}>
+                        <div className={memberStyles.inquiryModalContent} onClick={(e) => e.stopPropagation()}>
+                            <h3>{selectedMemberNameForInquiries ? `${selectedMemberNameForInquiries}님의 문의 내역` : '문의 내역'}</h3>
+                            {selectedMemberInquiries && selectedMemberInquiries.length > 0 ? (
+                                <ul className={memberStyles.inquiryListModal}>
+                                    {selectedMemberInquiries.map(inquiry => (
+                                        <li key={inquiry.id} className={memberStyles.inquiryListItemModal} onClick={() => navigate(`/inquiry/${inquiry.id}`)}>
+                                            <div>
+                                                <strong>문의 ID: {inquiry.id}</strong>
+                                                <br />
+                                                <span>제목: {inquiry.title}</span>
+                                                <br />
+                                                <span>작성일: {new Date(inquiry.createdAt).toLocaleDateString()}</span>
+                                                <br />
+                                                <span>상태: {inquiry.status}</span>
+                                            </div>
+                                        </li>
+                                    ))}
+                                </ul>
+                            ) : (
+                                <p>문의 내역이 없습니다.</p>
+                            )}
+                            <div className={memberStyles.modalActions}>
+                                <button onClick={() => setShowInquiryModal(false)} className={memberStyles.modalSecondaryBtn}>닫기</button>
                             </div>
                         </div>
                     </div>
@@ -682,7 +758,7 @@ function MemberManagement() {
                     </div>
                 )}
 
-                {/* 회원 추가/수정 모달 (새로 추가) */}
+                {/* 회원 추가/수정 모달 */}
                 {showAddEditModal && (
                     <div className={memberStyles.modalOverlay} onClick={() => setShowAddEditModal(false)}>
                         <div className={memberStyles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -859,11 +935,12 @@ function MemberManagement() {
                             <div className={memberStyles.sidePanelItem}>
                                 <strong>전화번호:</strong> <span>{sidePanelMember.phoneNumber}</span>
                             </div>
-                            <div className={memberStyles.sidePanelItem}>
-                                <strong>등급:</strong> <span>{sidePanelMember.isVip ? 'VIP' : '일반'}</span>
-                            </div>
+                            {/* 등급 정보 제거 */}
                             <div className={memberStyles.sidePanelItem}>
                                 <strong>가입일:</strong> <span>{sidePanelMember.joinDate ? new Date(sidePanelMember.joinDate).toLocaleDateString() : '-'}</span>
+                            </div>
+                            <div className={memberStyles.sidePanelItem}>
+                                <strong>생년월일:</strong> <span>{sidePanelMember.birthDate ? new Date(sidePanelMember.birthDate).toLocaleDateString() : '-'}</span>
                             </div>
                             <div className={memberStyles.sidePanelItem}>
                                 <strong>주소:</strong> <span>{sidePanelMember.address}</span>
@@ -896,24 +973,6 @@ function MemberManagement() {
                                     <span>보유한 쿠폰이 없습니다.</span>
                                 )}
                             </div>
-                            {/* 기존 주문 내역은 사이드 패널에서 제거하거나, 필요에 따라 유지 */}
-                            {/* <div className={`${memberStyles.sidePanelItem} ${memberStyles.orderHistoryItem}>\
-                                <strong>주문 내역:</strong>\
-                                {sidePanelMember.orders && sidePanelMember.orders.length > 0 ? (\
-                                    <ul className={memberStyles.orderList}>\
-                                        {sidePanelMember.orders.map(order => (\
-                                            <li key={order.orderId} className={memberStyles.orderListItem}>\
-                                                <span>주문 ID: {order.orderId}</span>\
-                                                <span>날짜: {new Date(order.date).toLocaleDateString()}</span>\
-                                                <span>금액: {order.totalAmount.toLocaleString()}원</span>\
-                                                <span>상태: {order.status}</span>\
-                                            </li>\
-                                        ))}\
-                                    </ul>\
-                                ) : (\
-                                    <span>없음</span>\
-                                )}\
-                            </div> */}
                             <div className={memberStyles.sidePanelActions}>
                                 <button className={memberStyles.editMemberBtn} onClick={() => handleEditMemberClick(sidePanelMember)}>회원 수정</button>
                                 <button className={memberStyles.deleteMemberBtn} onClick={handleDeleteMember}>회원 탈퇴</button>

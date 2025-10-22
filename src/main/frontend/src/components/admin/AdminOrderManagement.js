@@ -1,335 +1,338 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import styles from '../../assets/styles/admin/AdminOrderManagement.module.css';
+import React, { useState, useEffect } from "react";
+import { useNavigate } from 'react-router-dom';
+import styles from "../../assets/styles/admin/AdminDashboard.module.css";
+import orderStyles from "../../assets/styles/admin/AdminOrderManagement.module.css";
+import memberStyles from "../../assets/styles/admin/MemberManagement.module.css"; // 회원관리 스타일 임포트
+import { FiBell, FiX } from "react-icons/fi"; // FiX 아이콘 추가
+import Sidebar from "./Sidebar";
+import axios from "../../utils/axios";
 
-const API_BASE_URL = 'http://localhost:8080';
+// Dummy data for admin orders
+const dummyAdminOrders = [
+    {
+        orderId: 'ADMIN-DUMMY-001',
+        ordererInfo: { name: '관리자 테스트1' },
+        orderSummary: { finalAmount: 75000 },
+        orderDate: '2023-10-26T11:00:00',
+        status: 'PAID',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-002',
+        ordererInfo: { name: '관리자 테스트2' },
+        orderSummary: { finalAmount: 120000 },
+        orderDate: '2023-10-25T14:00:00',
+        status: 'SHIPPING',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-003',
+        ordererInfo: { name: '관리자 테스트3' },
+        orderSummary: { finalAmount: 30000 },
+        orderDate: '2023-10-24T09:00:00',
+        status: 'DELIVERED',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-004',
+        ordererInfo: { name: '관리자 테스트4' },
+        orderSummary: { finalAmount: 50000 },
+        orderDate: '2023-10-23T10:00:00',
+        status: 'PENDING',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-005',
+        ordererInfo: { name: '관리자 테스트5' },
+        orderSummary: { finalAmount: 80000 },
+        orderDate: '2023-10-22T16:00:00',
+        status: 'PREPARING',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-006',
+        ordererInfo: { name: '관리자 테스트6' },
+        orderSummary: { finalAmount: 60000 },
+        orderDate: '2023-10-21T13:00:00',
+        status: 'CANCELLED',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-007',
+        ordererInfo: { name: '관리자 테스트7' },
+        orderSummary: { finalAmount: 95000 },
+        orderDate: '2023-10-20T10:00:00',
+        status: 'DELIVERED',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-008',
+        ordererInfo: { name: '관리자 테스트8' },
+        orderSummary: { finalAmount: 40000 },
+        orderDate: '2023-10-19T15:00:00',
+        status: 'PAID',
+    },
+];
 
 function AdminOrderManagement() {
-    const [allOrders, setAllOrders] = useState([]);
+    const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [currentPage, setCurrentPage] = useState(0);
-    const [totalPages, setTotalPages] = useState(0);
-    const [selectedStatus, setSelectedStatus] = useState('ALL');
-    const [selectedOrder, setSelectedOrder] = useState(null);
-    const [showDetailModal, setShowDetailModal] = useState(false);
-    const ordersPerPage = 6;
+    const [filter, setFilter] = useState('ALL'); // 필터 상태 추가
+    const [stats, setStats] = useState({
+        total: 0,
+        PENDING: 0,
+        PAID: 0,
+        PREPARING: 0,
+        SHIPPING: 0,
+        DELIVERED: 0,
+        CANCELLED: 0,
+    });
 
-    const orderStatuses = [
-        { value: 'ALL', label: '전체' },
-        { value: 'PENDING', label: '주문 대기' },
-        { value: 'PAID', label: '결제 완료' },
-        { value: 'PREPARING', label: '상품 준비중' },
-        { value: 'SHIPPING', label: '배송중' },
-        { value: 'DELIVERED', label: '배송 완료' },
-        { value: 'CANCELLED', label: '주문 취소' }
-    ];
+    // 사이드 패널 관련 상태
+    const [showSidePanel, setShowSidePanel] = useState(false);
+    const [sidePanelOrder, setSidePanelOrder] = useState(null);
 
     useEffect(() => {
-        fetchAllOrders();
-    }, [selectedStatus]);
+        fetchOrders();
+    }, []);
 
-    useEffect(() => {
-        updatePagedOrders();
-    }, [allOrders, currentPage]);
-
-    const fetchAllOrders = async () => {
+    const fetchOrders = async () => {
+        setLoading(true);
+        setError(null);
         try {
-            setLoading(true);
-            let url = `${API_BASE_URL}/api/admin/orders?page=0&size=1000`; // 큰 사이즈로 전체 데이터 가져오기
-            
-            if (selectedStatus !== 'ALL') {
-                url = `${API_BASE_URL}/api/admin/orders/status/${selectedStatus}?page=0&size=1000`;
-            }
+            const res = await axios.get('/api/admin/orders'); // 관리자용 주문 목록 API
+            const fetchedOrders = [...dummyAdminOrders, ...(res.data.content || [])];
+            setOrders(fetchedOrders);
 
-            const response = await axios.get(url, {
-                withCredentials: true
-            });
+            // 통계 계산
+            const newStats = {
+                total: fetchedOrders.length,
+                PENDING: fetchedOrders.filter(o => o.status === 'PENDING').length,
+                PAID: fetchedOrders.filter(o => o.status === 'PAID').length,
+                PREPARING: fetchedOrders.filter(o => o.status === 'PREPARING').length,
+                SHIPPING: fetchedOrders.filter(o => o.status === 'SHIPPING').length,
+                DELIVERED: fetchedOrders.filter(o => o.status === 'DELIVERED').length,
+                CANCELLED: fetchedOrders.filter(o => o.status === 'CANCELLED').length,
+            };
+            setStats(newStats);
 
-            // 주문번호 기준으로 내림차순 정렬 (최근 주문이 먼저)
-            const sortedOrders = response.data.content.sort((a, b) => b.orderId - a.orderId);
-            
-            setAllOrders(sortedOrders);
-            setCurrentPage(0); // 상태 변경 시 첫 페이지로 이동
-            setError(null);
-        } catch (error) {
-            console.error('주문 목록 조회 실패:', error);
-            setError('주문 목록을 불러오는데 실패했습니다.');
+        } catch (e) {
+            setError('주문 목록을 불러오지 못했습니다.');
+            console.error(e);
         } finally {
             setLoading(false);
         }
     };
 
-    const updatePagedOrders = () => {
-        const startIndex = currentPage * ordersPerPage;
-        const endIndex = startIndex + ordersPerPage;
-        const pagedOrders = allOrders.slice(startIndex, endIndex);
-        
-        setOrders(pagedOrders);
-        setTotalPages(Math.ceil(allOrders.length / ordersPerPage));
-    };
-
-    const handleStatusChange = async (orderId, newStatus) => {
-        try {
-            await axios.put(`${API_BASE_URL}/api/admin/orders/${orderId}/status`, {
-                status: newStatus
-            }, {
-                withCredentials: true
-            });
-
-            alert('주문 상태가 성공적으로 변경되었습니다.');
-            fetchAllOrders(); // 목록 새로고침
-        } catch (error) {
-            console.error('주문 상태 변경 실패:', error);
-            alert('주문 상태 변경에 실패했습니다.');
+    const handleOrderClick = async (order) => {
+        if (showSidePanel && sidePanelOrder && sidePanelOrder.orderId === order.orderId) {
+            setShowSidePanel(false);
+            setSidePanelOrder(null);
+        } else {
+            // 실제 API 호출로 상세 정보를 가져올 수 있다면 여기에 추가
+            // 예: const res = await axios.get(`/api/admin/orders/${order.orderId}`);
+            // setSidePanelOrder(res.data);
+            setSidePanelOrder(order); // 현재는 전달받은 order 객체 사용
+            setShowSidePanel(true);
         }
     };
 
-    const handleOrderClick = async (orderId) => {
-        try {
-            const response = await axios.get(`${API_BASE_URL}/api/admin/orders/${orderId}`, {
-                withCredentials: true
-            });
-            setSelectedOrder(response.data);
-            setShowDetailModal(true);
-        } catch (error) {
-            console.error('주문 상세 조회 실패:', error);
-            alert('주문 상세 정보를 불러오는데 실패했습니다.');
-        }
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return '날짜 정보 없음';
-        
-        const date = new Date(dateString);
-        if (isNaN(date.getTime())) {
-            return '유효하지 않은 날짜';
-        }
-        
-        return new Intl.DateTimeFormat('ko-KR', {
-            year: 'numeric',
-            month: '2-digit',
-            day: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit',
-            hour12: false
-        }).format(date);
-    };
-
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'PENDING': return '#ff9800';
-            case 'PAID': return '#2196f3';
-            case 'PREPARING': return '#9c27b0';
-            case 'SHIPPING': return '#ff5722';
-            case 'DELIVERED': return '#4caf50';
-            case 'CANCELLED': return '#f44336';
-            default: return '#757575';
-        }
-    };
-
+    // 주문 상태 라벨 변환 함수
     const getStatusLabel = (status) => {
-        const statusObj = orderStatuses.find(s => s.value === status);
-        return statusObj ? statusObj.label : status;
+        switch (status) {
+            case 'PENDING':
+                return '주문 대기';
+            case 'PAID':
+                return '결제 완료';
+            case 'PREPARING':
+                return '상품 준비중';
+            case 'SHIPPING':
+                return '배송중';
+            case 'DELIVERED':
+                return '배송 완료';
+            case 'CANCELLED':
+                return '주문 취소';
+            default:
+                return status || '상태 정보 없음';
+        }
     };
 
-    if (loading && currentPage === 0) {
-        return <div className={styles.loading}>주문 목록을 불러오는 중...</div>;
-    }
+    // 필터 변경 핸들러
+    const handleFilterChange = (newFilter) => {
+        setFilter(newFilter);
+    };
 
-    if (error) {
-        return <div className={styles.error}>{error}</div>;
-    }
+    const renderContent = () => {
+        if (loading) {
+            return <div className={orderStyles.loading}>주문 정보를 불러오는 중...</div>;
+        }
+
+        if (error) {
+            return <div className={orderStyles.error}>{error}</div>;
+        }
+
+        // 필터링된 주문 목록
+        const filteredOrders = filter === 'ALL'
+            ? orders
+            : orders.filter(order => order.status === filter);
+
+        return (
+            <div className={orderStyles.container}>
+                {/* 통계 박스들 (회원관리 페이지와 유사하게) */}
+                <div className={memberStyles.statsContainer}>
+                    <div
+                        className={`${memberStyles.statBox} ${filter === 'ALL' ? memberStyles.activeStatBox : ''}`}
+                        onClick={() => handleFilterChange('ALL')}
+                    >
+                        <h2>총 주문 수</h2>
+                        <p>{stats.total}건</p>
+                    </div>
+                    <div
+                        className={`${memberStyles.statBox} ${filter === 'PENDING' ? memberStyles.activeStatBox : ''}`}
+                        onClick={() => handleFilterChange('PENDING')}
+                    >
+                        <h2>주문 대기</h2>
+                        <p>{stats.PENDING}건</p>
+                    </div>
+                    <div
+                        className={`${memberStyles.statBox} ${filter === 'PAID' ? memberStyles.activeStatBox : ''}`}
+                        onClick={() => handleFilterChange('PAID')}
+                    >
+                        <h2>결제 완료</h2>
+                        <p>{stats.PAID}건</p>
+                    </div>
+                    <div
+                        className={`${memberStyles.statBox} ${filter === 'PREPARING' ? memberStyles.activeStatBox : ''}`}
+                        onClick={() => handleFilterChange('PREPARING')}
+                    >
+                        <h2>상품 준비중</h2>
+                        <p>{stats.PREPARING}건</p>
+                    </div>
+                    <div
+                        className={`${memberStyles.statBox} ${filter === 'SHIPPING' ? memberStyles.activeStatBox : ''}`}
+                        onClick={() => handleFilterChange('SHIPPING')}
+                    >
+                        <h2>배송중</h2>
+                        <p>{stats.SHIPPING}건</p>
+                    </div>
+                    <div
+                        className={`${memberStyles.statBox} ${filter === 'DELIVERED' ? memberStyles.activeStatBox : ''}`}
+                        onClick={() => handleFilterChange('DELIVERED')}
+                    >
+                        <h2>배송 완료</h2>
+                        <p>{stats.DELIVERED}건</p>
+                    </div>
+                    <div
+                        className={`${memberStyles.statBox} ${filter === 'CANCELLED' ? memberStyles.activeStatBox : ''}`}
+                        onClick={() => handleFilterChange('CANCELLED')}
+                    >
+                        <h2>주문 취소</h2>
+                        <p>{stats.CANCELLED}건</p>
+                    </div>
+                </div>
+
+                <table className={orderStyles.orderTable}>
+                    <thead>
+                        <tr>
+                            <th>주문번호</th>
+                            <th>주문자</th>
+                            <th>총 금액</th>
+                            <th>주문일</th>
+                            <th>상태</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {filteredOrders.length > 0 ? (
+                            filteredOrders.map(order => (
+                                <tr key={order.orderId} className={orderStyles.orderRow} onClick={() => handleOrderClick(order)}>
+                                    <td>{order.orderId}</td>
+                                    <td>{order.ordererInfo?.name || '-'}</td>
+                                    <td>{order.orderSummary?.finalAmount?.toLocaleString() || '0'}원</td>
+                                    <td>{order.orderDate ? new Date(order.orderDate).toLocaleDateString() : '-'}</td>
+                                    <td>{getStatusLabel(order.status)}</td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="5" className={orderStyles.noOrders}>해당하는 주문이 없습니다.</td>
+                            </tr>
+                        )}
+                    </tbody>
+                </table>
+            </div>
+        );
+    };
 
     return (
-        <div className={styles.container}>
-            <h1>어드민 주문 관리</h1>
+        <div className={styles.app}>
+            <Sidebar activeLabel="주문관리" />
 
-            {/* 필터 섹션 */}
-            <div className={styles.filterSection}>
-                <div className={styles.filterControls}>
-                    <select 
-                        value={selectedStatus} 
-                        onChange={(e) => {
-                            setSelectedStatus(e.target.value);
-                            setCurrentPage(0);
-                        }}
-                        className={styles.statusFilter}
-                    >
-                        {orderStatuses.map(status => (
-                            <option key={status.value} value={status.value}>
-                                {status.label}
-                            </option>
-                        ))}
-                    </select>
-                </div>
-                <div className={styles.orderCount}>
-                    총 <strong>{allOrders.length}</strong>개의 주문
-                </div>
-            </div>
-
-            {/* 주문 목록 */}
-            <div className={styles.orderList}>
-                {orders.map(order => (
-                    <div key={order.orderId} className={styles.orderItem}>
-                        <div className={styles.orderHeader}>
-                            <div className={styles.orderInfo}>
-                                <span className={styles.orderId}>주문번호: {order.orderId}</span>
-                                <span className={styles.orderDate}>{formatDate(order.orderDate)}</span>
-                                <span 
-                                    className={styles.orderStatus}
-                                    style={{ backgroundColor: getStatusColor(order.status) }}
-                                >
-                                    {getStatusLabel(order.status)}
-                                </span>
-                            </div>
-                            <div className={styles.orderActions}>
-                                <button 
-                                    className={styles.detailButton}
-                                    onClick={() => handleOrderClick(order.orderId)}
-                                >
-                                    상세보기
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className={styles.orderContent}>
-                            <div className={styles.customerInfo}>
-                                <p><strong>주문자:</strong> {order.ordererInfo?.name}</p>
-                                <p><strong>연락처:</strong> {order.ordererInfo?.phone}</p>
-                                <p><strong>배송지:</strong> {order.shippingInfo?.address}</p>
-                            </div>
-
-                            <div className={styles.productSummary}>
-                                <p><strong>상품 수:</strong> {order.orderItems?.length}개</p>
-                                <p><strong>총 금액:</strong> ₩{order.orderSummary?.finalAmount?.toLocaleString()}</p>
-                            </div>
-
-                            <div className={styles.statusActions}>
-                                <select 
-                                    value={order.status}
-                                    onChange={(e) => handleStatusChange(order.orderId, e.target.value)}
-                                    className={styles.statusSelect}
-                                >
-                                    {orderStatuses.filter(s => s.value !== 'ALL').map(status => (
-                                        <option key={status.value} value={status.value}>
-                                            {status.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                <button 
-                                    className={styles.updateButton}
-                                    onClick={() => handleStatusChange(order.orderId, order.status)}
-                                >
-                                    상태 변경
-                                </button>
-                            </div>
-                        </div>
+            <main className={`${styles.main} ${showSidePanel ? memberStyles.mainWithPanel : ''}`}>
+                <header className={styles.header}>
+                    <div className={styles.headerTitle}>주문 관리</div>
+                    <div className={styles.headerActions}>
+                        <button className={styles.iconBtn} aria-label="알림">
+                            <FiBell />
+                        </button>
                     </div>
-                ))}
-            </div>
+                </header>
 
-            {/* 페이징 */}
-            <div className={styles.pagination}>
-                <button 
-                    onClick={() => setCurrentPage(prev => Math.max(0, prev - 1))}
-                    disabled={currentPage === 0}
-                    className={styles.pageButton}
-                >
-                    이전
-                </button>
-                <span className={styles.pageInfo}>
-                    {currentPage + 1} / {totalPages}
-                </span>
-                <button 
-                    onClick={() => setCurrentPage(prev => prev + 1)}
-                    disabled={currentPage >= totalPages - 1}
-                    className={styles.pageButton}
-                >
-                    다음
-                </button>
-            </div>
+                {renderContent()}
+            </main>
 
-            {/* 주문 상세 모달 */}
-            {showDetailModal && selectedOrder && (
-                <div className={styles.modalOverlay} onClick={() => setShowDetailModal(false)}>
-                    <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-                        <div className={styles.modalHeader}>
-                            <h2>주문 상세 정보</h2>
-                            <button 
-                                className={styles.closeButton}
-                                onClick={() => setShowDetailModal(false)}
-                            >
-                                ✕
-                            </button>
-                        </div>
-                        
-                        <div className={styles.modalContent}>
-                            <div className={styles.modalSection}>
-                                <h3>주문 정보</h3>
-                                <p><strong>주문번호:</strong> {selectedOrder.orderId}</p>
-                                <p><strong>주문일:</strong> {formatDate(selectedOrder.orderDate)}</p>
-                                <p><strong>상태:</strong> {getStatusLabel(selectedOrder.status)}</p>
-                            </div>
-
-                            <div className={styles.modalSection}>
-                                <h3>주문자 정보</h3>
-                                <p><strong>이름:</strong> {selectedOrder.ordererInfo?.name}</p>
-                                <p><strong>연락처:</strong> {selectedOrder.ordererInfo?.phone}</p>
-                                <p><strong>이메일:</strong> {selectedOrder.ordererInfo?.email}</p>
-                            </div>
-
-                            <div className={styles.modalSection}>
-                                <h3>배송 정보</h3>
-                                <p><strong>수령인:</strong> {selectedOrder.shippingInfo?.receiverName}</p>
-                                <p><strong>연락처:</strong> {selectedOrder.shippingInfo?.receiverPhone}</p>
-                                <p><strong>주소:</strong> {selectedOrder.shippingInfo?.address}</p>
-                                <p><strong>상세주소:</strong> {selectedOrder.shippingInfo?.detailAddress}</p>
-                            </div>
-
-                            <div className={styles.modalSection}>
-                                <h3>상품 목록</h3>
-                                <div className={styles.productList}>
-                                    {selectedOrder.orderItems?.map((item, index) => (
-                                        <div key={index} className={styles.productItem}>
-                                            <p><strong>상품명:</strong> {item.productName}</p>
-                                            {item.options && Object.keys(item.options).length > 0 && (
-                                                <div>
-                                                    <strong>옵션:</strong>
-                                                    <div className={styles.productOptions}>
-                                                        {Object.entries(item.options).map(([key, value]) => (
-                                                            <span key={key} className={styles.optionItem}>
-                                                                <span className={styles.optionKey}>{key}</span>
-                                                                <span className={styles.optionValue}>{value}</span>
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-                                            {item.productOption && !item.options && (
-                                                <p><strong>옵션:</strong> {item.productOption}</p>
-                                            )}
-                                            <p><strong>수량:</strong> {item.quantity}</p>
-                                            <p><strong>가격:</strong> ₩{item.price?.toLocaleString()}</p>
-                                        </div>
-                                    ))}
+            {/* 주문 상세 정보 사이드 패널 */}
+            <div className={`${memberStyles.sidePanelContainer} ${showSidePanel ? memberStyles.sidePanelOpen : ''}`}>
+                <div className={memberStyles.sidePanelHeader}>
+                    <h3>주문 상세 정보</h3>
+                    <button className={memberStyles.sidePanelCloseBtn} onClick={() => setShowSidePanel(false)}><FiX /></button>
+                </div>
+                <div className={memberStyles.sidePanelBody}>
+                    {sidePanelOrder ? (
+                        <>
+                            <div className={memberStyles.sidePanelRowGroup}>
+                                <div className={memberStyles.sidePanelItem}>
+                                    <strong>주문번호:</strong> <span>{sidePanelOrder.orderId}</span>
+                                </div>
+                                <div className={memberStyles.sidePanelItem}>
+                                    <strong>주문자:</strong> <span>{sidePanelOrder.ordererInfo?.name || '-'}</span>
+                                </div>
+                                <div className={memberStyles.sidePanelItem}>
+                                    <strong>주문일:</strong> <span>{sidePanelOrder.orderDate ? new Date(sidePanelOrder.orderDate).toLocaleString() : '-'}</span>
                                 </div>
                             </div>
-
-                            <div className={styles.modalSection}>
-                                <h3>결제 정보</h3>
-                                <p><strong>총 상품금액:</strong> ₩{selectedOrder.orderSummary?.totalPrice?.toLocaleString()}</p>
-                                <p><strong>할인금액:</strong> ₩{selectedOrder.orderSummary?.discountAmount?.toLocaleString()}</p>
-                                <p><strong>배송비:</strong> ₩{selectedOrder.orderSummary?.shippingFee?.toLocaleString()}</p>
-                                <p><strong>최종 결제금액:</strong> ₩{selectedOrder.orderSummary?.finalAmount?.toLocaleString()}</p>
+                            <div className={memberStyles.sidePanelItem}>
+                                <strong>총 결제 금액:</strong> <span>{sidePanelOrder.orderSummary?.finalAmount?.toLocaleString() || '0'}원</span>
                             </div>
-                        </div>
-                    </div>
+                            <div className={memberStyles.sidePanelItem}>
+                                <strong>상태:</strong> <span>{getStatusLabel(sidePanelOrder.status)}</span>
+                            </div>
+                            {/* 추가 상세 정보 (예: 주문 상품 목록, 배송지 정보 등) */}
+                            <div className={memberStyles.sidePanelItem}>
+                                <strong>주문 상품:</strong>
+                                {sidePanelOrder.orderItems && sidePanelOrder.orderItems.length > 0 ? (
+                                    <ul className={memberStyles.orderItemList}>
+                                        {sidePanelOrder.orderItems.map((item, index) => (
+                                            <li key={index} className={memberStyles.orderItemDetail}>
+                                                {item.productName} x {item.quantity} ({item.price.toLocaleString()}원)
+                                                {item.options && Object.keys(item.options).length > 0 && (
+                                                    <span> ({Object.entries(item.options).map(([key, value]) => `${key}: ${value}`).join(', ')})</span>
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <span>상품 정보 없음</span>
+                                )}
+                            </div>
+                            {/* 여기에 배송지 정보 등 추가 가능 */}
+                            <div className={memberStyles.sidePanelActions}>
+                                {/* 주문 관련 액션 버튼 (예: 상태 변경, 환불 등) */}
+                                <button className={memberStyles.editMemberBtn} onClick={() => alert('주문 수정 (미구현)')}>주문 수정</button>
+                                <button className={memberStyles.deleteMemberBtn} onClick={() => alert('주문 취소/환불 (미구현)')}>주문 취소/환불</button>
+                            </div>
+                        </>
+                    ) : (
+                        <p>선택된 주문 정보가 없습니다.</p>
+                    )}
                 </div>
-            )}
+            </div>
         </div>
     );
 }
 
-export default AdminOrderManagement; 
+export default AdminOrderManagement;

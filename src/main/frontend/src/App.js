@@ -12,7 +12,6 @@ import Login from './components/auth/Login';
 import AdminDashboard from "./components/admin/AdminDashboard";
 import SignUp from './components/auth/SignUp';
 import Forgot from './components/auth/Forgot';
-// import All from './components/pages/All'; // 파일이 존재하지 않으므로 주석 처리
 import Anniversary from './components/pages/Anniversary';
 import Customization from './components/pages/Customization';
 import Limited_Edition from './components/pages/Limited_Edition';
@@ -26,7 +25,7 @@ import ProductDetail from './components/product/ProductDetail';
 import MyPage from './components/my-page/MyPage';
 import EditProfile from "./components/my-page/EditProfile";
 import MyProductList from "./components/product/ProductList";
-import WishList from "./components/my-page/WishList";
+import WishList from './components/my-page/WishList';
 import Recent from "./components/pages/Recent";
 import EstimateList from "./components/inquiry/EstimateList";
 import ProductStats from "./components/admin/ProductStats";
@@ -43,7 +42,10 @@ import MyReviews from './components/my-page/MyReviews';
 import ReviewEdit from './components/my-page/ReviewEdit';
 import AdminOrderManagement from './components/admin/AdminOrderManagement';
 import MemberManagement from './components/admin/MemberManagement';
-import CouponManagement from './components/admin/CouponManagement'; // CouponManagement import
+import CouponManagement from './components/admin/CouponManagement';
+import InquiryManagement from './components/admin/InquiryManagement';
+import ProductManagement from './components/admin/ProductManagement';
+import EstimateManagement from './components/admin/EstimateManagement'; // EstimateManagement import
 import Coupons from './components/my-page/Coupons';
 
 // 로그인 필요 보호 라우트
@@ -66,7 +68,7 @@ const ProtectedAdminRoute = ({ children }) => {
 function AppContent() {
     const location = useLocation();
     // 관리자 대시보드에서도 헤더/네비 숨김
-    const hideLayout = ['/login', '/signup', '/Forgot', '/admin/dashboard', '/admin/members', '/admin/coupons'].includes(location.pathname); // /admin/coupons 추가
+    const hideLayout = ['/login', '/signup', '/Forgot', '/admin/dashboard', '/admin/members', '/admin/coupons', '/admin/inquiries', '/admin/orders', '/admin/products', '/admin/estimates'].includes(location.pathname); // /admin/estimates 추가
 
     const [hello, setHello] = React.useState('');
     const [error, setError] = React.useState('');
@@ -106,7 +108,6 @@ function AppContent() {
 
                 <Route path="/signup" element={<SignUp />} />
                 <Route path="/forgot" element={<Forgot />} />
-                {/* <Route path="/all" element={<All />} /> */}{/* 파일이 존재하지 않으므로 주석 처리 */}
                 <Route path="/anniversary" element={<Anniversary />} />
                 <Route path="/customization" element={<Customization />} />
                 <Route path="/limited_edition" element={<Limited_Edition />} />
@@ -187,6 +188,30 @@ function AppContent() {
                     element={
                         <ProtectedAdminRoute>
                             <CouponManagement />
+                        </ProtectedAdminRoute>
+                    }
+                />
+                <Route
+                    path="/admin/inquiries"
+                    element={
+                        <ProtectedAdminRoute>
+                            <InquiryManagement />
+                        </ProtectedAdminRoute>
+                    }
+                />
+                <Route
+                    path="/admin/products"
+                    element={
+                        <ProtectedAdminRoute>
+                            <ProductManagement />
+                        </ProtectedAdminRoute>
+                    }
+                />
+                <Route
+                    path="/admin/estimates"
+                    element={
+                        <ProtectedAdminRoute>
+                            <EstimateManagement />
                         </ProtectedAdminRoute>
                     }
                 />

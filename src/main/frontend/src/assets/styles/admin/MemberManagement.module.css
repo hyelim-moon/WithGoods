@@ -1,6 +1,6 @@
 .container {
     padding: 20px;
-    background-color: #f9f9f9;
+    background-color: white;
     transition: margin-right 0.3s ease; /* 사이드 패널 열릴 때 컨테이너 이동 애니메이션 */
 }
 
@@ -616,6 +616,95 @@
 .viewOrderHistoryBtn:focus {
     outline: none;
     box-shadow: none;
+}
+
+/* New styles for Inquiry Modal */
+.viewInquiriesBtn {
+    background-color: #6f42c1; /* Purple */
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.2s ease;
+}
+
+.viewInquiriesBtn:hover {
+    background-color: #5a32a3;
+}
+
+.viewInquiriesBtn:focus {
+    outline: none;
+    box-shadow: none;
+}
+
+.inquiryModalOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.inquiryModalContent {
+    background-color: white;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    width: 90%;
+    max-width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    position: relative;
+    z-index: 3001;
+}
+
+.inquiryModalContent h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: #333;
+    font-size: 1.5rem;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+}
+
+.inquiryListModal {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.inquiryListItemModal {
+    background-color: #f9f9f9;
+    border: 1px solid #eee;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.inquiryListItemModal:hover {
+    background-color: #f0f0f0;
+}
+
+.inquiryListItemModal span {
+    color: #555;
+}
+
+.inquiryListItemModal span:first-child {
+    font-weight: bold;
+    color: #333;
 }
 
 .modalOverlay {
