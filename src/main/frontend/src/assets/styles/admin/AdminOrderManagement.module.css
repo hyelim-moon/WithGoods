@@ -264,19 +264,20 @@
 .itemName {
     font-weight: 600;
     color: #333;
-    margin-bottom: 4px;
+    margin: 5px 0 10px 0;
 }
 
 .itemOptionsRow {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 8px;
+    margin: 5px 0;
 }
 
 .optionChipSmall {
     background: #ffffff;
     color: #495057;
-    padding: 2px 8px;
+    padding: 4px 10px;
     border-radius: 12px;
     font-size: 12px;
     border: 1px solid #f0f0f0;
@@ -318,3 +319,55 @@
     background-color: #c82333;
     border-color: #bd2130;
 }
+
+/* ===== 편집 모드 UI ===== */
+.formInput {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.formSelect {
+    width: 100%;
+    padding: 9px 12px;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.numberInput {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid #dcdcdc;
+    border-radius: 8px;
+    font-size: 14px;
+    text-align: right;
+    background: #fff;
+}
+
+.cancelBtn {
+    padding: 8px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+    background-color: #6c757d;
+    color: white;
+    border: 1px solid #6c757d;
+}
+.cancelBtn:hover { background-color: #5a6268; border-color: #545b62; }
+
+.editBadge {
+    margin-left: 8px;
+    padding: 2px 8px;
+    font-size: 12px;
+    border-radius: 999px;
+    background: #fff3cd;
+    color: #7a5d00;
+    border: 1px solid #ffe49b;
+}
+
