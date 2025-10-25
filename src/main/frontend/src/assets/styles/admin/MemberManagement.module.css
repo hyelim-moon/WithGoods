@@ -1,5 +1,6 @@
 .container {
     padding: 20px;
+    border-radius: 14px;
     background-color: white;
     transition: margin-right 0.3s ease; /* 사이드 패널 열릴 때 컨테이너 이동 애니메이션 */
 }
@@ -13,7 +14,7 @@
 .statBox {
     background-color: #fff;
     padding: 20px;
-    border-radius: 8px;
+    border-radius: 14px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     flex: 1;
     text-align: center;
