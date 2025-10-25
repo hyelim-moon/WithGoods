@@ -1,373 +1,142 @@
-.container {
-    padding: 20px;
-    border-radius: 14px;
-    background-color: white;
-    transition: margin-right 0.3s ease; /* 사이드 패널 열릴 때 컨테이너 이동 애니메이션 */
+.container{padding:20px;border-radius:14px;background:#fff;transition:margin-right .3s ease;}
+.loading,.error{text-align:center;padding:40px;font-size:18px}
+
+/* Toolbar */
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.searchBar{display:flex;gap:10px;margin-top:.6rem}
+.searchBar input{padding:10px 20px;border:1px solid #ccc;border-radius:4px;font-size:14px}
+.searchBar input:focus{outline:none;border-color:#ccc;box-shadow:none}
+.searchCondition{padding:8px 12px;border:1px solid #ccc;border-radius:4px;font-size:14px;background:#fff}
+.searchCondition:focus{outline:none;box-shadow:none}
+.searchBar button,.iconBtn{padding:8px 16px;border:none;border-radius:4px;background:#007bff;color:#fff;cursor:pointer;font-size:14px;display:inline-flex;align-items:center;justify-content:center}
+.searchBar button:focus,.iconBtn:focus{outline:none;box-shadow:none}
+
+/* Orders table */
+.container h3{margin:.5rem 0;font-size:1.5rem;font-weight:900}
+.orderTable{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.1)}
+.orderTable th,.orderTable td{padding:12px 15px;text-align:left;border-bottom:1px solid #ddd;vertical-align:middle}
+.orderTable th{background:#f2f2f2;font-weight:600}
+.orderTable tr:hover{background:#f5f5f5}
+.orderRow{cursor:pointer}
+.orderRow:focus{outline:none;box-shadow:none}
+.noOrders{text-align:center;padding:20px;color:#777;font-style:italic}
+
+/* 표 정렬 유틸 */
+.tRight{text-align:right!important}
+.tCenter{text-align:center!important}
+
+/* 열 너비/정렬 고정(총금액/날짜/상태) */
+.orderTable th:nth-child(3), .orderTable td:nth-child(3){text-align:right;width:140px}
+.orderTable th:nth-child(4), .orderTable td:nth-child(4){text-align:center;width:130px}
+.orderTable th:nth-child(5), .orderTable td:nth-child(5){text-align:center;width:110px}
+
+/* 사이드패널 */
+.mainWithPanel{margin-right:350px}
+.sidePanelContainer{position:fixed;top:0;right:-350px;width:350px;height:100%;background:#fff;box-shadow:-2px 0 5px rgba(0,0,0,.1);transition:right .3s ease-in-out;z-index:1000;display:flex;flex-direction:column}
+.sidePanelOpen{right:0}
+.sidePanelHeader{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;border-bottom:1px solid #eee;background:#f8f9fa}
+.sidePanelHeader h3{margin:0;font-size:1.2em;color:#333}
+.sidePanelCloseBtn{background:none;border:none;font-size:1.5em;cursor:pointer;color:#6c757d}
+.sidePanelCloseBtn:hover{color:#333}
+.sidePanelBody{padding:20px;overflow-y:auto;flex-grow:1}
+
+/* Detail grid */
+.detailGrid{display:grid;grid-template-columns:130px 1fr;grid-auto-rows:minmax(44px,auto);column-gap:14px;row-gap:12px}
+.detailLabel{font-weight:600;color:#555;align-self:center}
+.alignTop{align-self:start;padding-top:4px}
+.detailValue{background:#f8f8f8;border:1px solid #eee;border-radius:8px;padding:10px 12px;min-height:44px;display:flex;align-items:center}
+.itemsValueBox{display:block;padding:8px}
+
+/* 주문상품 테이블 */
+.orderItemsTable{width:100%;border-collapse:separate;border-spacing:0;border:1px solid #dcdcdc;border-radius:6px;overflow:hidden;background:#fff;font-size:14px}
+.orderItemsTable th,.orderItemsTable td{padding:8px 12px;vertical-align:middle}
+.orderItemsTable thead th{background:#f2f2f2;font-weight:600;text-align:left;border-bottom:1px solid #dcdcdc}
+.orderItemsTable th:not(:last-child),.orderItemsTable td:not(:last-child){border-right:1px solid #eee}
+.orderItemsTable tbody tr+tr td{border-top:1px solid #eee}
+
+.itemNameCell{}
+.itemQtyCell{width:80px;text-align:center}
+.itemPriceCell{width:120px;text-align:right;white-space:nowrap}
+.itemSubtotalCell{width:120px;text-align:right;white-space:nowrap}
+.itemName{font-weight:600;color:#333;margin:5px 0 10px}
+.itemOptionsRow{display:flex;flex-wrap:wrap;gap:8px;margin:5px 0}
+.optionChipSmall{background:#fff;color:#495057;padding:4px 10px;border-radius:12px;font-size:12px;border:1px solid #f0f0f0}
+
+/* 사이드패널 하단 버튼 */
+.sidePanelActions{display:flex;gap:10px;padding:20px;border-top:1px solid #eee;justify-content:flex-end}
+.editMemberBtn,.deleteMemberBtn{padding:8px 15px;border-radius:5px;cursor:pointer;font-size:.9em;transition:all .2s ease}
+.editMemberBtn{background:#007bff;color:#fff;border:1px solid #007bff}
+.editMemberBtn:hover{background:#0056b3;border-color:#0056b3}
+.deleteMemberBtn{background:#dc3545;color:#fff;border:1px solid #dc3545}
+.deleteMemberBtn:hover{background:#c82333;border-color:#bd2130}
+
+/* Edit UI */
+.formInput,.formSelect{width:100%;padding:9px 12px;border:1px solid #dcdcdc;border-radius:8px;font-size:14px;background:#fff}
+.numberInput{width:100%;padding:8px 10px;border:1px solid #dcdcdc;border-radius:8px;font-size:14px;text-align:right;background:#fff}
+.cancelBtn{padding:8px 15px;border-radius:5px;cursor:pointer;font-size:.9em;transition:all .2s ease;background:#6c757d;color:#fff;border:1px solid #6c757d}
+.cancelBtn:hover{background:#5a6268;border-color:#545b62}
+.editBadge{margin-left:8px;padding:2px 8px;font-size:12px;border-radius:999px;background:#fff3cd;color:#7a5d00;border:1px solid #ffe49b}
+
+/* ===== Modal 정렬 안정판 ===== */
+
+/* 라벨/입력 2열 그리드로 고정(폭 90px + 유동) */
+.row{
+    display:grid;
+    grid-template-columns:90px 1fr;
+    gap:14px;
+    align-items:center;
+    margin-bottom:12px;
+}
+.label{
+    width:auto;            /* grid가 폭을 결정 */
+    white-space:nowrap;
+    color:#555;
+    font-weight:600;
 }
 
-.loading, .error {
-    text-align: center;
-    padding: 40px;
-    font-size: 18px;
-}
+/* 라디오 버튼 수직 중앙 정렬 & 간격 */
+.radioGroup{display:flex;gap:18px;align-items:center}
+.radioGroup label{display:inline-flex;align-items:center;gap:6px;line-height:1}
 
-/* 상단 툴바 + 검색 바 */
-.toolbar {
+/* select/textarea 전체폭 */
+.reasonSelect{width:100%;padding:10px 12px;border:1px solid #dcdcdc;border-radius:8px;background:#fff}
+.textarea{width:100%;height:90px;padding:10px 12px;border:1px solid #dcdcdc;border-radius:8px;resize:vertical}
+/* 텍스트영역은 상단 정렬 */
+.row .textarea{align-self:start}
+
+/* 체크박스 줄도 입력 열에 맞춰 들여쓰기 */
+/* 체크박스 줄: 한 줄 고정 + 라벨/체크 정렬 */
+.checkboxRow{
+    margin: 10px 0 18px;
+    padding-left: 90px;     /* 위 라벨 폭과 시작선 맞춤 */
     display: flex;
-    justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
 }
-
-.searchBar {
-    display: flex;
-    gap: 10px;
-    margin-top: 0.6rem;
-}
-
-.searchBar input {
-    padding: 10px 20px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-}
-
-.searchBar input:focus {
-    outline: none;
-    border-color: #ccc;
-    box-shadow: none;
-}
-
-.searchCondition {
-    padding: 8px 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 14px;
-    background-color: white;
-}
-
-.searchCondition:focus {
-    outline: none;
-    box-shadow: none;
-}
-
-.searchBar button,
-.iconBtn {
-    padding: 8px 16px;
-    border: none;
-    border-radius: 4px;
-    background-color: #007bff;
-    color: white;
-    cursor: pointer;
-    font-size: 14px;
+.label{
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-}
-
-.searchBar button:focus,
-.iconBtn:focus {
-    outline: none;
-    box-shadow: none;
-}
-
-/* (참고) 예전 필터 버튼은 미사용 */
-.filterButtons { display: none; }
-.filterButton { display: none; }
-.filterButton.activeFilter { display: none; }
-
-/* 통계 박스는 MemberManagement.module.css의 스타일을 재사용하므로 여기선 생략 가능
-   필요하면 아래를 활성화해서 별도로 사용하세요. */
-/*
-.statsContainer { display:flex; gap:20px; margin-bottom:60px; }
-.statBox { background:#fff; padding:20px; border-radius:14px; box-shadow:0 2px 4px rgba(0,0,0,0.1); flex:1; text-align:center; cursor:pointer; transition:all .2s; }
-.statBox:hover { transform:translateY(-3px); box-shadow:0 4px 8px rgba(0,0,0,0.15); }
-.activeStatBox { border:2px solid #007bff; box-shadow:0 4px 8px rgba(0,123,255,.2); background:#e7f3ff; }
-.statBox h2 { margin:0 0 10px; font-size:16px; color:#666; }
-.statBox p { margin:0; font-size:24px; font-weight:bold; color:#333; }
-*/
-
-.container h3 {
-    margin: 0.5rem 0;
-    font-size: 1.5rem;
-    font-weight: 900;
-}
-
-/* 주문 표 */
-.orderTable {
-    width: 100%;
-    border-collapse: collapse;
-    background-color: #fff;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.orderTable th,
-.orderTable td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #ddd;
-}
-
-.orderTable th {
-    background-color: #f2f2f2;
-    font-weight: 600;
-}
-
-.orderTable tr:hover {
-    background-color: #f5f5f5;
-}
-
-.orderRow {
-    cursor: pointer;
-}
-
-.orderRow:focus {
-    outline: none;
-    box-shadow: none;
-}
-
-.noOrders {
-    text-align: center;
-    padding: 20px;
-    color: #777;
-    font-style: italic;
-}
-
-/* --------- 사이드패널 --------- */
-/* 주의: 사이드패널의 기본 레이아웃은 MemberManagement.module.css를 재사용합니다. */
-.mainWithPanel {
-    margin-right: 350px;
-}
-
-.sidePanelContainer {
-    position: fixed;
-    top: 0;
-    right: -350px;
-    width: 350px;
-    height: 100%;
-    background-color: #ffffff;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
-    transition: right 0.3s ease-in-out;
-    z-index: 1000;
-    display: flex;
-    flex-direction: column;
-}
-
-.sidePanelOpen { right: 0; }
-
-.sidePanelHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-    border-bottom: 1px solid #eee;
-    background-color: #f8f9fa;
-}
-
-.sidePanelHeader h3 {
-    margin: 0;
-    font-size: 1.2em;
-    color: #333;
-}
-
-.sidePanelCloseBtn {
-    background: none;
-    border: none;
-    font-size: 1.5em;
-    cursor: pointer;
-    color: #6c757d;
-}
-.sidePanelCloseBtn:hover { color: #333; }
-
-.sidePanelBody {
-    padding: 20px;
-    overflow-y: auto;
-    flex-grow: 1;
-}
-
-/* ✅ 디테일 그리드: 라벨/값 칼럼 정렬 */
-.detailGrid {
-    display: grid;
-    grid-template-columns: 130px 1fr;  /* 라벨 고정폭, 값 영역 가변 */
-    grid-auto-rows: minmax(44px, auto);
-    column-gap: 14px;
-    row-gap: 12px;
-}
-
-.detailLabel {
-    font-weight: 600;
-    color: #555;
-    align-self: center;       /* 기본은 세로 가운데 정렬 */
-}
-
-.alignTop {
-    align-self: start;        /* 여러 줄 값(주문 상품) 라벨은 상단 정렬 */
-    padding-top: 4px;
-}
-
-.detailValue {
-    background: #f8f8f8;
-    border: 1px solid #eee;
-    border-radius: 8px;
-    padding: 10px 12px;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-}
-
-/* 주문 상품 값 영역은 block으로 바꿔 테이블이 꽉 차게 */
-.itemsValueBox {
-    display: block;
-    padding: 8px;
-}
-
-/* ✅ 주문 상품 테이블 (상품명/수량/단가/소계) */
-.orderItemsTable {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    border: 1px solid #dcdcdc;
-    border-radius: 6px;
-    overflow: hidden;
-    background: #fff;
-    font-size: 14px;
-}
-
-.orderItemsTable th,
-.orderItemsTable td {
-    padding: 8px 12px;
-    vertical-align: middle;
-}
-
-.orderItemsTable thead th {
-    background: #f2f2f2;
-    font-weight: 600;
-    text-align: left;
-    border-bottom: 1px solid #dcdcdc;
-}
-
-.orderItemsTable th:not(:last-child),
-.orderItemsTable td:not(:last-child) {
-    border-right: 1px solid #eeeeee;
-}
-
-.orderItemsTable tbody tr + tr td {
-    border-top: 1px solid #eeeeee;
-}
-
-/* 셀별 보조 스타일 */
-.itemNameCell { }
-.itemQtyCell { width: 64px; text-align: center; }
-.itemPriceCell { width: 120px; text-align: right; white-space: nowrap; }
-.itemSubtotalCell { width: 120px; text-align: right; white-space: nowrap; }
-
-.itemName {
-    font-weight: 600;
-    color: #333;
-    margin: 5px 0 10px 0;
-}
-
-.itemOptionsRow {
-    display: flex;
-    flex-wrap: wrap;
     gap: 8px;
-    margin: 5px 0;
+    white-space: nowrap;    /* ✅ 줄바꿈 방지 */
+}
+.checkboxRow input{
+    margin-right: 8px;
+    flex: 0 0 auto;         /* 입력이 줄어들며 줄바꿈되는 것 방지 */
 }
 
-.optionChipSmall {
-    background: #ffffff;
-    color: #495057;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    border: 1px solid #f0f0f0;
-}
 
-/* 사이드패널 하단 액션 */
-.sidePanelActions {
-    display: flex;
-    gap: 10px;
-    padding: 20px;
-    border-top: 1px solid #eee;
-    justify-content: flex-end;
-}
+/* 하위 타이틀/금액 */
+.subTitle{font-weight:700;margin:6px 0 10px}
+.amountBox{text-align:right;padding:10px 12px;background:#f8f8f8;border:1px solid #eee;border-radius:8px;margin-top:10px}
 
-.editMemberBtn, .deleteMemberBtn {
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
-    transition: all 0.2s ease;
-}
+/* 모달 레이아웃 */
+.modalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:2000}
+.modal{width:720px;max-width:92vw;background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.2);overflow:hidden}
+.modalHeader{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #eee;background:#f8f9fa}
+.modalBody{padding:18px}
+.modalFooter{padding:14px 18px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:10px}
+.secondaryBtn{padding:8px 15px;border-radius:5px;border:1px solid #d0d0d0;background:#fff;cursor:pointer}
+.secondaryBtn:hover{background:#f5f5f5}
+.dangerText{color:#b4231f;font-size:.9rem;margin-top:6px}
 
-.editMemberBtn {
-    background-color: #007bff;
-    color: white;
-    border: 1px solid #007bff;
-}
-.editMemberBtn:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
-}
-
-.deleteMemberBtn {
-    background-color: #dc3545;
-    color: white;
-    border: 1px solid #dc3545;
-}
-.deleteMemberBtn:hover {
-    background-color: #c82333;
-    border-color: #bd2130;
-}
-
-/* ===== 편집 모드 UI ===== */
-.formInput {
-    width: 100%;
-    padding: 9px 12px;
-    border: 1px solid #dcdcdc;
-    border-radius: 8px;
-    font-size: 14px;
-    background: #fff;
-}
-
-.formSelect {
-    width: 100%;
-    padding: 9px 12px;
-    border: 1px solid #dcdcdc;
-    border-radius: 8px;
-    font-size: 14px;
-    background: #fff;
-}
-
-.numberInput {
-    width: 100%;
-    padding: 8px 10px;
-    border: 1px solid #dcdcdc;
-    border-radius: 8px;
-    font-size: 14px;
-    text-align: right;
-    background: #fff;
-}
-
-.cancelBtn {
-    padding: 8px 15px;
-    border-radius: 5px;
-    cursor: pointer;
-    font-size: 0.9em;
-    transition: all 0.2s ease;
-    background-color: #6c757d;
-    color: white;
-    border: 1px solid #6c757d;
-}
-.cancelBtn:hover { background-color: #5a6268; border-color: #545b62; }
-
-.editBadge {
-    margin-left: 8px;
-    padding: 2px 8px;
-    font-size: 12px;
-    border-radius: 999px;
-    background: #fff3cd;
-    color: #7a5d00;
-    border: 1px solid #ffe49b;
-}
-
+/* 환불 수량 인풋 */
+.qtyMiniInput{width:80px;padding:7px 8px;border:1px solid #dcdcdc;border-radius:8px;font-size:14px;text-align:center;background:#fff}

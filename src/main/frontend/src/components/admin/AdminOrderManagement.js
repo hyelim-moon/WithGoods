@@ -2,12 +2,11 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import styles from "../../assets/styles/admin/AdminDashboard.module.css";
 import orderStyles from "../../assets/styles/admin/AdminOrderManagement.module.css";
-import memberStyles from "../../assets/styles/admin/MemberManagement.module.css"; // 통계/사이드패널 공용 스타일
+import memberStyles from "../../assets/styles/admin/MemberManagement.module.css";
 import { FiBell, FiX, FiRefreshCw, FiSave, FiSlash } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 import axios from "../../utils/axios";
 
-// Dummy data for admin orders (이메일/주소/상품 예시 포함)
 const dummyAdminOrders = [
     {
         orderId: 'ADMIN-DUMMY-001',
@@ -16,7 +15,7 @@ const dummyAdminOrders = [
         orderDate: '2023-10-26T11:00:00',
         status: 'PAID',
         shippingInfo: { address: '서울시 어딘가 1-1' },
-        orderItems: [{ productName: '샘플 상품 A', quantity: 2, price: 37500, options: { 색상: '블랙', 사이즈: 'M' } },],
+        orderItems: [{ productName: '샘플 상품 A', quantity: 2, price: 37500, options: { 색상: '블랙', 사이즈: 'M' } }],
     },
     {
         orderId: 'ADMIN-DUMMY-002',
@@ -58,31 +57,30 @@ function AdminOrderManagement() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // 상태 필터
     const [filter, setFilter] = useState('ALL');
-
-    // 검색 상태 (주문번호/주문자)
-    const [searchCondition, setSearchCondition] = useState('orderId'); // 'orderId' | 'orderer'
+    const [searchCondition, setSearchCondition] = useState('orderId');
     const [searchTerm, setSearchTerm] = useState('');
 
     const [stats, setStats] = useState({
-        total: 0,
-        PENDING: 0,
-        PAID: 0,
-        PREPARING: 0,
-        SHIPPING: 0,
-        DELIVERED: 0,
-        CANCELLED: 0,
+        total: 0, PENDING: 0, PAID: 0, PREPARING: 0, SHIPPING: 0, DELIVERED: 0, CANCELLED: 0,
     });
 
-    // 사이드 패널
     const [showSidePanel, setShowSidePanel] = useState(false);
     const [sidePanelOrder, setSidePanelOrder] = useState(null);
 
-    // 편집 모드 & 편집본
     const [isEditing, setIsEditing] = useState(false);
     const [editedOrder, setEditedOrder] = useState(null);
     const [saving, setSaving] = useState(false);
+
+    // 취소/환불 모달
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [cancelMode, setCancelMode] = useState('CANCEL'); // 'CANCEL' | 'REFUND'
+    const [cancelReason, setCancelReason] = useState('');
+    const [cancelMemo, setCancelMemo] = useState('');
+    const [restock, setRestock] = useState(true);
+    const [refundLines, setRefundLines] = useState([]);
+
+    const refundableAmount = refundLines.reduce((s, l) => s + (Number(l.qty || 0) * Number(l.price || 0)), 0);
 
     useEffect(() => {
         fetchOrders();
@@ -92,7 +90,7 @@ function AdminOrderManagement() {
         setLoading(true);
         setError(null);
         try {
-            const res = await axios.get('/api/admin/orders'); // 페이지네이션이면 적절히 조정
+            const res = await axios.get('/api/admin/orders');
             const fetchedOrders = [...dummyAdminOrders, ...(res.data?.content || [])];
             setOrders(fetchedOrders);
             recomputeStats(fetchedOrders);
@@ -105,7 +103,7 @@ function AdminOrderManagement() {
     };
 
     const recomputeStats = (list) => {
-        const newStats = {
+        setStats({
             total: list.length,
             PENDING: list.filter(o => o.status === 'PENDING').length,
             PAID: list.filter(o => o.status === 'PAID').length,
@@ -113,12 +111,10 @@ function AdminOrderManagement() {
             SHIPPING: list.filter(o => o.status === 'SHIPPING').length,
             DELIVERED: list.filter(o => o.status === 'DELIVERED').length,
             CANCELLED: list.filter(o => o.status === 'CANCELLED').length,
-        };
-        setStats(newStats);
+        });
     };
 
     const handleOrderClick = (order) => {
-        // 동일 행 다시 클릭 시 닫기
         if (showSidePanel && sidePanelOrder && sidePanelOrder.orderId === order.orderId) {
             setShowSidePanel(false);
             setSidePanelOrder(null);
@@ -146,62 +142,33 @@ function AdminOrderManagement() {
 
     const handleFilterChange = (newFilter) => setFilter(newFilter);
 
-    // 검색 핸들러
-    const handleSearchConditionChange = (e) => {
-        setSearchCondition(e.target.value);
-        setSearchTerm('');
-    };
+    const handleSearchConditionChange = (e) => { setSearchCondition(e.target.value); setSearchTerm(''); };
     const handleSearchChange = (e) => setSearchTerm(e.target.value);
 
-    // ========= 편집 관련 =========
+    // 편집
     const startEdit = () => {
         if (!sidePanelOrder) return;
-        // 깊은 복사(간단하게 JSON으로)
         const copy = JSON.parse(JSON.stringify(sidePanelOrder));
-        // 보조 필드: 합계는 아이템 기반으로 재계산도 가능
         copy.orderSummary = copy.orderSummary || { finalAmount: 0 };
         setEditedOrder(copy);
         setIsEditing(true);
     };
-
-    const cancelEdit = () => {
-        setIsEditing(false);
-        setEditedOrder(null);
-    };
-
-    const updateEditedOrder = (patch) => {
-        setEditedOrder(prev => {
-            const next = { ...prev, ...patch };
-            return next;
-        });
-    };
-
-    const updateOrderer = (k, v) => {
-        setEditedOrder(prev => ({ ...prev, ordererInfo: { ...(prev.ordererInfo || {}), [k]: v } }));
-    };
-    const updateShipping = (k, v) => {
-        setEditedOrder(prev => ({ ...prev, shippingInfo: { ...(prev.shippingInfo || {}), [k]: v } }));
-    };
+    const cancelEdit = () => { setIsEditing(false); setEditedOrder(null); };
+    const updateEditedOrder = (patch) => setEditedOrder(prev => ({ ...prev, ...patch }));
+    const updateOrderer = (k, v) => setEditedOrder(prev => ({ ...prev, ordererInfo: { ...(prev.ordererInfo || {}), [k]: v } }));
+    const updateShipping = (k, v) => setEditedOrder(prev => ({ ...prev, shippingInfo: { ...(prev.shippingInfo || {}), [k]: v } }));
 
     const updateItem = (index, field, value) => {
         setEditedOrder(prev => {
             const items = [...(prev.orderItems || [])];
             const item = { ...items[index] };
-            if (field === 'quantity') {
-                const n = Math.max(0, Number(value || 0));
-                item.quantity = n;
-            } else if (field === 'price') {
-                const n = Math.max(0, Number(value || 0));
-                item.price = n;
-            } else if (field === 'productName') {
-                item.productName = value;
-            }
+            if (field === 'quantity') item.quantity = Math.max(0, Number(value || 0));
+            else if (field === 'price') item.price = Math.max(0, Number(value || 0));
+            else if (field === 'productName') item.productName = value;
             items[index] = item;
 
-            // 합계 갱신
-            const finalAmount = items.reduce((acc, it) => acc + (Number(it.quantity || 0) * Number(it.price || 0)), 0);
-            const orderSummary = { ...(prev.orderSummary || {}), finalAmount };
-            return { ...prev, orderItems: items, orderSummary };
+            const finalAmount = items.reduce((a, it) => a + (Number(it.quantity || 0) * Number(it.price || 0)), 0);
+            return { ...prev, orderItems: items, orderSummary: { ...(prev.orderSummary || {}), finalAmount } };
         });
     };
 
@@ -209,34 +176,7 @@ function AdminOrderManagement() {
         if (!editedOrder) return;
         setSaving(true);
         try {
-            // ✅ 서버에 보낼 페이로드(백엔드 DTO에 맞춰 조정하세요)
-            const payload = {
-                orderId: editedOrder.orderId,
-                status: editedOrder.status,
-                ordererInfo: {
-                    name: editedOrder.ordererInfo?.name ?? null,
-                    email: editedOrder.ordererInfo?.email ?? null,
-                },
-                shippingInfo: {
-                    address: editedOrder.shippingInfo?.address ?? null,
-                },
-                orderItems: (editedOrder.orderItems || []).map(it => ({
-                    // 백엔드가 itemId/productId를 요구하면 여기에 포함시키세요.
-                    productName: it.productName,
-                    quantity: it.quantity,
-                    price: it.price,
-                    options: it.options || null,
-                })),
-                orderSummary: {
-                    finalAmount: editedOrder.orderSummary?.finalAmount ?? 0,
-                },
-                orderDate: editedOrder.orderDate || null,
-            };
-
-            // 🔧 백엔드가 PATCH면 axios.patch로, PUT이면 axios.put로 바꾸세요.
             // await axios.put(`/api/admin/orders/${editedOrder.orderId}`, payload);
-
-            // --- 서버 연동 전 임시: 클라이언트 상태 동기화 ---
             const nextOrders = orders.map(o => o.orderId === editedOrder.orderId ? editedOrder : o);
             setOrders(nextOrders);
             recomputeStats(nextOrders);
@@ -252,82 +192,114 @@ function AdminOrderManagement() {
         }
     };
 
-    // ========= 렌더링 =========
+    // 취소/환불
+    const openCancelModal = () => {
+        if (!sidePanelOrder) return;
+        const lines = (sidePanelOrder.orderItems || []).map(it => ({
+            productName: it.productName, price: Number(it.price || 0), maxQty: Number(it.quantity || 0), qty: 0,
+        }));
+        setRefundLines(lines);
+        setCancelMode('CANCEL');
+        setCancelReason('');
+        setCancelMemo('');
+        setRestock(true);
+        setShowCancelModal(true);
+    };
+    const closeCancelModal = () => setShowCancelModal(false);
+    const updateRefundQty = (idx, val) => {
+        const n = Math.max(0, Math.min(Number(val || 0), refundLines[idx].maxQty));
+        setRefundLines(prev => prev.map((l, i) => i === idx ? { ...l, qty: n } : l));
+    };
+
+    const submitCancelRefund = async () => {
+        if (!sidePanelOrder) return;
+        try {
+            if (cancelMode === 'CANCEL') {
+                // await axios.post(`/api/admin/orders/${sidePanelOrder.orderId}/cancel`, {...})
+                const removed = orders.filter(o => o.orderId !== sidePanelOrder.orderId);
+                setOrders(removed);
+                recomputeStats(removed);
+                setShowSidePanel(false);
+                setSidePanelOrder(null);
+                alert('주문이 취소되었습니다.');
+            } else {
+                if (refundableAmount <= 0) { alert('환불할 수량을 입력하세요.'); return; }
+
+                const oldAmount = Number(sidePanelOrder.orderSummary?.finalAmount || 0);
+                const newAmount = Math.max(0, oldAmount - refundableAmount);
+
+                const newItems = (sidePanelOrder.orderItems || [])
+                    .map((it, i) => ({ ...it, quantity: Math.max(0, Number(it.quantity || 0) - Number(refundLines[i]?.qty || 0)) }))
+                    .filter(it => Number(it.quantity || 0) > 0);
+
+                const updated = {
+                    ...sidePanelOrder,
+                    orderItems: newItems,
+                    orderSummary: { ...(sidePanelOrder.orderSummary || {}), finalAmount: newAmount },
+                    refundInfo: { lastRefundAmount: refundableAmount, reason: cancelReason, at: new Date().toISOString() }
+                };
+
+                if (newAmount === 0) {
+                    const removed = orders.filter(o => o.orderId !== sidePanelOrder.orderId);
+                    setOrders(removed);
+                    recomputeStats(removed);
+                    setShowSidePanel(false);
+                    setSidePanelOrder(null);
+                } else {
+                    const next = orders.map(o => o.orderId === updated.orderId ? updated : o);
+                    setOrders(next);
+                    recomputeStats(next);
+                    setSidePanelOrder(updated);
+                }
+                alert('부분 환불이 처리되었습니다.');
+            }
+        } catch (e) {
+            console.error(e);
+            alert('처리 중 오류가 발생했습니다.');
+        } finally {
+            closeCancelModal();
+        }
+    };
+
     const renderContent = () => {
         if (loading) return <div className={orderStyles.loading}>주문 정보를 불러오는 중...</div>;
         if (error) return <div className={orderStyles.error}>{error}</div>;
 
-        // 1) 상태 필터
         let filteredOrders = filter === 'ALL' ? orders : orders.filter(order => order.status === filter);
-
-        // 2) 검색 필터
         if (searchTerm.trim()) {
             const term = searchTerm.trim().toLowerCase();
             filteredOrders = filteredOrders.filter(order => {
-                if (searchCondition === 'orderId') {
-                    return (order.orderId || '').toLowerCase().includes(term);
-                }
-                if (searchCondition === 'orderer') {
-                    const name = order.ordererInfo?.name || '';
-                    return name.toLowerCase().includes(term);
-                }
+                if (searchCondition === 'orderId') return (order.orderId || '').toLowerCase().includes(term);
+                if (searchCondition === 'orderer') return (order.ordererInfo?.name || '').toLowerCase().includes(term);
                 return true;
             });
         }
 
         return (
             <>
-                {/* 통계 박스 */}
                 <div className={memberStyles.statsContainer}>
                     <div className={`${memberStyles.statBox} ${filter === 'ALL' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('ALL')}>
                         <h2>총 주문 수</h2><p>{stats.total}건</p>
                     </div>
-                    <div className={`${memberStyles.statBox} ${filter === 'PENDING' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('PENDING')}>
-                        <h2>주문 대기</h2><p>{stats.PENDING}건</p>
-                    </div>
-                    <div className={`${memberStyles.statBox} ${filter === 'PAID' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('PAID')}>
-                        <h2>결제 완료</h2><p>{stats.PAID}건</p>
-                    </div>
-                    <div className={`${memberStyles.statBox} ${filter === 'PREPARING' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('PREPARING')}>
-                        <h2>상품 준비중</h2><p>{stats.PREPARING}건</p>
-                    </div>
-                    <div className={`${memberStyles.statBox} ${filter === 'SHIPPING' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('SHIPPING')}>
-                        <h2>배송중</h2><p>{stats.SHIPPING}건</p>
-                    </div>
-                    <div className={`${memberStyles.statBox} ${filter === 'DELIVERED' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('DELIVERED')}>
-                        <h2>배송 완료</h2><p>{stats.DELIVERED}건</p>
-                    </div>
-                    <div className={`${memberStyles.statBox} ${filter === 'CANCELLED' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('CANCELLED')}>
-                        <h2>주문 취소</h2><p>{stats.CANCELLED}건</p>
-                    </div>
+                    <div className={`${memberStyles.statBox} ${filter === 'PENDING' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('PENDING')}><h2>주문 대기</h2><p>{stats.PENDING}건</p></div>
+                    <div className={`${memberStyles.statBox} ${filter === 'PAID' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('PAID')}><h2>결제 완료</h2><p>{stats.PAID}건</p></div>
+                    <div className={`${memberStyles.statBox} ${filter === 'PREPARING' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('PREPARING')}><h2>상품 준비중</h2><p>{stats.PREPARING}건</p></div>
+                    <div className={`${memberStyles.statBox} ${filter === 'SHIPPING' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('SHIPPING')}><h2>배송중</h2><p>{stats.SHIPPING}건</p></div>
+                    <div className={`${memberStyles.statBox} ${filter === 'DELIVERED' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('DELIVERED')}><h2>배송 완료</h2><p>{stats.DELIVERED}건</p></div>
+                    <div className={`${memberStyles.statBox} ${filter === 'CANCELLED' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('CANCELLED')}><h2>주문 취소</h2><p>{stats.CANCELLED}건</p></div>
                 </div>
 
-                {/* 주문 표 + 검색바 */}
                 <div className={orderStyles.container}>
                     <h3>주문 목록</h3>
 
                     <div className={orderStyles.toolbar}>
                         <div className={orderStyles.searchBar}>
-                            <select
-                                value={searchCondition}
-                                onChange={handleSearchConditionChange}
-                                className={orderStyles.searchCondition}
-                            >
+                            <select value={searchCondition} onChange={handleSearchConditionChange} className={orderStyles.searchCondition}>
                                 <option value="orderId">주문번호</option>
                                 <option value="orderer">주문자</option>
                             </select>
-                            <input
-                                type="text"
-                                placeholder="검색어를 입력하세요"
-                                value={searchTerm}
-                                onChange={handleSearchChange}
-                            />
-                            <button
-                                onClick={() => setSearchTerm('')}
-                                className={orderStyles.iconBtn}
-                                aria-label="초기화"
-                                title="초기화"
-                            >
+                            <input type="text" placeholder="검색어를 입력하세요" value={searchTerm} onChange={handleSearchChange} />
+                            <button onClick={() => setSearchTerm('')} className={orderStyles.iconBtn} aria-label="초기화" title="초기화">
                                 <FiRefreshCw />
                             </button>
                         </div>
@@ -338,30 +310,24 @@ function AdminOrderManagement() {
                         <tr>
                             <th>주문번호</th>
                             <th>주문자</th>
-                            <th>총 금액</th>
-                            <th>주문일</th>
-                            <th>상태</th>
+                            <th className={orderStyles.tRight}>총 금액</th>
+                            <th className={orderStyles.tCenter}>주문일</th>
+                            <th className={orderStyles.tCenter}>상태</th>
                         </tr>
                         </thead>
                         <tbody>
                         {filteredOrders.length > 0 ? (
                             filteredOrders.map(order => (
-                                <tr
-                                    key={order.orderId}
-                                    className={orderStyles.orderRow}
-                                    onClick={() => handleOrderClick(order)}
-                                >
+                                <tr key={order.orderId} className={orderStyles.orderRow} onClick={() => handleOrderClick(order)}>
                                     <td>{order.orderId}</td>
                                     <td>{order.ordererInfo?.name || '-'}</td>
-                                    <td>{order.orderSummary?.finalAmount?.toLocaleString() || '0'}원</td>
-                                    <td>{order.orderDate ? new Date(order.orderDate).toLocaleDateString() : '-'}</td>
-                                    <td>{getStatusLabel(order.status)}</td>
+                                    <td className={orderStyles.tRight}>{(order.orderSummary?.finalAmount || 0).toLocaleString()}원</td>
+                                    <td className={orderStyles.tCenter}>{order.orderDate ? new Date(order.orderDate).toLocaleDateString() : '-'}</td>
+                                    <td className={orderStyles.tCenter}>{getStatusLabel(order.status)}</td>
                                 </tr>
                             ))
                         ) : (
-                            <tr>
-                                <td colSpan="5" className={orderStyles.noOrders}>해당하는 주문이 없습니다.</td>
-                            </tr>
+                            <tr><td colSpan="5" className={orderStyles.noOrders}>해당하는 주문이 없습니다.</td></tr>
                         )}
                         </tbody>
                     </table>
@@ -371,11 +337,8 @@ function AdminOrderManagement() {
     };
 
     const readValue = (obj, path, fallback = '') => {
-        try {
-            return path.split('.').reduce((acc, k) => (acc ? acc[k] : undefined), obj) ?? fallback;
-        } catch {
-            return fallback;
-        }
+        try { return path.split('.').reduce((acc, k) => (acc ? acc[k] : undefined), obj) ?? fallback; }
+        catch { return fallback; }
     };
 
     return (
@@ -386,32 +349,25 @@ function AdminOrderManagement() {
                 <header className={styles.header}>
                     <div className={styles.headerTitle}>주문 관리</div>
                     <div className={styles.headerActions}>
-                        <button className={styles.iconBtn} aria-label="알림">
-                            <FiBell />
-                        </button>
+                        <button className={styles.iconBtn} aria-label="알림"><FiBell /></button>
                     </div>
                 </header>
 
                 {renderContent()}
             </main>
 
-            {/* 주문 상세 정보 사이드 패널 */}
+            {/* 사이드 패널 */}
             <div className={`${memberStyles.sidePanelContainer} ${showSidePanel ? memberStyles.sidePanelOpen : ''}`}>
                 <div className={memberStyles.sidePanelHeader}>
-                    <h3>
-                        주문 상세 정보
-                        {isEditing && <span className={orderStyles.editBadge}>수정 중</span>}
-                    </h3>
-                    <button className={memberStyles.sidePanelCloseBtn} onClick={() => { setShowSidePanel(false); setIsEditing(false); setEditedOrder(null); }}>
-                        <FiX />
-                    </button>
+                    <h3>주문 상세 정보 {isEditing && <span className={orderStyles.editBadge}>수정 중</span>}</h3>
+                    <button className={memberStyles.sidePanelCloseBtn} onClick={() => { setShowSidePanel(false); setIsEditing(false); setEditedOrder(null); }}><FiX /></button>
                 </div>
+
                 <div className={memberStyles.sidePanelBody}>
                     {sidePanelOrder ? (
                         <>
                             {!isEditing && (
                                 <>
-                                    {/* ✅ 보기 모드 */}
                                     <div className={orderStyles.detailGrid}>
                                         <div className={orderStyles.detailLabel}>주문번호</div>
                                         <div className={orderStyles.detailValue}>{sidePanelOrder.orderId}</div>
@@ -431,7 +387,6 @@ function AdminOrderManagement() {
                                         <div className={orderStyles.detailLabel}>상태</div>
                                         <div className={orderStyles.detailValue}>{getStatusLabel(sidePanelOrder.status)}</div>
 
-                                        {/* ✅ 주문 상품 */}
                                         <div className={`${orderStyles.detailLabel} ${orderStyles.alignTop}`}>주문 상품</div>
                                         <div className={`${orderStyles.detailValue} ${orderStyles.itemsValueBox}`}>
                                             {sidePanelOrder.orderItems && sidePanelOrder.orderItems.length > 0 ? (
@@ -439,9 +394,9 @@ function AdminOrderManagement() {
                                                     <thead>
                                                     <tr>
                                                         <th>상품명</th>
-                                                        <th>수량</th>
-                                                        <th>단가</th>
-                                                        <th>소계</th>
+                                                        <th className={orderStyles.tCenter}>수량</th>
+                                                        <th className={orderStyles.tRight}>단가</th>
+                                                        <th className={orderStyles.tRight}>소계</th>
                                                     </tr>
                                                     </thead>
                                                     <tbody>
@@ -455,89 +410,62 @@ function AdminOrderManagement() {
                                                                     <div className={orderStyles.itemName}>{item.productName || '-'}</div>
                                                                     {item.options && Object.keys(item.options).length > 0 && (
                                                                         <div className={orderStyles.itemOptionsRow}>
-                                                                            {Object.entries(item.options).map(([k, v]) => (
-                                                                                <span key={k} className={orderStyles.optionChipSmall}>{k}: {String(v)}</span>
-                                                                            ))}
+                                                                            {Object.entries(item.options).map(([k, v]) => (<span key={k} className={orderStyles.optionChipSmall}>{k}: {String(v)}</span>))}
                                                                         </div>
                                                                     )}
                                                                 </td>
-                                                                <td className={orderStyles.itemQtyCell}>{qty}</td>
-                                                                <td className={orderStyles.itemPriceCell}>{`₩${price.toLocaleString()}`}</td>
-                                                                <td className={orderStyles.itemSubtotalCell}>{`₩${subtotal.toLocaleString()}`}</td>
+                                                                <td className={`${orderStyles.itemQtyCell} ${orderStyles.tCenter}`}>{qty}</td>
+                                                                <td className={`${orderStyles.itemPriceCell} ${orderStyles.tRight}`}>₩{price.toLocaleString()}</td>
+                                                                <td className={`${orderStyles.itemSubtotalCell} ${orderStyles.tRight}`}>₩{subtotal.toLocaleString()}</td>
                                                             </tr>
                                                         );
                                                     })}
                                                     </tbody>
                                                 </table>
-                                            ) : (
-                                                <span>상품 정보 없음</span>
-                                            )}
+                                            ) : (<span>상품 정보 없음</span>)}
                                         </div>
 
                                         <div className={orderStyles.detailLabel}>총 결제 금액</div>
-                                        <div className={orderStyles.detailValue}>
-                                            {sidePanelOrder.orderSummary?.finalAmount?.toLocaleString() || '0'}원
-                                        </div>
+                                        <div className={orderStyles.detailValue}>{(sidePanelOrder.orderSummary?.finalAmount || 0).toLocaleString()}원</div>
                                     </div>
 
                                     <div className={memberStyles.sidePanelActions}>
                                         <button className={memberStyles.editMemberBtn} onClick={startEdit}>주문 수정</button>
-                                        <button className={memberStyles.deleteMemberBtn} onClick={() => alert('주문 취소/환불 (미구현)')}>주문 취소/환불</button>
+                                        <button className={memberStyles.deleteMemberBtn} onClick={openCancelModal} disabled={sidePanelOrder?.status === 'CANCELLED'} title={sidePanelOrder?.status === 'CANCELLED' ? '이미 취소된 주문입니다' : ''}>
+                                            주문 취소/환불
+                                        </button>
                                     </div>
                                 </>
                             )}
 
                             {isEditing && editedOrder && (
                                 <>
-                                    {/* ✅ 편집 모드 */}
                                     <div className={orderStyles.detailGrid}>
                                         <div className={orderStyles.detailLabel}>주문번호</div>
                                         <div className={orderStyles.detailValue}>{editedOrder.orderId}</div>
 
                                         <div className={orderStyles.detailLabel}>주문자</div>
                                         <div className={orderStyles.detailValue}>
-                                            <input
-                                                className={orderStyles.formInput}
-                                                value={editedOrder.ordererInfo?.name || ''}
-                                                onChange={(e) => updateOrderer('name', e.target.value)}
-                                                placeholder="주문자 이름"
-                                            />
+                                            <input className={orderStyles.formInput} value={editedOrder.ordererInfo?.name || ''} onChange={(e) => updateOrderer('name', e.target.value)} placeholder="주문자 이름" />
                                         </div>
 
                                         <div className={orderStyles.detailLabel}>이메일</div>
                                         <div className={orderStyles.detailValue}>
-                                            <input
-                                                className={orderStyles.formInput}
-                                                value={editedOrder.ordererInfo?.email || ''}
-                                                onChange={(e) => updateOrderer('email', e.target.value)}
-                                                placeholder="이메일"
-                                            />
+                                            <input className={orderStyles.formInput} value={editedOrder.ordererInfo?.email || ''} onChange={(e) => updateOrderer('email', e.target.value)} placeholder="이메일" />
                                         </div>
 
                                         <div className={orderStyles.detailLabel}>배송지</div>
                                         <div className={orderStyles.detailValue}>
-                                            <input
-                                                className={orderStyles.formInput}
-                                                value={editedOrder.shippingInfo?.address || ''}
-                                                onChange={(e) => updateShipping('address', e.target.value)}
-                                                placeholder="주소"
-                                            />
+                                            <input className={orderStyles.formInput} value={editedOrder.shippingInfo?.address || ''} onChange={(e) => updateShipping('address', e.target.value)} placeholder="주소" />
                                         </div>
 
                                         <div className={orderStyles.detailLabel}>상태</div>
                                         <div className={orderStyles.detailValue}>
-                                            <select
-                                                className={orderStyles.formSelect}
-                                                value={editedOrder.status || 'PENDING'}
-                                                onChange={(e) => updateEditedOrder({ status: e.target.value })}
-                                            >
-                                                {STATUS_OPTIONS.map(opt => (
-                                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                                ))}
+                                            <select className={orderStyles.formSelect} value={editedOrder.status || 'PENDING'} onChange={(e) => updateEditedOrder({ status: e.target.value })}>
+                                                {STATUS_OPTIONS.map(opt => (<option key={opt.value} value={opt.value}>{opt.label}</option>))}
                                             </select>
                                         </div>
 
-                                        {/* 편집 가능한 주문 상품 */}
                                         <div className={`${orderStyles.detailLabel} ${orderStyles.alignTop}`}>주문 상품</div>
                                         <div className={`${orderStyles.detailValue} ${orderStyles.itemsValueBox}`}>
                                             {(editedOrder.orderItems || []).length > 0 ? (
@@ -545,9 +473,9 @@ function AdminOrderManagement() {
                                                     <thead>
                                                     <tr>
                                                         <th>상품명</th>
-                                                        <th>수량</th>
-                                                        <th>단가</th>
-                                                        <th>소계</th>
+                                                        <th className={orderStyles.tCenter}>수량</th>
+                                                        <th className={orderStyles.tRight}>단가</th>
+                                                        <th className={orderStyles.tRight}>소계</th>
                                                     </tr>
                                                     </thead>
                                                     <tbody>
@@ -558,74 +486,124 @@ function AdminOrderManagement() {
                                                         return (
                                                             <tr key={idx}>
                                                                 <td className={orderStyles.itemNameCell}>
-                                                                    <input
-                                                                        className={orderStyles.formInput}
-                                                                        value={item.productName || ''}
-                                                                        onChange={(e) => updateItem(idx, 'productName', e.target.value)}
-                                                                    />
+                                                                    <input className={orderStyles.formInput} value={item.productName || ''} onChange={(e) => updateItem(idx, 'productName', e.target.value)} />
                                                                     {item.options && Object.keys(item.options).length > 0 && (
                                                                         <div className={orderStyles.itemOptionsRow}>
-                                                                            {Object.entries(item.options).map(([k, v]) => (
-                                                                                <span key={k} className={orderStyles.optionChipSmall}>{k}: {String(v)}</span>
-                                                                            ))}
+                                                                            {Object.entries(item.options).map(([k, v]) => (<span key={k} className={orderStyles.optionChipSmall}>{k}: {String(v)}</span>))}
                                                                         </div>
                                                                     )}
                                                                 </td>
-                                                                <td className={orderStyles.itemQtyCell}>
-                                                                    <input
-                                                                        type="number"
-                                                                        min="0"
-                                                                        className={orderStyles.numberInput}
-                                                                        value={qty}
-                                                                        onChange={(e) => updateItem(idx, 'quantity', e.target.value)}
-                                                                    />
+                                                                <td className={`${orderStyles.itemQtyCell} ${orderStyles.tCenter}`}>
+                                                                    <input type="number" min="0" className={orderStyles.numberInput} value={qty} onChange={(e) => updateItem(idx, 'quantity', e.target.value)} />
                                                                 </td>
-                                                                <td className={orderStyles.itemPriceCell}>
-                                                                    <input
-                                                                        type="number"
-                                                                        min="0"
-                                                                        className={orderStyles.numberInput}
-                                                                        value={price}
-                                                                        onChange={(e) => updateItem(idx, 'price', e.target.value)}
-                                                                    />
+                                                                <td className={`${orderStyles.itemPriceCell} ${orderStyles.tRight}`}>
+                                                                    <input type="number" min="0" className={orderStyles.numberInput} value={price} onChange={(e) => updateItem(idx, 'price', e.target.value)} />
                                                                 </td>
-                                                                <td className={orderStyles.itemSubtotalCell}>
-                                                                    {`₩${subtotal.toLocaleString()}`}
-                                                                </td>
+                                                                <td className={`${orderStyles.itemSubtotalCell} ${orderStyles.tRight}`}>₩{subtotal.toLocaleString()}</td>
                                                             </tr>
                                                         );
                                                     })}
                                                     </tbody>
                                                 </table>
-                                            ) : (
-                                                <span>상품 정보 없음</span>
-                                            )}
+                                            ) : (<span>상품 정보 없음</span>)}
                                         </div>
 
                                         <div className={orderStyles.detailLabel}>총 결제 금액</div>
-                                        <div className={orderStyles.detailValue}>
-                                            {(editedOrder.orderSummary?.finalAmount || 0).toLocaleString()}원
-                                        </div>
+                                        <div className={orderStyles.detailValue}>{(editedOrder.orderSummary?.finalAmount || 0).toLocaleString()}원</div>
                                     </div>
 
                                     <div className={memberStyles.sidePanelActions}>
-                                        <button className={memberStyles.editMemberBtn} onClick={saveEdit} disabled={saving}>
-                                            <FiSave style={{ marginRight: 6 }} />
-                                            {saving ? '저장 중...' : '저장'}
-                                        </button>
-                                        <button className={orderStyles.cancelBtn} onClick={cancelEdit} disabled={saving}>
-                                            <FiSlash style={{ marginRight: 6 }} />
-                                            취소
-                                        </button>
+                                        <button className={memberStyles.editMemberBtn} onClick={saveEdit} disabled={saving}><FiSave style={{ marginRight: 6 }} />{saving ? '저장 중...' : '저장'}</button>
+                                        <button className={orderStyles.cancelBtn} onClick={cancelEdit} disabled={saving}><FiSlash style={{ marginRight: 6 }} />취소</button>
                                     </div>
                                 </>
                             )}
                         </>
-                    ) : (
-                        <p>선택된 주문 정보가 없습니다.</p>
-                    )}
+                    ) : (<p>선택된 주문 정보가 없습니다.</p>)}
                 </div>
             </div>
+
+            {/* 취소/환불 모달 */}
+            {showCancelModal && (
+                <div className={orderStyles.modalOverlay} onClick={closeCancelModal}>
+                    <div className={orderStyles.modal} onClick={(e) => e.stopPropagation()}>
+                        <div className={orderStyles.modalHeader}>
+                            <h4>주문 취소/환불</h4>
+                            <button className={memberStyles.sidePanelCloseBtn} onClick={closeCancelModal}><FiX /></button>
+                        </div>
+
+                        <div className={orderStyles.modalBody}>
+                            <div className={orderStyles.row}>
+                                <label className={orderStyles.label}>처리 유형</label>
+                                <div className={orderStyles.radioGroup}>
+                                    <label><input type="radio" name="cmode" value="CANCEL" checked={cancelMode === 'CANCEL'} onChange={() => setCancelMode('CANCEL')} /> 전체 취소</label>
+                                    <label><input type="radio" name="cmode" value="REFUND" checked={cancelMode === 'REFUND'} onChange={() => setCancelMode('REFUND')} /> 부분 환불</label>
+                                </div>
+                            </div>
+
+                            <div className={orderStyles.row}>
+                                <label className={orderStyles.label}>사유</label>
+                                <select className={orderStyles.reasonSelect} value={cancelReason} onChange={(e) => setCancelReason(e.target.value)}>
+                                    <option value="">선택하세요</option>
+                                    <option value="CUSTOMER_CHANGE">단순 변심</option>
+                                    <option value="OUT_OF_STOCK">상품 품절</option>
+                                    <option value="ADDRESS_ERROR">배송지 오류</option>
+                                    <option value="DEFECTIVE">상품 불량</option>
+                                    <option value="OTHER">기타</option>
+                                </select>
+                            </div>
+
+                            <div className={orderStyles.row}>
+                                <label className={orderStyles.label}>메모</label>
+                                <textarea className={orderStyles.textarea} placeholder="상세 메모(선택)" value={cancelMemo} onChange={(e) => setCancelMemo(e.target.value)} />
+                            </div>
+
+                            <div className={orderStyles.checkboxRow}>
+                                <label><input type="checkbox" checked={restock} onChange={(e) => setRestock(e.target.checked)} />취소/환불 수량만큼 재고 복구</label>
+                            </div>
+
+                            {cancelMode === 'REFUND' && (
+                                <>
+                                    <div className={orderStyles.subTitle}>환불 수량 지정</div>
+                                    <table className={orderStyles.orderItemsTable}>
+                                        <thead>
+                                        <tr>
+                                            <th>상품명</th>
+                                            <th className={orderStyles.tRight}>단가</th>
+                                            <th className={orderStyles.tCenter}>최대</th>
+                                            <th className={orderStyles.tCenter}>환불 수량</th>
+                                            <th className={orderStyles.tRight}>환불 소계</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {refundLines.map((l, i) => (
+                                            <tr key={i}>
+                                                <td>{l.productName}</td>
+                                                <td className={orderStyles.tRight}>₩{Number(l.price).toLocaleString()}</td>
+                                                <td className={orderStyles.tCenter}>{l.maxQty}</td>
+                                                <td className={orderStyles.tCenter}>
+                                                    <input type="number" min="0" max={l.maxQty} value={l.qty} className={orderStyles.qtyMiniInput} onChange={(e) => updateRefundQty(i, e.target.value)} />
+                                                </td>
+                                                <td className={orderStyles.tRight}>₩{(l.qty * l.price).toLocaleString()}</td>
+                                            </tr>
+                                        ))}
+                                        </tbody>
+                                    </table>
+
+                                    <div className={orderStyles.amountBox}>환불 예정 금액 <strong>₩{refundableAmount.toLocaleString()}</strong></div>
+                                </>
+                            )}
+                        </div>
+
+                        <div className={orderStyles.modalFooter}>
+                            <button className={orderStyles.secondaryBtn} onClick={closeCancelModal}>닫기</button>
+                            <button className={memberStyles.deleteMemberBtn} onClick={submitCancelRefund}>
+                                {cancelMode === 'CANCEL' ? '전체 취소 처리' : '부분 환불 처리'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
