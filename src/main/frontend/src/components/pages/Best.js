@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from '../../assets/styles/pages/Best.module.css';
 
+const API_BASE_URL = 'http://localhost:8080';
+
 // 임시 데이터로 사용할 bestGoods 배열
 export const bestGoods = [
     { id: 1, name: '인기 상품 A', category: '인형', price: '₩50,000', rating: 4.5 },
@@ -95,6 +97,13 @@ function Best() {
 
         fetchProducts();
     }, []);
+
+    const getImageUrl = (url) => {
+        if (url && !url.startsWith('http')) {
+            return `${API_BASE_URL}${url}`;
+        }
+        return url || 'https://via.placeholder.com/150';
+    };
 
     // 체크박스 상태 변경 시 실행되는 함수
     const handleCategoryChange = (e) => {
@@ -240,7 +249,7 @@ function Best() {
                     >
                         <div className={styles.productContent}>
                             <img 
-                                src={product.imageUrl} 
+                                src={getImageUrl(product.imageUrl)} 
                                 alt={product.name} 
                                 className={styles.productImage}
                             />

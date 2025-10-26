@@ -28,4 +28,5 @@ public class ProductRequestDto {
     @JsonFormat(pattern = "yyyy-MM-dd")
     private LocalDate limitedReleaseDate;
     private Boolean allowMessageOption;
+    private Boolean removeImage; // 이미지 삭제 여부
 }

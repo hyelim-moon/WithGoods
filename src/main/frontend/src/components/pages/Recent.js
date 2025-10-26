@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../assets/styles/pages/Recent.module.css';
 
+const API_BASE_URL = 'http://localhost:8080';
+
 function Recent() {
   const navigate = useNavigate();
   const [recentProducts, setRecentProducts] = useState(null); // null이면 로딩 중
@@ -19,6 +21,13 @@ function Recent() {
       }
     }
   }, []);
+
+  const getImageUrl = (url) => {
+      if (url && !url.startsWith('http')) {
+          return `${API_BASE_URL}${url}`;
+      }
+      return url || 'https://via.placeholder.com/150';
+  };
 
   if (recentProducts === null) {
     return (
@@ -55,7 +64,7 @@ function Recent() {
                     onClick={() => navigate(`/product/${product.productId}`)}
                     onKeyDown={(e) => e.key === 'Enter' && navigate(`/product/${product.productId}`)}
                 >
-                  <img src={product.image} alt={product.name} className={styles.productImage} />
+                  <img src={getImageUrl(product.image)} alt={product.name} className={styles.productImage} />
                   <h3 className={styles.productName} title={product.name}>{product.name}</h3>
 
                   <div className={styles.priceSection}>

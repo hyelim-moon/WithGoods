@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -19,8 +20,9 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping
-    public ResponseEntity<ProductDto> create(@RequestBody ProductRequestDto dto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(dto));
+    public ResponseEntity<ProductDto> create(@RequestPart("productDto") ProductRequestDto dto,
+                                           @RequestPart(value = "image", required = false) MultipartFile image) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(dto, image));
     }
 
     @GetMapping
@@ -64,8 +66,10 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ProductDto> update(@PathVariable("id") Integer id, @RequestBody ProductRequestDto dto) {
-        return ResponseEntity.ok(productService.updateProduct(id, dto));
+    public ResponseEntity<ProductDto> update(@PathVariable("id") Integer id,
+                                           @RequestPart("productDto") ProductRequestDto dto,
+                                           @RequestPart(value = "image", required = false) MultipartFile image) {
+        return ResponseEntity.ok(productService.updateProduct(id, dto, image));
     }
 
     @DeleteMapping("/{id}")

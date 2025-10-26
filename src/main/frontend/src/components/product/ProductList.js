@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../assets/styles/product/ProductList.module.css';
 
+const API_BASE_URL = 'http://localhost:8080';
+
 function ProductList() {
   const [products, setProducts] = useState([]);
   const navigate = useNavigate();
@@ -20,6 +22,13 @@ function ProductList() {
         console.error('상품 목록 불러오기 실패:', err);
       });
   }, []);
+
+  const getImageUrl = (url) => {
+      if (url && !url.startsWith('http')) {
+          return `${API_BASE_URL}${url}`;
+      }
+      return url || '/images/default.jpg';
+  };
 
   // 상품 삭제
   const handleDelete = (productId) => {
@@ -58,7 +67,7 @@ function ProductList() {
               }}
             >
               <img
-                src={product.imageUrl || '/images/default.jpg'} // 기본 이미지 대체 가능
+                src={getImageUrl(product.imageUrl)}
                 alt={product.name}
                 className={styles.productImage}
               />

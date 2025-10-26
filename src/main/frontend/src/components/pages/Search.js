@@ -4,6 +4,8 @@ import styles from '../../assets/styles/pages/Search.module.css';
 import bestStyles from '../../assets/styles/pages/Best.module.css';
 import axios from 'axios';
 
+const API_BASE_URL = 'http://localhost:8080';
+
 const renderStars = (rating) => {
     const stars = [];
     const fullStars = Math.floor(rating || 0);
@@ -61,6 +63,13 @@ function Search() {
             .catch((err) => console.error('검색 실패:', err));
     }, [location.search]);
 
+    const getImageUrl = (url) => {
+        if (url && !url.startsWith('http')) {
+            return `${API_BASE_URL}${url}`;
+        }
+        return url || 'https://via.placeholder.com/150';
+    };
+
     const filterByCategory = (koreanCategory) => {
         const categoryCode = categoryMap[koreanCategory];
         return results.filter(p => p.role === categoryCode);
@@ -79,7 +88,7 @@ function Search() {
                         onClick={() => navigate(`/product/${item.id || item.productId}`)}
                     >
                         <img
-                            src={item.imageUrl || 'https://via.placeholder.com/150'}
+                            src={getImageUrl(item.imageUrl)}
                             alt={item.name}
                             className={bestStyles.productImage}
                         />

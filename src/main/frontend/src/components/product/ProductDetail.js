@@ -363,12 +363,24 @@ function ProductDetail() {
         return <div className={styles.error}>상품을 찾을 수 없습니다.</div>;
     }
 
-    const productImages = product.imageUrl ? [product.imageUrl, product.imageUrl, product.imageUrl] : [];
+    let mainImageUrl;
+    if (product.imageUrl) {
+        if (product.imageUrl.startsWith('http')) {
+            mainImageUrl = product.imageUrl;
+        } else {
+            mainImageUrl = `http://localhost:8080${product.imageUrl}`;
+        }
+    } else {
+        mainImageUrl = 'https://via.placeholder.com/400';
+    }
+    const productImages = product.imageUrl ? [mainImageUrl, mainImageUrl, mainImageUrl] : [];
+
     const displayedReviews = showAllReviews ? reviews : reviews.slice(0, 3);
 
     return (
         <div className={styles.detailContainer}>
             <div className={styles.productWrapper}>
+                {/* 이미지 영역 */}
                 <div className={styles.imageSection}>
                     <img
                         src={productImages[selectedImage] || 'https://via.placeholder.com/400'}
@@ -388,9 +400,11 @@ function ProductDetail() {
                     </div>
                 </div>
 
+                {/* 상품 정보 영역 */}
                 <div className={styles.infoSection}>
                     <h2 className={styles.productName}>{product.name}</h2>
 
+                    {/* 상품 평점 표시 */}
                     <div className={styles.productRating}>
                         <div className={styles.starRating}>
                             {[1, 2, 3, 4, 5].map(star => (
@@ -412,8 +426,10 @@ function ProductDetail() {
 
                     <p className={styles.productPrice}>₩{product.price?.toLocaleString()}</p>
 
+                    {/* 한정판/기념일 상품 정보 */}
                     <ProductBadge product={product} />
 
+                    {/* 옵션 선택 */}
                     {product.options && product.options.length > 0 && (
                         <div className={styles.optionSection}>
                             {Object.entries(groupedOptions).map(([groupName, options]) => (
@@ -437,6 +453,7 @@ function ProductDetail() {
                         </div>
                     )}
 
+                    {/* 수량 조절 */}
                     <div className={styles.quantityRow}>
                         <label>수량:</label>
                         <div className={styles.quantityControls}>
@@ -456,10 +473,12 @@ function ProductDetail() {
                         )}
                     </div>
 
+                    {/* 총 상품 금액 */}
                     <p className={styles.totalPrice}>
                         총 상품 금액: ₩{totalPrice.toLocaleString()}
                     </p>
 
+                    {/* 버튼 영역 */}
                     <div className={styles.buttonRow}>
                         <button className={styles.favoriteBtn} onClick={toggleFavorite}>
                             <FaHeart color={isFavorited ? 'red' : 'gray'} />
@@ -482,6 +501,7 @@ function ProductDetail() {
                 </div>
             </div>
 
+            {/* 탭 네비게이션 */}
             <div className={styles.tabsContainer}>
                 <div
                     className={`${styles.tab} ${activeTab === 'detail' ? styles.activeTab : ''}`}
@@ -509,6 +529,7 @@ function ProductDetail() {
                 </div>
             </div>
 
+            {/* 상세정보 탭 */}
             {activeTab === 'detail' && (
                 <div className={styles.productDetailInfo}>
                     <h4>상품 설명</h4>
@@ -529,6 +550,7 @@ function ProductDetail() {
                 </div>
             )}
 
+            {/* 리뷰 탭 */}
             {activeTab === 'reviews' && (
                 <div className={styles.reviewsSection}>
                     <div className={styles.reviewsHeader}>
@@ -637,6 +659,7 @@ function ProductDetail() {
                                     </span>
                                 </div>
 
+                                {/* ── 본문 혹은 비밀번호 입력 ── */}
                                 {q.secret && expandedSecret === q.id && !unlocked[q.id] ? (
                                     <div className={styles.secretPrompt}>
                                         <p>이 글은 비밀글입니다. 비밀번호를 입력해주세요.</p>
@@ -746,6 +769,7 @@ function ProductDetail() {
                 </div>
             )}
 
+            {/* 신고하기 모달 */}
             {isReportModalOpen && (
                 <div className={styles.modalOverlay} style={{
                     position: 'fixed',

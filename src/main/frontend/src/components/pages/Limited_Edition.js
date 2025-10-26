@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import styles from '../../assets/styles/pages/Limited_Edition.module.css';
 
+const API_BASE_URL = 'http://localhost:8080';
+
 function Limited_Edition() {
     const navigate = useNavigate();
     // 카테고리 목록
@@ -45,6 +47,13 @@ function Limited_Edition() {
 
         fetchProducts();
     }, []);
+
+    const getImageUrl = (url) => {
+        if (url && !url.startsWith('http')) {
+            return `${API_BASE_URL}${url}`;
+        }
+        return url || 'https://via.placeholder.com/150';
+    };
 
     // 체크박스 상태 변경 시 실행되는 함수
     const handleCategoryChange = (e) => {
@@ -228,7 +237,7 @@ function Limited_Edition() {
                     >
                         <div className={styles.productContent}>
                             <img 
-                                src={product.imageUrl} 
+                                src={getImageUrl(product.imageUrl)} 
                                 alt={product.name} 
                                 className={styles.productImage}
                             />

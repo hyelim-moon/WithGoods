@@ -4,11 +4,16 @@ import styles from '../../assets/styles/components/ProductCard.module.css';
 import ProductBadge from './ProductBadge';
 
 const ProductCard = ({ product }) => {
+    let imageUrl = product.imageUrl;
+    if (imageUrl && !imageUrl.startsWith('http')) {
+        imageUrl = `http://localhost:8080${imageUrl}`;
+    }
+
     return (
         <div className={styles.card}>
             <Link to={`/products/${product.productId}`} className={styles.cardLink}>
                 <div className={styles.imageContainer}>
-                    <img src={product.imageUrl} alt={product.name} className={styles.image} />
+                    <img src={imageUrl} alt={product.name} className={styles.image} />
                 </div>
                 <div className={styles.content}>
                     <h3 className={styles.name}>{product.name}</h3>
@@ -21,4 +26,4 @@ const ProductCard = ({ product }) => {
     );
 };
 
-export default ProductCard; 
+export default ProductCard;

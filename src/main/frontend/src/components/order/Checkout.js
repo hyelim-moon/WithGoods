@@ -402,6 +402,13 @@ function Checkout() {
         return <div className={styles.loading}>주문 정보를 불러오는 중...</div>;
     }
 
+    const getImageUrl = (url) => {
+        if (url && !url.startsWith('http')) {
+            return `${API_BASE_URL}${url}`;
+        }
+        return url || 'https://via.placeholder.com/150';
+    };
+
     return (
         <div className={styles.checkoutContainer}>
             <h1>주문 / 결제</h1>
@@ -524,7 +531,7 @@ function Checkout() {
                         {cartItems.map((item, index) => (
                             <div key={item.cartId || `direct-${index}`} className={styles.cartItem}>
                                 <div className={styles.productInfo}>
-                                    <img src={item.imageUrl} alt={item.name || item.productName}
+                                    <img src={getImageUrl(item.imageUrl)} alt={item.name || item.productName}
                                          className={styles.productImage}/>
                                     <div>
                                         <h4>{item.name || item.productName}</h4>

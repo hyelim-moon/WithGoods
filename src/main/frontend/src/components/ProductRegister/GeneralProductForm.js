@@ -26,6 +26,9 @@ function GeneralProductForm() {
     singleOptions: [{ optionName: '기본', optionValue: '', price: 0 }],
     options: [],
   });
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [isImageRemoved, setIsImageRemoved] = useState(false);
 
   useEffect(() => {
     if (!isEditMode) {
@@ -42,7 +45,6 @@ function GeneralProductForm() {
         let detectedOptionType = 'single';
 
         if (data.options && data.options.length > 0) {
-            // A simple heuristic to detect combo vs single options
             if (data.options[0].optionName) { 
                 detectedOptionType = 'combo';
                 const groups = {};
@@ -53,7 +55,7 @@ function GeneralProductForm() {
                     groups[opt.optionName].push({ name: opt.optionValue, price: opt.price });
                 });
                 comboOptions = Object.entries(groups).map(([group, values]) => ({ group, values }));
-            } else { // Fallback for old single-option format or simple new format
+            } else { 
                 detectedOptionType = 'single';
                 singleOptions = data.options.map(opt => ({ optionName: '기본', optionValue: opt.optionValue || opt.name, price: opt.price || 0 }));
             }
@@ -76,6 +78,9 @@ function GeneralProductForm() {
           singleOptions: singleOptions,
           options: comboOptions,
         });
+        if (data.imageUrl) {
+          setImagePreview(`http://localhost:8080${data.imageUrl}`);
+        }
       })
       .catch(err => {
         console.error(err);
@@ -85,12 +90,25 @@ function GeneralProductForm() {
   }, [id, isEditMode]);
 
   const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+    const { name, value, type, checked, files } = e.target;
     if (type === 'checkbox') {
       setFormData((prev) => ({ ...prev, [name]: checked }));
+    } else if (type === 'file') {
+      const file = files[0];
+      setImageFile(file);
+      setIsImageRemoved(false); // 새 파일 선택 시 삭제 상태 해제
+      if (file) {
+        setImagePreview(URL.createObjectURL(file));
+      }
     } else {
       setFormData((prev) => ({ ...prev, [name]: value }));
     }
+  };
+
+  const handleRemoveImage = () => {
+    setImageFile(null);
+    setImagePreview('');
+    setIsImageRemoved(true);
   };
 
   const handleSingleOptionChange = (index, key, value) => {
@@ -214,7 +232,14 @@ function GeneralProductForm() {
       startDate: formData.hasSalePeriod ? formData.saleStartDate : null,
       endDate: formData.hasSalePeriod ? formData.saleEndDate : null,
       options: optionsPayload,
+      removeImage: isImageRemoved,
     };
+
+    const submission = new FormData();
+    submission.append('productDto', new Blob([JSON.stringify(productDto)], { type: 'application/json' }));
+    if (imageFile) {
+      submission.append('image', imageFile);
+    }
 
     try {
       const url = isEditMode ? `http://localhost:8080/products/${id}` : 'http://localhost:8080/products';
@@ -223,8 +248,7 @@ function GeneralProductForm() {
       await axios({
         method: method,
         url: url,
-        data: productDto,
-        headers: { 'Content-Type': 'application/json' },
+        data: submission,
         withCredentials: true,
       });
 
@@ -243,6 +267,19 @@ function GeneralProductForm() {
     <form className={styles.registerForm} onSubmit={handleSubmit}>
       <h2 className={styles.title}>{isEditMode ? '상품 수정' : '일반 상품 등록'}</h2>
       
+      <label className={styles.label}>
+        대표 이미지
+        <input type="file" name="image" onChange={handleChange} accept="image/*" />
+      </label>
+      {imagePreview && (
+        <div className={styles.imagePreview}>
+          <img src={imagePreview} alt="미리보기" style={{ maxWidth: '200px', maxHeight: '200px' }} />
+          <button type="button" onClick={handleRemoveImage} className={styles.removeButton}>
+            이미지 삭제
+          </button>
+        </div>
+      )}
+
       <label className={styles.label}>
         상품 유형
         <select name="productType" value={formData.productType} onChange={handleChange} className={styles.select} required>

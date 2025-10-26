@@ -198,6 +198,12 @@ function Cart() {
 
     const freeShipping = getSelectedItemsPrice() >= FREE_SHIPPING_THRESHOLD;
 
+    const getImageUrl = (url) => {
+        if (url && !url.startsWith('http')) {
+            return `${API_BASE_URL}${url}`;
+        }
+        return url || 'https://via.placeholder.com/150';
+    };
 
     return (
         <div className={styles.cartContainer}>
@@ -246,7 +252,7 @@ function Cart() {
                                     >
                                         <div className={styles.productItem}>
                                             <img
-                                                src={item.imageUrl || 'https://via.placeholder.com/150'}
+                                                src={getImageUrl(item.imageUrl)}
                                                 alt={item.productName}
                                                 className={styles.productImage}
                                             />

@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import styles from '../../assets/styles/pages/Anniversary.module.css';
 
+const API_BASE_URL = 'http://localhost:8080';
+
 function Anniversary() {
     const navigate = useNavigate();
     // 카테고리 목록
@@ -45,6 +47,13 @@ function Anniversary() {
 
         fetchProducts();
     }, []);
+
+    const getImageUrl = (url) => {
+        if (url && !url.startsWith('http')) {
+            return `${API_BASE_URL}${url}`;
+        }
+        return url || 'https://via.placeholder.com/150';
+    };
 
     // 체크박스 상태 변경 시 실행되는 함수
     const handleCategoryChange = (e) => {
@@ -185,7 +194,7 @@ function Anniversary() {
                     >
                         높은가격순
                     </span>
-                    {/* <span className={styles.sortOption}>
+                    {/* <span className={styles.sortOption>
                         누적판매순
                     </span> */}
                     <span 
@@ -213,7 +222,7 @@ function Anniversary() {
                     >
                         <div className={styles.productContent}>
                             <img 
-                                src={product.imageUrl} 
+                                src={getImageUrl(product.imageUrl)} 
                                 alt={product.name} 
                                 className={styles.productImage}
                             />

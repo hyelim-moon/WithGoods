@@ -2,11 +2,20 @@ import { renderStars } from '../pages/Best';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from '../../assets/styles/layout/MainContent.module.css';
 
+const API_BASE_URL = 'http://localhost:8080';
+
 function TopGoodsSection({ titleIcon, title, route, goods, emoji }) {
     const navigate = useNavigate();
 
     const handleClick = (productId) => {
         navigate(`/product/${productId}`);
+    };
+
+    const getImageUrl = (url) => {
+        if (url && !url.startsWith('http')) {
+            return `${API_BASE_URL}${url}`;
+        }
+        return url;
     };
 
     const calculateTimeLeft = (endDate) => {
@@ -42,7 +51,7 @@ function TopGoodsSection({ titleIcon, title, route, goods, emoji }) {
                         <div className={styles.productImage}>
                             {item.imageUrl ? (
                                 <img
-                                    src={item.imageUrl}
+                                    src={getImageUrl(item.imageUrl)}
                                     alt={item.name}
                                     className={styles.productImg}
                                 />

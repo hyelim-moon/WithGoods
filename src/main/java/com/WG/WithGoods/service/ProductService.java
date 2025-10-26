@@ -10,6 +10,7 @@ import com.WG.WithGoods.repository.ReviewRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -20,14 +21,20 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final ReviewRepository reviewRepository;
+    private final FileStorageService fileStorageService;
 
     @Transactional
-    public ProductDto createProduct(ProductRequestDto dto) {
+    public ProductDto createProduct(ProductRequestDto dto, MultipartFile image) {
         Product product = new Product();
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
         product.setPrice(dto.getPrice());
         product.setCategory(dto.getCategory());
+
+        if (image != null && !image.isEmpty()) {
+            String imageUrl = fileStorageService.store(image);
+            product.setImageUrl(imageUrl);
+        }
 
         if (dto.getOptions() != null) {
             ProductOptionDto optionDto = new ProductOptionDto(dto.getOptions());
@@ -80,7 +87,7 @@ public class ProductService {
     }
 
     @Transactional
-    public ProductDto updateProduct(Integer id, ProductRequestDto dto) {
+    public ProductDto updateProduct(Integer id, ProductRequestDto dto, MultipartFile image) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다."));
 
@@ -88,6 +95,14 @@ public class ProductService {
         if (dto.getDescription() != null) product.setDescription(dto.getDescription());
         if (dto.getPrice() != null) product.setPrice(dto.getPrice());
         if (dto.getCategory() != null) product.setCategory(dto.getCategory());
+
+        if (dto.getRemoveImage() != null && dto.getRemoveImage()) {
+            product.setImageUrl(null);
+        } else if (image != null && !image.isEmpty()) {
+            String imageUrl = fileStorageService.store(image);
+            product.setImageUrl(imageUrl);
+        }
+
         if (dto.getOptions() != null) {
             ProductOptionDto optionDto = new ProductOptionDto(dto.getOptions());
             product.setOptionsFromDto(optionDto);

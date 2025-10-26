@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from '../../assets/styles/pages/Customization.module.css';
 
+const API_BASE_URL = 'http://localhost:8080';
+
 function Customization() {
     const navigate = useNavigate();
 
@@ -39,6 +41,13 @@ function Customization() {
 
         fetchProducts();
     }, []);
+
+    const getImageUrl = (url) => {
+        if (url && !url.startsWith('http')) {
+            return `${API_BASE_URL}${url}`;
+        }
+        return url;
+    };
 
     const handleCategoryChange = (e) => {
         const { value, checked } = e.target;
@@ -165,7 +174,7 @@ function Customization() {
                         <div className={styles.productContent}>
                             {product.imageUrl ? (
                                 <img
-                                    src={product.imageUrl}
+                                    src={getImageUrl(product.imageUrl)}
                                     alt={product.name}
                                     className={styles.productImage}
                                 />
