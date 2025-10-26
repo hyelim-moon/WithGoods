@@ -1,7 +1,14 @@
 .container {
     padding: 20px;
+    border-radius: 14px;
     background-color: white;
     transition: margin-right 0.3s ease;
+}
+
+.container h3{
+    margin:0.3rem 0;
+    font-size:1.5rem;
+    font-weight:900;
 }
 
 .loading, .error {
@@ -14,7 +21,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .toolbar h2 {

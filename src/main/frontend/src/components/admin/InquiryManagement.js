@@ -75,7 +75,7 @@ function InquiryManagement() {
         return (
             <div className={inquiryStyles.container}>
                 <div className={inquiryStyles.toolbar}>
-                    <h2>전체 문의 목록</h2>
+                    <h3>문의 목록</h3>
                 </div>
                 {/* 에러 메시지 렌더링 부분 제거 */}
 
