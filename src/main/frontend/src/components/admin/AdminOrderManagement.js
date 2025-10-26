@@ -528,7 +528,7 @@ function AdminOrderManagement() {
                 <div className={orderStyles.modalOverlay} onClick={closeCancelModal}>
                     <div className={orderStyles.modal} onClick={(e) => e.stopPropagation()}>
                         <div className={orderStyles.modalHeader}>
-                            <h4>주문 취소/환불</h4>
+                            <h3>주문 취소/환불</h3>
                             <button className={memberStyles.sidePanelCloseBtn} onClick={closeCancelModal}><FiX /></button>
                         </div>
 

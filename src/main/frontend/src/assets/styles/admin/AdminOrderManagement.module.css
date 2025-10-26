@@ -91,7 +91,7 @@
     width:auto;            /* grid가 폭을 결정 */
     white-space:nowrap;
     color:#555;
-    font-weight:600;
+    font-weight:800;
 }
 
 /* 라디오 버튼 수직 중앙 정렬 & 간격 */
@@ -106,34 +106,21 @@
 
 /* 체크박스 줄도 입력 열에 맞춰 들여쓰기 */
 /* 체크박스 줄: 한 줄 고정 + 라벨/체크 정렬 */
-.checkboxRow{
-    margin: 10px 0 18px;
-    padding-left: 90px;     /* 위 라벨 폭과 시작선 맞춤 */
-    display: flex;
-    align-items: center;
-}
-.label{
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    white-space: nowrap;    /* ✅ 줄바꿈 방지 */
-}
-.checkboxRow input{
-    margin-right: 8px;
-    flex: 0 0 auto;         /* 입력이 줄어들며 줄바꿈되는 것 방지 */
-}
-
+.checkboxRow{margin: 10px 0 0;padding-left: 100px;display: flex;align-items: center;}
+.label{display: inline-flex;align-items: center;gap: 8px;white-space: nowrap;}
+.checkboxRow input{margin-right: 8px;flex: 0 0 auto;}
 
 /* 하위 타이틀/금액 */
-.subTitle{font-weight:700;margin:6px 0 10px}
+.subTitle{margin:6px 0 10px}
 .amountBox{text-align:right;padding:10px 12px;background:#f8f8f8;border:1px solid #eee;border-radius:8px;margin-top:10px}
 
 /* 모달 레이아웃 */
 .modalOverlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;z-index:2000}
 .modal{width:720px;max-width:92vw;background:#fff;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.2);overflow:hidden}
 .modalHeader{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #eee;background:#f8f9fa}
+.modalHeader h3{margin: 5px;}
 .modalBody{padding:18px}
-.modalFooter{padding:14px 18px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:10px}
+.modalFooter{padding:10px 18px;border-top:1px solid #eee;display:flex;justify-content:flex-end;gap:10px}
 .secondaryBtn{padding:8px 15px;border-radius:5px;border:1px solid #d0d0d0;background:#fff;cursor:pointer}
 .secondaryBtn:hover{background:#f5f5f5}
 .dangerText{color:#b4231f;font-size:.9rem;margin-top:6px}

@@ -55,7 +55,7 @@ function OrderComplete() {
   if (!orderInfo) return null;
 
   return (
-    <div className={styles.checkoutContainer}>
+    <div className={styles.completeContainer}>
       <h1>🎉 주문이 완료되었습니다!</h1>
       <p>감사합니다, <strong>{orderInfo.ordererInfo.name}</strong>님.</p>
       <p>주문 번호: <strong>{orderInfo.orderId}</strong></p>

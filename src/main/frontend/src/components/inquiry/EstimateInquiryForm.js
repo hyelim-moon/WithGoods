@@ -68,7 +68,7 @@ const EstimateInquiryForm = () => {
     };
 
     return (
-        <div className={styles.container}>
+        <div className={styles.estimatecontainer}>
             <h2 className={styles.heading}>견적 문의</h2>
             <hr className={styles.line} />
 

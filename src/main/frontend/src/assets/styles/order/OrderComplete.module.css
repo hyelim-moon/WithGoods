@@ -1,4 +1,4 @@
-.checkoutContainer {
+.completeContainer {
   max-width: 700px;
   margin: 3rem auto;
   padding: 2rem 2.5rem;
@@ -24,7 +24,7 @@ p {
   color: #6a4c35;
 }
 
-strong {
+.completeContainer strong {
   color: #9e4b25;
 }
 
