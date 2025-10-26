@@ -225,6 +225,13 @@ function ProductDetail() {
         return (basePrice + optionPrice) * quantity;
     }, [product, selectedOptions, quantity]);
 
+    const getOptionsForSubmission = () => {
+        return Object.entries(selectedOptions).reduce((acc, [group, option]) => {
+            acc[group] = option.value;
+            return acc;
+        }, {});
+    };
+
     const handleAddToCart = async () => {
         if (!areAllOptionsSelected()) {
             alert('모든 옵션을 선택해주세요.');
@@ -232,10 +239,12 @@ function ProductDetail() {
         }
 
         try {
+            const optionsToSubmit = getOptionsForSubmission();
             const cartItem = {
                 productId: product.productId,
                 quantity: quantity,
-                options: selectedOptions,
+                option: JSON.stringify(optionsToSubmit),
+                options: optionsToSubmit,
             };
 
             await axios.post('http://localhost:8080/api/cart', cartItem, {
@@ -267,13 +276,14 @@ function ProductDetail() {
             return;
         }
 
+        const optionsToSubmit = getOptionsForSubmission();
         const orderItem = {
             productId: product.productId,
             name: product.name,
             price: product.price,
             imageUrl: product.imageUrl || product.mainImage,
             quantity: quantity,
-            selectedOptions: selectedOptions,
+            selectedOptions: optionsToSubmit,
             totalPrice: totalPrice
         };
 
