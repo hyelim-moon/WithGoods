@@ -17,6 +17,9 @@ public class InquiryResponseDto {
     private boolean secret;
     private String writer;
     private String writerUsername;
+    private String status; // "PENDING", "IN_PROGRESS", "APPROVED", "REJECTED"
+
+
 
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm", timezone = "Asia/Seoul")
     private LocalDateTime createdAt;
