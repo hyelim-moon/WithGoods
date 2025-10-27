@@ -11,6 +11,97 @@
     font-weight:900;
 }
 
+/* Stats Container */
+.statsContainer {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.statBox {
+    flex: 1;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid #e9ecef;
+}
+
+.statBox:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+}
+
+.statBox.activeStatBox {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.statBox h2 {
+    font-size: 1.1em;
+    color: #6c757d;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.statBox.activeStatBox h2 {
+    color: white;
+}
+
+.statBox p {
+    font-size: 2.2em;
+    font-weight: bold;
+    color: #343a40;
+    margin: 0;
+}
+
+.statBox.activeStatBox p {
+    color: white;
+}
+
+/* Search Input */
+.searchInput {
+    padding: 8px 12px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 14px;
+    flex: 1;
+    max-width: 300px;
+    margin-right: 10px;
+}
+
+.searchInput:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.iconBtn {
+    background: none;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.iconBtn:hover {
+    background-color: #f0f0f0;
+}
+
+.iconBtn svg {
+    width: 20px;
+    height: 20px;
+}
+
 .loading, .error {
     text-align: center;
     padding: 40px;
@@ -60,4 +151,11 @@
 .memberRow:focus {
     outline: none;
     box-shadow: none;
+}
+
+.noInquiries {
+    text-align: center;
+    padding: 20px;
+    color: #777;
+    font-style: italic;
 }

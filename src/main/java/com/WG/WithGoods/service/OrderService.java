@@ -12,9 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -161,6 +158,40 @@ public class OrderService {
         }
         
         order.setStatus(newStatus);
+        orderRepository.save(order);
+    }
+
+    // 주문자 이메일 수정
+    @Transactional
+    public void updateOrdererEmail(Integer orderId, String email) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+        order.setOrdererEmail(email);
+        orderRepository.save(order);
+    }
+
+    // 배송지 정보 수정
+    @Transactional
+    public void updateShippingInfo(Integer orderId, OrderResponseDto.ShippingInfoDto shippingInfo) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("주문을 찾을 수 없습니다."));
+        
+        if (shippingInfo.getReceiverName() != null) {
+            order.setReceiverName(shippingInfo.getReceiverName());
+        }
+        if (shippingInfo.getReceiverPhone() != null) {
+            order.setReceiverPhone(shippingInfo.getReceiverPhone());
+        }
+        if (shippingInfo.getAddress() != null) {
+            order.setShippingAddress(shippingInfo.getAddress());
+        }
+        if (shippingInfo.getDetailAddress() != null) {
+            order.setShippingDetailAddress(shippingInfo.getDetailAddress());
+        }
+        if (shippingInfo.getZipCode() != null) {
+            order.setShippingZipCode(shippingInfo.getZipCode());
+        }
+        
         orderRepository.save(order);
     }
 } 

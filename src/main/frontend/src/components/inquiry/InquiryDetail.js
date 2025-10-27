@@ -17,6 +17,10 @@ function InquiryDetail() {
     const [pwdInput, setPwdInput] = useState('');
     const [pwdError, setPwdError] = useState('');
 
+    // 관리자 답변 관련 state
+    const [answerText, setAnswerText] = useState('');
+    const [isAnswering, setIsAnswering] = useState(false);
+
     useEffect(() => {
         const fetchDetail = async () => {
             try {
@@ -88,6 +92,39 @@ function InquiryDetail() {
         }
     };
 
+    const handleSubmitAnswer = async () => {
+        if (!answerText.trim()) {
+            alert('답변 내용을 입력해주세요.');
+            return;
+        }
+
+        setIsAnswering(true);
+        try {
+            await axios.post(
+                `http://localhost:8080/inquiries/${id}/answer`,
+                { answer: answerText },
+                { withCredentials: true }
+            );
+            alert('답변이 등록되었습니다.');
+            // 답변 후 페이지 새로고침
+            const res = await axios.get(
+                `http://localhost:8080/inquiries/${id}`,
+                { withCredentials: true }
+            );
+            setInquiry(res.data);
+            setAnswerText('');
+        } catch (err) {
+            console.error(err);
+            alert(
+                err.response?.status === 403
+                    ? '관리자만 답변할 수 있습니다.'
+                    : '답변 등록에 실패했습니다.'
+            );
+        } finally {
+            setIsAnswering(false);
+        }
+    };
+
     // 로딩 중
     if (loading) {
         return <div className={styles.loading}>로딩 중...</div>;
@@ -152,6 +189,39 @@ function InquiryDetail() {
                                 alt="Design File"
                                 className={styles.designImage}
                             />
+                        </div>
+                    )}
+
+                    {/* 관리자 답변 섹션 */}
+                    {user?.role === 'ADMIN' && !inquiry.answer && (
+                        <div className={styles.answerSection}>
+                            <h3>관리자 답변</h3>
+                            <textarea
+                                className={styles.answerInput}
+                                value={answerText}
+                                onChange={(e) => setAnswerText(e.target.value)}
+                                placeholder="답변을 작성해주세요..."
+                                rows={5}
+                            />
+                            <button
+                                className={styles.answerButton}
+                                onClick={handleSubmitAnswer}
+                                disabled={isAnswering}
+                            >
+                                {isAnswering ? '등록 중...' : '답변 등록'}
+                            </button>
+                        </div>
+                    )}
+
+                    {/* 답변 표시 */}
+                    {inquiry.answer && (
+                        <div className={styles.answerSection}>
+                            <h3>관리자 답변</h3>
+                            <div className={styles.answerContent}>
+                                {inquiry.answer.split('\n').map((line, i) => (
+                                    <p key={i}>{line}</p>
+                                ))}
+                            </div>
                         </div>
                     )}
 

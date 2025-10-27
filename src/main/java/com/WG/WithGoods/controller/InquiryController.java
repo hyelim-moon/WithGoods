@@ -42,7 +42,6 @@ public class InquiryController {
     public ResponseEntity<String> createEstimateInquiry(
             Principal principal,
             @RequestParam("title")        String title,
-            @RequestParam("type")         String type,
             @RequestParam("customerName") String customerName,
             @RequestParam("contact")      String contact,
             @RequestParam("product")      String product,

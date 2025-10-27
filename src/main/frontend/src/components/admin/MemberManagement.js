@@ -55,6 +55,20 @@ function MemberManagement() {
     const [showInquiryModal, setShowInquiryModal] = useState(false);
     const [selectedMemberInquiries, setSelectedMemberInquiries] = useState([]);
     const [selectedMemberNameForInquiries, setSelectedMemberNameForInquiries] = useState('');
+    
+    // 리뷰 내역 모달 관련 상태 (새로 추가)
+    const [showReviewModal, setShowReviewModal] = useState(false);
+    const [selectedMemberReviews, setSelectedMemberReviews] = useState([]);
+    const [selectedMemberNameForReviews, setSelectedMemberNameForReviews] = useState('');
+    
+    // 견적 내역 모달 관련 상태 (새로 추가)
+    const [showEstimateModal, setShowEstimateModal] = useState(false);
+    const [selectedMemberEstimates, setSelectedMemberEstimates] = useState([]);
+    const [selectedMemberNameForEstimates, setSelectedMemberNameForEstimates] = useState('');
+    
+    // 회원 메모 관련 상태
+    const [memberMemo, setMemberMemo] = useState('');
+    const [isEditingMemo, setIsEditingMemo] = useState(false);
 
     // 회원 추가/수정 모달 관련 상태
     const [showAddEditModal, setShowAddEditModal] = useState(false);
@@ -267,6 +281,9 @@ function MemberManagement() {
                 };
                 setSidePanelMember(memberWithDetails);
                 setShowSidePanel(true);
+                
+                // 메모 조회
+                await fetchMemberMemo(member.id);
             } catch (e) {
                 // 조회 실패 시 기본 회원 정보만 표시
                 const memberWithDefaults = {
@@ -277,6 +294,9 @@ function MemberManagement() {
                 };
                 setSidePanelMember(memberWithDefaults);
                 setShowSidePanel(true);
+                
+                // 메모 조회
+                await fetchMemberMemo(member.id);
             }
         }
     };
@@ -297,7 +317,7 @@ function MemberManagement() {
     // 문의 내역 보기 함수 (새로 추가)
     const handleViewInquiries = async (member) => {
         try {
-            const res = await axios.get(`/api/inquiries/member/${member.id}`); // 가상의 API 엔드포인트
+            const res = await axios.get(`/api/admin/members/${member.id}/inquiries`);
             setSelectedMemberInquiries(res.data || []);
             setSelectedMemberNameForInquiries(member.name);
             setShowInquiryModal(true);
@@ -328,6 +348,56 @@ function MemberManagement() {
         } catch (e) {
             console.error('장바구니 조회 실패:', e);
             alert('장바구니를 불러오는데 실패했습니다.');
+        }
+    };
+    
+    // 리뷰 내역 보기 함수 (새로 추가)
+    const handleViewReviews = async (member) => {
+        try {
+            const res = await axios.get(`/api/admin/members/${member.id}/reviews`);
+            setSelectedMemberReviews(res.data || []);
+            setSelectedMemberNameForReviews(member.name);
+            setShowReviewModal(true);
+        } catch (e) {
+            console.error('리뷰 내역 조회 실패:', e);
+            alert('리뷰 내역을 불러오는데 실패했습니다.');
+        }
+    };
+    
+    // 견적 내역 보기 함수 (새로 추가)
+    const handleViewEstimates = async (member) => {
+        try {
+            const res = await axios.get(`/api/admin/members/${member.id}/estimates`);
+            setSelectedMemberEstimates(res.data || []);
+            setSelectedMemberNameForEstimates(member.name);
+            setShowEstimateModal(true);
+        } catch (e) {
+            console.error('견적 내역 조회 실패:', e);
+            alert('견적 내역을 불러오는데 실패했습니다.');
+        }
+    };
+    
+    // 회원 메모 저장 함수 (새로 추가)
+    const handleSaveMemo = async () => {
+        if (!sidePanelMember) return;
+        try {
+            await axios.put(`/api/admin/members/${sidePanelMember.id}/memo`, { memo: memberMemo });
+            setIsEditingMemo(false);
+            alert('메모가 저장되었습니다.');
+        } catch (e) {
+            console.error('메모 저장 실패:', e);
+            alert('메모 저장에 실패했습니다.');
+        }
+    };
+    
+    // 회원 정보 조회 시 메모도 함께 조회
+    const fetchMemberMemo = async (memberId) => {
+        try {
+            const res = await axios.get(`/api/admin/members/${memberId}/memo`);
+            setMemberMemo(res.data.memo || '');
+        } catch (e) {
+            console.error('메모 조회 실패:', e);
+            setMemberMemo('');
         }
     };
 
@@ -756,6 +826,98 @@ function MemberManagement() {
                             </div>
                         </div>
                     )}
+                    
+                    {/* 리뷰 내역 모달 */}
+                    {showReviewModal && (
+                        <div className={memberStyles.inquiryModalOverlay} onClick={() => setShowReviewModal(false)}>
+                            <div className={memberStyles.inquiryModalContent} onClick={(e) => e.stopPropagation()}>
+                                <h3>{selectedMemberNameForReviews ? `${selectedMemberNameForReviews}님의 리뷰` : '리뷰 내역'}</h3>
+                                {selectedMemberReviews && selectedMemberReviews.length > 0 ? (
+                                    <ul className={memberStyles.inquiryListModal}>
+                                        {selectedMemberReviews.map(review => (
+                                            <li key={review.reviewId} className={memberStyles.inquiryListItemModal}>
+                                                <div>
+                                                    <strong>리뷰 ID: {review.reviewId}</strong>
+                                                    <br />
+                                                    <span>상품명: {review.productName}</span>
+                                                    <br />
+                                                    <span>평점: {'⭐'.repeat(review.rating || 0)}</span>
+                                                    <br />
+                                                    <span>내용: {review.content}</span>
+                                                    <br />
+                                                    <span>작성일: {new Date(review.createdAt).toLocaleDateString()}</span>
+                                                    {review.imageUrl && (
+                                                        <>
+                                                            <br />
+                                                            <img src={review.imageUrl} alt="리뷰 이미지" style={{ maxWidth: '200px', marginTop: '10px' }} />
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p>리뷰 내역이 없습니다.</p>
+                                )}
+                                <div className={memberStyles.modalActions}>
+                                    <button onClick={() => setShowReviewModal(false)} className={memberStyles.modalSecondaryBtn}>닫기</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                    
+                    {/* 견적 내역 모달 */}
+                    {showEstimateModal && (
+                        <div className={memberStyles.inquiryModalOverlay} onClick={() => setShowEstimateModal(false)}>
+                            <div className={memberStyles.inquiryModalContent} onClick={(e) => e.stopPropagation()}>
+                                <h3>{selectedMemberNameForEstimates ? `${selectedMemberNameForEstimates}님의 견적` : '견적 내역'}</h3>
+                                {selectedMemberEstimates && selectedMemberEstimates.length > 0 ? (
+                                    <ul className={memberStyles.inquiryListModal}>
+                                        {selectedMemberEstimates.map(estimate => (
+                                            <li key={estimate.id} className={memberStyles.inquiryListItemModal}>
+                                                <div>
+                                                    <strong>견적 ID: {estimate.id}</strong>
+                                                    <br />
+                                                    <span>제목: {estimate.title}</span>
+                                                    <br />
+                                                    <span>고객명: {estimate.customerName}</span>
+                                                    <br />
+                                                    <span>연락처: {estimate.contact}</span>
+                                                    <br />
+                                                    <span>상품: {estimate.product}</span>
+                                                    <br />
+                                                    <span>수량: {estimate.quantity}개</span>
+                                                    <br />
+                                                    <span>요청사항: {estimate.message}</span>
+                                                    <br />
+                                                    <span>작성일: {new Date(estimate.createdAt).toLocaleDateString()}</span>
+                                                    {estimate.answer && (
+                                                        <>
+                                                            <br />
+                                                            <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>답변: {estimate.answer}</span>
+                                                        </>
+                                                    )}
+                                                    {estimate.designFileUrl && (
+                                                        <>
+                                                            <br />
+                                                            <a href={`http://localhost:8080${estimate.designFileUrl}`} target="_blank" rel="noopener noreferrer">
+                                                                설계파일 다운로드
+                                                            </a>
+                                                        </>
+                                                    )}
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <p>견적 내역이 없습니다.</p>
+                                )}
+                                <div className={memberStyles.modalActions}>
+                                    <button onClick={() => setShowEstimateModal(false)} className={memberStyles.modalSecondaryBtn}>닫기</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {/* 회원 추가/수정 모달 */}
                     {showAddEditModal && (
@@ -988,6 +1150,62 @@ function MemberManagement() {
                                 >
                                     장바구니
                                 </button>
+                                <button
+                                    className={memberStyles.viewCartBtn}
+                                    onClick={() => handleViewReviews(sidePanelMember)}
+                                >
+                                    작성한 리뷰
+                                </button>
+                                <button
+                                    className={memberStyles.viewCartBtn}
+                                    onClick={() => handleViewEstimates(sidePanelMember)}
+                                >
+                                    작성한 견적
+                                </button>
+                            </div>
+                            
+                            {/* 회원 메모 섹션 */}
+                            <div className={memberStyles.sidePanelItem}>
+                                <strong>관리자 메모:</strong>
+                                {!isEditingMemo ? (
+                                    <>
+                                        <div style={{ marginTop: '8px', whiteSpace: 'pre-wrap', minHeight: '50px', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}>
+                                            {memberMemo || '(메모 없음)'}
+                                        </div>
+                                        <button 
+                                            onClick={() => setIsEditingMemo(true)} 
+                                            style={{ marginTop: '8px', padding: '6px 12px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                        >
+                                            수정
+                                        </button>
+                                    </>
+                                ) : (
+                                    <>
+                                        <textarea
+                                            value={memberMemo}
+                                            onChange={(e) => setMemberMemo(e.target.value)}
+                                            style={{ width: '100%', minHeight: '100px', marginTop: '8px', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
+                                            placeholder="메모를 입력하세요"
+                                        />
+                                        <div style={{ marginTop: '8px' }}>
+                                            <button 
+                                                onClick={handleSaveMemo}
+                                                style={{ marginRight: '8px', padding: '6px 12px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                            >
+                                                저장
+                                            </button>
+                                            <button 
+                                                onClick={() => {
+                                                    setIsEditingMemo(false);
+                                                    setMemberMemo(sidePanelMember?.adminMemo || '');
+                                                }}
+                                                style={{ padding: '6px 12px', backgroundColor: '#ccc', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                            >
+                                                취소
+                                            </button>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </>
                     ) : (

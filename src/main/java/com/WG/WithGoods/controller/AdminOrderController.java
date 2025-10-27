@@ -78,4 +78,25 @@ public class AdminOrderController {
         Page<OrderResponseDto> orders = orderService.getMemberOrders(memberId, pageable);
         return ResponseEntity.ok(orders);
     }
+
+    // 주문자 이메일 수정
+    @PutMapping("/{orderId}/orderer/email")
+    public ResponseEntity<Map<String, String>> updateOrdererEmail(
+            @PathVariable Integer orderId,
+            @RequestBody Map<String, String> request
+    ) {
+        String email = request.get("email");
+        orderService.updateOrdererEmail(orderId, email);
+        return ResponseEntity.ok(Map.of("message", "주문자 이메일이 업데이트되었습니다."));
+    }
+
+    // 배송지 정보 수정
+    @PutMapping("/{orderId}/shipping")
+    public ResponseEntity<Map<String, String>> updateShippingInfo(
+            @PathVariable Integer orderId,
+            @RequestBody OrderResponseDto.ShippingInfoDto shippingInfo
+    ) {
+        orderService.updateShippingInfo(orderId, shippingInfo);
+        return ResponseEntity.ok(Map.of("message", "배송지 정보가 업데이트되었습니다."));
+    }
 } 

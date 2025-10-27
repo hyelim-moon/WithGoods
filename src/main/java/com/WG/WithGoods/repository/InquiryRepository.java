@@ -19,4 +19,8 @@ public interface InquiryRepository extends JpaRepository<Inquiry, Long> {
     List<Inquiry> findByType(InquiryType type);
     // 견적문의가 아닌 것
     List<Inquiry> findByTypeNot(InquiryType type);
+    // 회원별 문의 조회
+    List<Inquiry> findByWriterMemberIdOrderByCreatedAtDesc(Integer memberId);
+    // 회원별 견적 조회
+    List<Inquiry> findByWriterMemberIdAndTypeOrderByCreatedAtDesc(Integer memberId, InquiryType type);
 }

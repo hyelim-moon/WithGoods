@@ -100,4 +100,43 @@ public class AdminController {
         List<Map<String, Object>> cart = memberService.getMemberCart(id);
         return ResponseEntity.ok(cart);
     }
+    
+    // 회원의 리뷰 조회
+    @GetMapping("/admin/members/{id}/reviews")
+    public ResponseEntity<List<Map<String, Object>>> getMemberReviews(@PathVariable Integer id) {
+        List<Map<String, Object>> reviews = memberService.getMemberReviews(id);
+        return ResponseEntity.ok(reviews);
+    }
+    
+    // 회원의 견적 조회
+    @GetMapping("/admin/members/{id}/estimates")
+    public ResponseEntity<List<Map<String, Object>>> getMemberEstimates(@PathVariable Integer id) {
+        List<Map<String, Object>> estimates = memberService.getMemberEstimates(id);
+        return ResponseEntity.ok(estimates);
+    }
+    
+    // 회원의 메모 조회
+    @GetMapping("/admin/members/{id}/memo")
+    public ResponseEntity<Map<String, String>> getMemberMemo(@PathVariable Integer id) {
+        String memo = memberService.getMemberMemo(id);
+        return ResponseEntity.ok(Map.of("memo", memo != null ? memo : ""));
+    }
+    
+    // 회원의 메모 저장
+    @PutMapping("/admin/members/{id}/memo")
+    public ResponseEntity<Map<String, String>> updateMemberMemo(
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> request
+    ) {
+        String memo = request.get("memo");
+        memberService.updateMemberMemo(id, memo);
+        return ResponseEntity.ok(Map.of("message", "메모가 저장되었습니다."));
+    }
+    
+    // 회원의 문의 조회
+    @GetMapping("/admin/members/{id}/inquiries")
+    public ResponseEntity<List<Map<String, Object>>> getMemberInquiries(@PathVariable Integer id) {
+        List<Map<String, Object>> inquiries = memberService.getMemberInquiries(id);
+        return ResponseEntity.ok(inquiries);
+    }
 }

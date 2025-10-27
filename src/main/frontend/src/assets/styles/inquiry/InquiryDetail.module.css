@@ -207,4 +207,68 @@
     margin: 0 1rem 1rem 0;
 }
 
+/* 답변 섹션 */
+.answerSection {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+.answerSection h3 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.answerInput {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    resize: vertical;
+    font-family: inherit;
+    margin-bottom: 1rem;
+}
+
+.answerInput:focus {
+    outline: none;
+    border-color: #944c21;
+    box-shadow: 0 0 0 2px rgba(148, 76, 33, 0.1);
+}
+
+.answerButton {
+    padding: 0.75rem 1.5rem;
+    background-color: #944c21;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.answerButton:hover:not(:disabled) {
+    background-color: #7a3f1a;
+}
+
+.answerButton:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+.answerContent {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: #444;
+}
+
+.answerContent p {
+    margin: 0.5rem 0;
+}
+
 

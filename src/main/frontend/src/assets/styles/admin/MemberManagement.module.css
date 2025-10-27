@@ -650,7 +650,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
+    z-index: 10000;
 }
 
 .inquiryModalContent {
@@ -663,7 +663,7 @@
     max-height: 80vh;
     overflow-y: auto;
     position: relative;
-    z-index: 3001;
+    z-index: 10001;
 }
 
 .inquiryModalContent h3 {
@@ -872,7 +872,7 @@ select:focus {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
+    z-index: 10000;
 }
 
 .wishlistModalContent {
@@ -885,7 +885,7 @@ select:focus {
     max-height: 80vh;
     overflow-y: auto;
     position: relative;
-    z-index: 10000;
+    z-index: 10001;
 }
 
 .wishlistItem {
@@ -974,7 +974,7 @@ select:focus {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
+    z-index: 10000;
 }
 
 .cartModalContent {
@@ -987,7 +987,7 @@ select:focus {
     max-height: 80vh;
     overflow-y: auto;
     position: relative;
-    z-index: 10000;
+    z-index: 10001;
 }
 
 /* 주문내역 모달 관련 스타일 */
@@ -1001,7 +1001,7 @@ select:focus {
     display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
+    z-index: 10000;
 }
 
 .orderHistoryModalContent {
@@ -1014,7 +1014,7 @@ select:focus {
     max-height: 80vh;
     overflow-y: auto;
     position: relative;
-    z-index: 10000;
+    z-index: 10001;
 }
 
 .cartItem {

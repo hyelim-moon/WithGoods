@@ -45,6 +45,10 @@ public class Member {
     private LocalDate birthDate;
 
     private String address;
+    
+    @Lob
+    @Column(name = "admin_memo", columnDefinition = "TEXT")
+    private String adminMemo; // 관리자 메모
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

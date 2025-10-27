@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from 'react-router-dom';
 import styles from "../../assets/styles/admin/AdminDashboard.module.css";
 import orderStyles from "../../assets/styles/admin/AdminOrderManagement.module.css";
@@ -7,40 +7,7 @@ import { FiBell, FiX, FiRefreshCw, FiSave, FiSlash } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 import axios from "../../utils/axios";
 
-const dummyAdminOrders = [
-    {
-        orderId: 'ADMIN-DUMMY-001',
-        ordererInfo: { name: '관리자 테스트1', email: 'admin1@example.com' },
-        orderSummary: { finalAmount: 75000 },
-        orderDate: '2023-10-26T11:00:00',
-        status: 'PAID',
-        shippingInfo: { address: '서울시 어딘가 1-1' },
-        orderItems: [{ productName: '샘플 상품 A', quantity: 2, price: 37500, options: { 색상: '블랙', 사이즈: 'M' } }],
-    },
-    {
-        orderId: 'ADMIN-DUMMY-002',
-        ordererInfo: { name: '관리자 테스트2', email: 'admin2@example.com' },
-        orderSummary: { finalAmount: 120000 },
-        orderDate: '2023-10-25T14:00:00',
-        status: 'SHIPPING',
-        shippingInfo: { address: '부산시 어딘가 2-2' },
-        orderItems: [{ productName: '샘플 상품 B', quantity: 1, price: 120000 }],
-    },
-    {
-        orderId: 'ADMIN-DUMMY-003',
-        ordererInfo: { name: '관리자 테스트3', email: 'admin3@example.com' },
-        orderSummary: { finalAmount: 30000 },
-        orderDate: '2023-10-24T09:00:00',
-        status: 'DELIVERED',
-        shippingInfo: { address: '부산시 어딘가 1-2' },
-        orderItems: [{ productName: '샘플 상품 C', quantity: 3, price: 10000 }],
-    },
-    { orderId: 'ADMIN-DUMMY-004', ordererInfo: { name: '관리자 테스트4', email: 'admin4@example.com' }, orderSummary: { finalAmount: 50000 }, orderDate: '2023-10-23T10:00:00', status: 'PENDING' },
-    { orderId: 'ADMIN-DUMMY-005', ordererInfo: { name: '관리자 테스트5', email: 'admin5@example.com' }, orderSummary: { finalAmount: 80000 }, orderDate: '2023-10-22T16:00:00', status: 'PREPARING' },
-    { orderId: 'ADMIN-DUMMY-006', ordererInfo: { name: '관리자 테스트6', email: 'admin6@example.com' }, orderSummary: { finalAmount: 60000 }, orderDate: '2023-10-21T13:00:00', status: 'CANCELLED' },
-    { orderId: 'ADMIN-DUMMY-007', ordererInfo: { name: '관리자 테스트7', email: 'admin7@example.com' }, orderSummary: { finalAmount: 95000 }, orderDate: '2023-10-20T10:00:00', status: 'DELIVERED' },
-    { orderId: 'ADMIN-DUMMY-008', ordererInfo: { name: '관리자 테스트8', email: 'admin8@example.com' }, orderSummary: { finalAmount: 40000 }, orderDate: '2023-10-19T15:00:00', status: 'PAID' },
-];
+// Dummy data removed - now using real data from API
 
 const STATUS_OPTIONS = [
     { value: 'PENDING', label: '주문 대기' },
@@ -82,25 +49,35 @@ function AdminOrderManagement() {
 
     const refundableAmount = refundLines.reduce((s, l) => s + (Number(l.qty || 0) * Number(l.price || 0)), 0);
 
-    useEffect(() => {
-        fetchOrders();
-    }, []);
 
-    const fetchOrders = async () => {
+    const fetchOrders = useCallback(async () => {
         setLoading(true);
         setError(null);
         try {
-            const res = await axios.get('/api/admin/orders');
-            const fetchedOrders = [...dummyAdminOrders, ...(res.data?.content || [])];
-            setOrders(fetchedOrders);
-            recomputeStats(fetchedOrders);
+            // Always fetch all orders for stats calculation and client-side filtering
+            // Sort by orderDate descending (newest first)
+            const res = await axios.get('/api/admin/orders', { params: { size: 1000, sort: 'orderDate,desc' } });
+            // API returns Page object with content array
+            const fetchedOrders = res.data?.content || [];
+            // Additional client-side sorting to ensure newest first
+            const sortedOrders = fetchedOrders.sort((a, b) => {
+                const dateA = new Date(a.orderDate);
+                const dateB = new Date(b.orderDate);
+                return dateB - dateA; // Descending order (newest first)
+            });
+            setOrders(sortedOrders);
+            recomputeStats(sortedOrders);
         } catch (e) {
             setError('주문 목록을 불러오지 못했습니다.');
             console.error(e);
         } finally {
             setLoading(false);
         }
-    };
+    }, []);
+
+    useEffect(() => {
+        fetchOrders();
+    }, [fetchOrders]);
 
     const recomputeStats = (list) => {
         setStats({
@@ -114,7 +91,7 @@ function AdminOrderManagement() {
         });
     };
 
-    const handleOrderClick = (order) => {
+    const handleOrderClick = async (order) => {
         if (showSidePanel && sidePanelOrder && sidePanelOrder.orderId === order.orderId) {
             setShowSidePanel(false);
             setSidePanelOrder(null);
@@ -122,7 +99,16 @@ function AdminOrderManagement() {
             setEditedOrder(null);
             return;
         }
-        setSidePanelOrder(order);
+        
+        // Fetch fresh order details from API
+        try {
+            const res = await axios.get(`/api/admin/orders/${order.orderId}`);
+            setSidePanelOrder(res.data);
+        } catch (e) {
+            console.error('Failed to fetch order details:', e);
+            // Fallback to the order data we already have
+            setSidePanelOrder(order);
+        }
         setShowSidePanel(true);
         setIsEditing(false);
         setEditedOrder(null);
@@ -176,17 +162,40 @@ function AdminOrderManagement() {
         if (!editedOrder) return;
         setSaving(true);
         try {
-            // await axios.put(`/api/admin/orders/${editedOrder.orderId}`, payload);
-            const nextOrders = orders.map(o => o.orderId === editedOrder.orderId ? editedOrder : o);
-            setOrders(nextOrders);
-            recomputeStats(nextOrders);
-            setSidePanelOrder(editedOrder);
+            // Update order status
+            if (editedOrder.status && editedOrder.status !== sidePanelOrder.status) {
+                await axios.put(`/api/admin/orders/${editedOrder.orderId}/status`, {
+                    status: editedOrder.status
+                });
+            }
+            
+            // Update orderer email if changed
+            if (editedOrder.ordererInfo?.email !== sidePanelOrder.ordererInfo?.email) {
+                await axios.put(`/api/admin/orders/${editedOrder.orderId}/orderer/email`, {
+                    email: editedOrder.ordererInfo?.email
+                });
+            }
+            
+            // Update shipping info if changed
+            if (JSON.stringify(editedOrder.shippingInfo) !== JSON.stringify(sidePanelOrder.shippingInfo)) {
+                await axios.put(`/api/admin/orders/${editedOrder.orderId}/shipping`, editedOrder.shippingInfo);
+            }
+            
+            // Refresh the order list
+            await fetchOrders();
+            
+            alert('주문이 저장되었습니다.');
+            
+            // Close editing mode
             setIsEditing(false);
             setEditedOrder(null);
-            alert('주문이 저장되었습니다.');
+            
+            // Refresh side panel with updated data
+            const res = await axios.get(`/api/admin/orders/${editedOrder.orderId}`);
+            setSidePanelOrder(res.data);
         } catch (e) {
             console.error(e);
-            alert('저장 중 오류가 발생했습니다.');
+            alert('저장 중 오류가 발생했습니다: ' + (e.response?.data?.message || e.message));
         } finally {
             setSaving(false);
         }
@@ -215,47 +224,25 @@ function AdminOrderManagement() {
         if (!sidePanelOrder) return;
         try {
             if (cancelMode === 'CANCEL') {
-                // await axios.post(`/api/admin/orders/${sidePanelOrder.orderId}/cancel`, {...})
-                const removed = orders.filter(o => o.orderId !== sidePanelOrder.orderId);
-                setOrders(removed);
-                recomputeStats(removed);
+                // Update order status to CANCELLED
+                await axios.put(`/api/admin/orders/${sidePanelOrder.orderId}/status`, {
+                    status: 'CANCELLED'
+                });
+                
+                // Refresh the order list
+                await fetchOrders();
+                
                 setShowSidePanel(false);
                 setSidePanelOrder(null);
                 alert('주문이 취소되었습니다.');
             } else {
-                if (refundableAmount <= 0) { alert('환불할 수량을 입력하세요.'); return; }
-
-                const oldAmount = Number(sidePanelOrder.orderSummary?.finalAmount || 0);
-                const newAmount = Math.max(0, oldAmount - refundableAmount);
-
-                const newItems = (sidePanelOrder.orderItems || [])
-                    .map((it, i) => ({ ...it, quantity: Math.max(0, Number(it.quantity || 0) - Number(refundLines[i]?.qty || 0)) }))
-                    .filter(it => Number(it.quantity || 0) > 0);
-
-                const updated = {
-                    ...sidePanelOrder,
-                    orderItems: newItems,
-                    orderSummary: { ...(sidePanelOrder.orderSummary || {}), finalAmount: newAmount },
-                    refundInfo: { lastRefundAmount: refundableAmount, reason: cancelReason, at: new Date().toISOString() }
-                };
-
-                if (newAmount === 0) {
-                    const removed = orders.filter(o => o.orderId !== sidePanelOrder.orderId);
-                    setOrders(removed);
-                    recomputeStats(removed);
-                    setShowSidePanel(false);
-                    setSidePanelOrder(null);
-                } else {
-                    const next = orders.map(o => o.orderId === updated.orderId ? updated : o);
-                    setOrders(next);
-                    recomputeStats(next);
-                    setSidePanelOrder(updated);
-                }
-                alert('부분 환불이 처리되었습니다.');
+                // Partial refund is not fully implemented in backend yet
+                alert('부분 환불 기능은 현재 개발 중입니다.');
+                closeCancelModal();
             }
         } catch (e) {
             console.error(e);
-            alert('처리 중 오류가 발생했습니다.');
+            alert('처리 중 오류가 발생했습니다: ' + (e.response?.data?.message || e.message));
         } finally {
             closeCancelModal();
         }
@@ -265,15 +252,31 @@ function AdminOrderManagement() {
         if (loading) return <div className={orderStyles.loading}>주문 정보를 불러오는 중...</div>;
         if (error) return <div className={orderStyles.error}>{error}</div>;
 
+        // Filter by status
         let filteredOrders = filter === 'ALL' ? orders : orders.filter(order => order.status === filter);
+        
+        // Apply search filter
         if (searchTerm.trim()) {
             const term = searchTerm.trim().toLowerCase();
             filteredOrders = filteredOrders.filter(order => {
-                if (searchCondition === 'orderId') return (order.orderId || '').toLowerCase().includes(term);
-                if (searchCondition === 'orderer') return (order.ordererInfo?.name || '').toLowerCase().includes(term);
+                if (searchCondition === 'orderId') {
+                    // Search in orderId (convert to string for searching)
+                    const orderIdStr = String(order.orderId || '');
+                    return orderIdStr.toLowerCase().includes(term);
+                }
+                if (searchCondition === 'orderer') {
+                    return (order.ordererInfo?.name || '').toLowerCase().includes(term);
+                }
                 return true;
             });
         }
+        
+        // Ensure filtered orders are sorted by date (newest first)
+        filteredOrders = [...filteredOrders].sort((a, b) => {
+            const dateA = new Date(a.orderDate);
+            const dateB = new Date(b.orderDate);
+            return dateB - dateA; // Descending order (newest first)
+        });
 
         return (
             <>
@@ -349,6 +352,7 @@ function AdminOrderManagement() {
                 <header className={styles.header}>
                     <div className={styles.headerTitle}>주문 관리</div>
                     <div className={styles.headerActions}>
+                        <button className={styles.iconBtn} aria-label="새로고침" onClick={fetchOrders} title="새로고침"><FiRefreshCw /></button>
                         <button className={styles.iconBtn} aria-label="알림"><FiBell /></button>
                     </div>
                 </header>
@@ -446,17 +450,73 @@ function AdminOrderManagement() {
 
                                         <div className={orderStyles.detailLabel}>주문자</div>
                                         <div className={orderStyles.detailValue}>
-                                            <input className={orderStyles.formInput} value={editedOrder.ordererInfo?.name || ''} onChange={(e) => updateOrderer('name', e.target.value)} placeholder="주문자 이름" />
+                                            {readValue(editedOrder, 'ordererInfo.name', '-')}
                                         </div>
 
                                         <div className={orderStyles.detailLabel}>이메일</div>
                                         <div className={orderStyles.detailValue}>
-                                            <input className={orderStyles.formInput} value={editedOrder.ordererInfo?.email || ''} onChange={(e) => updateOrderer('email', e.target.value)} placeholder="이메일" />
+                                            <input
+                                                type="text"
+                                                className={orderStyles.formInput}
+                                                value={editedOrder.ordererInfo?.email || ''}
+                                                onChange={(e) => updateOrderer('email', e.target.value)}
+                                                placeholder="이메일 입력"
+                                            />
                                         </div>
 
-                                        <div className={orderStyles.detailLabel}>배송지</div>
+                                        <div className={orderStyles.detailLabel}>배송지(주소)</div>
                                         <div className={orderStyles.detailValue}>
-                                            <input className={orderStyles.formInput} value={editedOrder.shippingInfo?.address || ''} onChange={(e) => updateShipping('address', e.target.value)} placeholder="주소" />
+                                            <input
+                                                type="text"
+                                                className={orderStyles.formInput}
+                                                value={editedOrder.shippingInfo?.address || ''}
+                                                onChange={(e) => updateShipping('address', e.target.value)}
+                                                placeholder="배송 주소 입력"
+                                            />
+                                        </div>
+
+                                        <div className={orderStyles.detailLabel}>상세주소</div>
+                                        <div className={orderStyles.detailValue}>
+                                            <input
+                                                type="text"
+                                                className={orderStyles.formInput}
+                                                value={editedOrder.shippingInfo?.detailAddress || ''}
+                                                onChange={(e) => updateShipping('detailAddress', e.target.value)}
+                                                placeholder="상세 주소 입력"
+                                            />
+                                        </div>
+
+                                        <div className={orderStyles.detailLabel}>우편번호</div>
+                                        <div className={orderStyles.detailValue}>
+                                            <input
+                                                type="text"
+                                                className={orderStyles.formInput}
+                                                value={editedOrder.shippingInfo?.zipCode || ''}
+                                                onChange={(e) => updateShipping('zipCode', e.target.value)}
+                                                placeholder="우편번호 입력"
+                                            />
+                                        </div>
+
+                                        <div className={orderStyles.detailLabel}>수령인</div>
+                                        <div className={orderStyles.detailValue}>
+                                            <input
+                                                type="text"
+                                                className={orderStyles.formInput}
+                                                value={editedOrder.shippingInfo?.receiverName || ''}
+                                                onChange={(e) => updateShipping('receiverName', e.target.value)}
+                                                placeholder="수령인 이름 입력"
+                                            />
+                                        </div>
+
+                                        <div className={orderStyles.detailLabel}>수령인 전화번호</div>
+                                        <div className={orderStyles.detailValue}>
+                                            <input
+                                                type="text"
+                                                className={orderStyles.formInput}
+                                                value={editedOrder.shippingInfo?.receiverPhone || ''}
+                                                onChange={(e) => updateShipping('receiverPhone', e.target.value)}
+                                                placeholder="수령인 전화번호 입력"
+                                            />
                                         </div>
 
                                         <div className={orderStyles.detailLabel}>상태</div>
@@ -486,19 +546,15 @@ function AdminOrderManagement() {
                                                         return (
                                                             <tr key={idx}>
                                                                 <td className={orderStyles.itemNameCell}>
-                                                                    <input className={orderStyles.formInput} value={item.productName || ''} onChange={(e) => updateItem(idx, 'productName', e.target.value)} />
+                                                                    <div className={orderStyles.itemName}>{item.productName || '-'}</div>
                                                                     {item.options && Object.keys(item.options).length > 0 && (
                                                                         <div className={orderStyles.itemOptionsRow}>
                                                                             {Object.entries(item.options).map(([k, v]) => (<span key={k} className={orderStyles.optionChipSmall}>{k}: {String(v)}</span>))}
                                                                         </div>
                                                                     )}
                                                                 </td>
-                                                                <td className={`${orderStyles.itemQtyCell} ${orderStyles.tCenter}`}>
-                                                                    <input type="number" min="0" className={orderStyles.numberInput} value={qty} onChange={(e) => updateItem(idx, 'quantity', e.target.value)} />
-                                                                </td>
-                                                                <td className={`${orderStyles.itemPriceCell} ${orderStyles.tRight}`}>
-                                                                    <input type="number" min="0" className={orderStyles.numberInput} value={price} onChange={(e) => updateItem(idx, 'price', e.target.value)} />
-                                                                </td>
+                                                                <td className={`${orderStyles.itemQtyCell} ${orderStyles.tCenter}`}>{qty}</td>
+                                                                <td className={`${orderStyles.itemPriceCell} ${orderStyles.tRight}`}>₩{price.toLocaleString()}</td>
                                                                 <td className={`${orderStyles.itemSubtotalCell} ${orderStyles.tRight}`}>₩{subtotal.toLocaleString()}</td>
                                                             </tr>
                                                         );

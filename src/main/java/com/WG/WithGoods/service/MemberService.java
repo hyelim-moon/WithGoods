@@ -8,6 +8,8 @@ import com.WG.WithGoods.repository.OrderRepository;
 import com.WG.WithGoods.repository.ProductRepository;
 import com.WG.WithGoods.repository.WishlistRepository;
 import com.WG.WithGoods.repository.CartRepository;
+import com.WG.WithGoods.repository.ReviewRepository;
+import com.WG.WithGoods.repository.InquiryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -31,6 +33,8 @@ public class MemberService {
     private final ProductRepository productRepository;
     private final WishlistRepository wishlistRepository;
     private final CartRepository cartRepository;
+    private final ReviewRepository reviewRepository;
+    private final InquiryRepository inquiryRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Transactional
@@ -271,6 +275,93 @@ public class MemberService {
                     item.put("quantity", cart.getProductQuantity());
                     item.put("totalPrice", cart.getTotalPrice());
                     item.put("addedAt", cart.getAddedDate());
+                    return item;
+                })
+                .collect(Collectors.toList());
+    }
+    
+    // 회원의 리뷰 조회
+    public List<Map<String, Object>> getMemberReviews(Integer memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+        
+        List<com.WG.WithGoods.entity.Review> reviews = reviewRepository.findByMemberOrderByCreatedAtDesc(member);
+        
+        return reviews.stream()
+                .map(review -> {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("reviewId", review.getReviewId());
+                    item.put("productName", review.getProduct().getName());
+                    item.put("content", review.getContent());
+                    item.put("rating", review.getRating());
+                    item.put("imageUrl", review.getImageUrl());
+                    item.put("createdAt", review.getCreatedAt());
+                    return item;
+                })
+                .collect(Collectors.toList());
+    }
+    
+    // 회원의 견적 조회
+    public List<Map<String, Object>> getMemberEstimates(Integer memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+        
+        List<com.WG.WithGoods.entity.Inquiry> estimates = inquiryRepository
+                .findByWriterMemberIdAndTypeOrderByCreatedAtDesc(memberId, 
+                    com.WG.WithGoods.entity.InquiryType.ESTIMATE);
+        
+        return estimates.stream()
+                .map(inquiry -> {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("id", inquiry.getId());
+                    item.put("title", inquiry.getTitle());
+                    item.put("customerName", inquiry.getCustomerName());
+                    item.put("contact", inquiry.getContact());
+                    item.put("product", inquiry.getProduct());
+                    item.put("quantity", inquiry.getQuantity());
+                    item.put("message", inquiry.getMessage());
+                    item.put("designFileUrl", inquiry.getDesignFileUrl());
+                    item.put("createdAt", inquiry.getCreatedAt());
+                    item.put("answer", inquiry.getAnswer());
+                    return item;
+                })
+                .collect(Collectors.toList());
+    }
+    
+    // 회원의 메모 조회
+    public String getMemberMemo(Integer memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+        return member.getAdminMemo();
+    }
+    
+    // 회원의 메모 업데이트
+    @Transactional
+    public void updateMemberMemo(Integer memberId, String memo) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+        member.setAdminMemo(memo);
+        memberRepository.save(member);
+    }
+    
+    // 회원의 문의 조회
+    public List<Map<String, Object>> getMemberInquiries(Integer memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+        
+        List<com.WG.WithGoods.entity.Inquiry> inquiries = inquiryRepository
+                .findByWriterMemberIdOrderByCreatedAtDesc(memberId);
+        
+        return inquiries.stream()
+                .map(inquiry -> {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("id", inquiry.getId());
+                    item.put("title", inquiry.getTitle());
+                    item.put("type", inquiry.getType() != null ? inquiry.getType().getDisplayName() : "");
+                    item.put("content", inquiry.getContent());
+                    item.put("createdAt", inquiry.getCreatedAt());
+                    item.put("status", inquiry.getAnswer() != null && !inquiry.getAnswer().isEmpty() ? "답변완료" : "대기중");
+                    item.put("answer", inquiry.getAnswer());
                     return item;
                 })
                 .collect(Collectors.toList());

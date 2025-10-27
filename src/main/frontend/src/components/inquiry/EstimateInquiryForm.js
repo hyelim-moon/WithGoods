@@ -39,7 +39,6 @@ const EstimateInquiryForm = () => {
         e.preventDefault();
         const formData = new FormData();
         formData.append('title', form.title);
-        formData.append('type', 'ESTIMATE');
         formData.append('customerName', form.customerName);
         formData.append('contact', form.contact);
         formData.append('product', form.product);

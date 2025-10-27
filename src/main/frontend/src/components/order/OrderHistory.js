@@ -6,57 +6,6 @@ import styles from '../../assets/styles/order/OrderHistory.module.css';
 // API 서버 기본 URL
 const API_BASE_URL = 'http://localhost:8080';
 
-// Dummy data for orders
-const dummyOrders = [
-    {
-        orderId: 'DUMMY-001',
-        orderDate: '2023-10-26T10:00:00',
-        orderItems: [
-            {
-                orderDetailId: 'DUMMY-OD-001-1',
-                productName: '더미 상품 1',
-                quantity: 1,
-                price: 25000,
-                discount: 0,
-                options: { 색상: '빨강', 사이즈: 'M' },
-                productOption: null,
-            },
-            {
-                orderDetailId: 'DUMMY-OD-001-2',
-                productName: '더미 상품 2',
-                quantity: 2,
-                price: 10000,
-                discount: 1000,
-                options: null,
-                productOption: '기본',
-            },
-        ],
-        orderSummary: {
-            finalAmount: 44000, // 25000 * 1 + (10000 * 2 - 1000)
-        },
-        status: 'DELIVERED',
-    },
-    {
-        orderId: 'DUMMY-002',
-        orderDate: '2023-10-25T15:30:00',
-        orderItems: [
-            {
-                orderDetailId: 'DUMMY-OD-002-1',
-                productName: '더미 상품 3',
-                quantity: 1,
-                price: 50000,
-                discount: 5000,
-                options: { 재질: '가죽' },
-                productOption: null,
-            },
-        ],
-        orderSummary: {
-            finalAmount: 45000, // 50000 * 1 - 5000
-        },
-        status: 'PENDING',
-    },
-];
-
 function OrderHistory() {
     // 상태값 정의
     const [orders, setOrders] = useState([]);       // 주문 리스트
@@ -86,7 +35,7 @@ function OrderHistory() {
             console.log('주문 last:', response.data.last); // last 확인
             
             if (page === 0) {
-                setOrders([...dummyOrders, ...response.data.content]); // Prepend dummy data
+                setOrders(response.data.content || []);
             } else {
                 setOrders(prev => [...prev, ...response.data.content]);
             }
