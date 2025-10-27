@@ -45,7 +45,7 @@ const EstimateInquiryForm = () => {
         formData.append('quantity', form.quantity);
         formData.append('message', form.message);
         formData.append('password', form.password);
-        formData.append('secret', true);
+        formData.append('secret', "true");
         if (form.designFile) {
             formData.append('designFile', form.designFile);
         }

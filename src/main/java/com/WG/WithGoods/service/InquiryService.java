@@ -52,7 +52,8 @@ public class InquiryService {
             String message,
             String password,
             Boolean secret,
-            MultipartFile designFile
+            MultipartFile designFile,
+            InquiryType type
     ) {
         Member writer = memberRepository.findByUsername(writerUsername)
                 .orElseThrow(() -> new IllegalArgumentException("사용자 없음"));
