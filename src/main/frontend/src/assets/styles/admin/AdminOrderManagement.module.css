@@ -12,7 +12,7 @@
 .searchBar button:focus,.iconBtn:focus{outline:none;box-shadow:none}
 
 /* Orders table */
-.container h3{margin:.5rem 0;font-size:1.5rem;font-weight:900}
+.container h3{margin:0.5rem 0;font-size:1.5rem;font-weight:900}
 .orderTable{width:100%;border-collapse:collapse;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.1)}
 .orderTable th,.orderTable td{padding:12px 15px;text-align:left;border-bottom:1px solid #ddd;vertical-align:middle}
 .orderTable th{background:#f2f2f2;font-weight:600}

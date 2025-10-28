@@ -293,7 +293,7 @@ function AdminOrderManagement() {
                 </div>
 
                 <div className={orderStyles.container}>
-                    <h3>주문 목록</h3>
+                    <h3>주문목록</h3>
 
                     <div className={orderStyles.toolbar}>
                         <div className={orderStyles.searchBar}>
