@@ -6,6 +6,7 @@ import memberStyles from "../../assets/styles/admin/MemberManagement.module.css"
 import { FiBell, FiRefreshCw, FiX, FiEdit, FiTrash2 } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 import orderStyles from "../../assets/styles/admin/AdminOrderManagement.module.css";
+import {ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, Legend} from "recharts";
 
 const LOW_STOCK_THRESHOLD = 10;
 
@@ -195,6 +196,20 @@ function ProductManagement() {
             rating: Math.max(3.5, Math.min(5, rating + 0.8)).toFixed(1),
             reorderRate: `${Math.min(95, reorder)}%`,
         };
+    };
+    // 월별 판매량/매출 더미 시계열(최근 6개월)
+    const makeMonthlySeries = (p) => {
+        const seed = Number(String(p.id).replace(/\D/g, "").slice(-2) || 7);
+        const months = Array.from({ length: 6 }, (_, i) => {
+            const d = new Date();
+            d.setMonth(d.getMonth() - (5 - i));
+            const label = `${d.getMonth() + 1}월`;
+            // 간단한 난수성 패턴
+            const qty = ((seed + i * 3) % 15) + 1;      // 1~15
+            const revenue = qty * p.price;
+            return { month: label, qty, revenue };
+        });
+        return months;
     };
 
     const renderDetailPanel = () => {
