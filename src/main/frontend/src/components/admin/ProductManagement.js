@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import axios from 'axios';
 
 import styles from "../../assets/styles/admin/AdminDashboard.module.css";
 import productStyles from "../../assets/styles/admin/ProductManagement.module.css";
@@ -22,119 +23,8 @@ import {
 import { FiBell, FiRefreshCw, FiX, FiEdit, FiTrash2 } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 
+const API_BASE_URL = 'http://localhost:8080';
 const LOW_STOCK_THRESHOLD = 10;
-
-// Dummy (imageUrl 포함)
-const dummyProducts = [
-    {
-        id: "PROD-001",
-        name: "커스텀 머그컵",
-        category: "커스텀 상품",
-        price: 15000,
-        stockQuantity: 50,
-        status: "IN_STOCK",
-        createdAt: "2023-01-10T10:00:00",
-        description: "원하는 사진을 직접 선택하여 만드는 머그컵입니다.",
-        imageUrl:
-            "https://images.unsplash.com/photo-1520975922284-9d06aeb586d2?q=80&w=400&auto=format&fit=crop",
-        productType: "normal",
-        startDate: "2023-01-10",
-        endDate: null,
-        hasDiscount: true,
-        discountRate: 10,
-        rating: 4.2,
-        reviewCount: 18,
-        options: [
-            { optionName: "색상", optionValue: "화이트", price: 0 },
-            { optionName: "색상", optionValue: "블랙", price: 0 },
-            { optionName: "사이즈", optionValue: "대", price: 1000 },
-            { optionName: "사이즈", optionValue: "중", price: 0 },
-        ],
-        additionalImagesJson: JSON.stringify([
-            "https://picsum.photos/seed/1/400",
-            "https://picsum.photos/seed/2/400",
-        ]),
-    },
-    {
-        id: "PROD-002",
-        name: "한정판 아트 프린트",
-        category: "한정판",
-        price: 120000,
-        stockQuantity: 5,
-        status: "LOW_STOCK",
-        createdAt: "2023-02-15T11:30:00",
-        description: "원하는 사진을 직접 선택하여 만드는 아트 프인트입니다.",
-        imageUrl:
-            "https://images.unsplash.com/photo-1526318472351-c75fcf070305?q=80&w=400&auto=format&fit=crop",
-        productType: "limited",
-        startDate: "2023-02-01",
-        endDate: "2023-03-01",
-        hasDiscount: false,
-        discountRate: 0,
-        rating: 4.8,
-        reviewCount: 6,
-        options: [
-            { optionName: "프레임", optionValue: "없음", price: 0 },
-            { optionName: "프레임", optionValue: "메이플", price: 12000 },
-            { optionName: "프레임", optionValue: "월넛", price: 15000 },
-        ],
-        additionalImagesJson: "[]",
-    },
-    {
-        id: "PROD-003",
-        name: "기념일 케이크 토퍼",
-        category: "기념일 상품",
-        price: 25000,
-        stockQuantity: 0,
-        status: "OUT_OF_STOCK",
-        createdAt: "2023-03-20T14:00:00",
-        description: "케이크에 꽂아 기념을 축하할 수 있는 토퍼입니다.",
-        imageUrl:
-            "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?q=80&w=400&auto=format&fit=crop",
-        productType: "anniversary",
-    },
-    {
-        id: "PROD-004",
-        name: "DIY 팔찌 키트",
-        category: "일반 상품",
-        price: 18000,
-        stockQuantity: 20,
-        status: "IN_STOCK",
-        createdAt: "2023-04-01T09:00:00",
-        description:
-            "원하는 옵션을 선택하여 자신이 직접 팔찌를 만들 수 있는 키트입니다.",
-        imageUrl:
-            "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=400&auto=format&fit=crop",
-        productType: "normal",
-    },
-    {
-        id: "PROD-005",
-        name: "주문제작 폰케이스",
-        category: "커스텀 상품",
-        price: 30000,
-        stockQuantity: 8,
-        status: "LOW_STOCK",
-        createdAt: "2023-05-05T16:00:00",
-        description: "원하는 사진을 직접 선택하여 만드는 폰케이스입니다.",
-        imageUrl:
-            "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=400&auto=format&fit=crop",
-        productType: "custom",
-        hasDiscount: true,
-        discountRate: 5,
-    },
-    {
-        id: "PROD-006",
-        name: "품절된 상품 예시",
-        category: "일반 상품",
-        price: 5000,
-        stockQuantity: 0,
-        status: "OUT_OF_STOCK",
-        createdAt: "2023-06-10T13:00:00",
-        description: "원하는 옵션을 선택한 인형입니다.",
-        imageUrl: "",
-        productType: "normal",
-    },
-];
 
 function ProductManagement() {
     const navigate = useNavigate();
@@ -161,24 +51,39 @@ function ProductManagement() {
     const [activeDetailTab, setActiveDetailTab] = useState("analytics"); // "analytics" | "stock" | "reviews" | "orders"
 
     useEffect(() => {
-        const fetched = dummyProducts.map((p) => ({
-            ...p,
-            status:
-                (p.stockQuantity ?? p.stock ?? 0) > LOW_STOCK_THRESHOLD
-                    ? "IN_STOCK"
-                    : (p.stockQuantity ?? p.stock ?? 0) > 0
-                        ? "LOW_STOCK"
-                        : "OUT_OF_STOCK",
-        }));
+        const fetchProducts = async () => {
+            try {
+                setLoading(true);
+                const response = await axios.get(`${API_BASE_URL}/products`, { withCredentials: true });
+                const fetched = response.data.map((p) => ({
+                    ...p,
+                    id: p.productId, // id 필드 추가
+                    stockQuantity: p.stock, // stockQuantity 필드 추가
+                    status:
+                        (p.stock ?? 0) > LOW_STOCK_THRESHOLD
+                            ? "IN_STOCK"
+                            : (p.stock ?? 0) > 0
+                                ? "LOW_STOCK"
+                                : "OUT_OF_STOCK",
+                }));
 
-        setProducts(fetched);
-        setStats({
-            total: fetched.length,
-            inStock: fetched.filter((p) => p.status === "IN_STOCK").length,
-            lowStock: fetched.filter((p) => p.status === "LOW_STOCK").length,
-            outOfStock: fetched.filter((p) => p.status === "OUT_OF_STOCK").length,
-        });
-        setLoading(false);
+                setProducts(fetched);
+                setStats({
+                    total: fetched.length,
+                    inStock: fetched.filter((p) => p.status === "IN_STOCK").length,
+                    lowStock: fetched.filter((p) => p.status === "LOW_STOCK").length,
+                    outOfStock: fetched.filter((p) => p.status === "OUT_OF_STOCK").length,
+                });
+                setError(null);
+            } catch (err) {
+                setError('상품 정보를 불러오는데 실패했습니다.');
+                console.error('상품 로딩 에러:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
     }, []);
 
     // URL 쿼리 제거하며 닫기
@@ -294,11 +199,13 @@ function ProductManagement() {
         });
     }, [products, filter, searchTerm, searchCondition]);
 
-    const getThumbUrl = (p) =>
-        p.imageUrl ||
-        p.thumbnailUrl ||
-        (p.image && (p.image.url || p.image.small || p.image.thumb)) ||
-        null;
+    const getThumbUrl = (p) => {
+        let url = p.imageUrl || p.thumbnailUrl || (p.image && (p.image.url || p.image.small || p.image.thumb)) || null;
+        if (url && !url.startsWith('http')) {
+            return `${API_BASE_URL}${url}`;
+        }
+        return url;
+    };
 
     // ===== 유틸 =====
     const fmtDate = (v) => {
