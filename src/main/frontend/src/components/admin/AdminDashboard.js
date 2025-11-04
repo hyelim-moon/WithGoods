@@ -198,17 +198,20 @@ function AdminDashboard() {
                     <StatCard 
                         title="이번 달 주문" 
                         value={dashboardData.monthlyOrders.toLocaleString()} 
-                        icon={<FiShoppingCart />} 
+                        icon={<FiShoppingCart />}
+                        onClick={() => navigate("/admin/orders")}
                     />
                     <StatCard 
                         title="총 상품 수" 
                         value={dashboardData.totalProducts.toLocaleString()} 
-                        icon={<FiBox />} 
+                        icon={<FiBox />}
+                        onClick={() => navigate("/admin/products")}
                     />
                     <StatCard 
                         title="이번 달 매출" 
                         value={`₩${dashboardData.monthlyRevenue.toLocaleString()}`} 
-                        icon={<FiCreditCard />} 
+                        icon={<FiCreditCard />}
+                        onClick={() => navigate("/admin/orders")}
                     />
                 </section>
 

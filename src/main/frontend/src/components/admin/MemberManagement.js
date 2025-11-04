@@ -35,6 +35,10 @@ function MemberManagement() {
     const [showCouponModal, setShowCouponModal] = useState(false);
     const [availableCoupons, setAvailableCoupons] = useState([]);
     const [selectedCouponToDistribute, setSelectedCouponToDistribute] = useState('');
+    
+    // 개별 회원 쿠폰 지급 관련 상태 (사이드바용)
+    const [showIndividualCouponModal, setShowIndividualCouponModal] = useState(false);
+    const [selectedCouponForIndividual, setSelectedCouponForIndividual] = useState('');
 
     // 회원 상세 정보 사이드 패널 관련 상태
     const [showSidePanel, setShowSidePanel] = useState(false);
@@ -67,8 +71,10 @@ function MemberManagement() {
     const [selectedMemberNameForEstimates, setSelectedMemberNameForEstimates] = useState('');
     
     // 회원 메모 관련 상태
-    const [memberMemo, setMemberMemo] = useState('');
-    const [isEditingMemo, setIsEditingMemo] = useState(false);
+    const [memberMemos, setMemberMemos] = useState([]);
+    const [newMemoContent, setNewMemoContent] = useState('');
+    const [isAddingMemo, setIsAddingMemo] = useState(false);
+    const [showMemoModal, setShowMemoModal] = useState(false);
 
     // 회원 추가/수정 모달 관련 상태
     const [showAddEditModal, setShowAddEditModal] = useState(false);
@@ -259,6 +265,41 @@ function MemberManagement() {
         }
     };
 
+    // 개별 회원 쿠폰 지급 함수 (사이드바용)
+    const handleDistributeCouponToIndividual = async () => {
+        if (!sidePanelMember) {
+            alert('회원 정보가 없습니다.');
+            return;
+        }
+        if (!selectedCouponForIndividual) {
+            alert('지급할 쿠폰을 선택해주세요.');
+            return;
+        }
+
+        try {
+            await axios.post(`/api/member-coupons/issue`, null, {
+                params: { memberId: sidePanelMember.id, couponId: selectedCouponForIndividual }
+            });
+            alert(`${sidePanelMember.name}님에게 쿠폰이 지급되었습니다.`);
+
+            // 쿠폰 지급 후 현재 열려있는 회원 상세정보 새로고침
+            try {
+                const couponRes = await axios.get(`/api/member-coupons/all?memberId=${sidePanelMember.id}`);
+                const updatedMember = {
+                    ...sidePanelMember,
+                    coupons: couponRes.data || []
+                };
+                setSidePanelMember(updatedMember);
+            } catch (e) {
+                // 새로고침 실패 시 무시
+            }
+        } catch (e) {
+            alert('쿠폰 지급 중 오류가 발생했습니다: ' + (e.response?.data || e.message));
+        } finally {
+            setShowIndividualCouponModal(false);
+        }
+    };
+
     const handleViewDetails = async (member) => {
         if (showSidePanel && sidePanelMember && sidePanelMember.id === member.id) {
             // 이미 열려있는 상세 정보 패널의 회원과 같은 회원을 다시 클릭하면 닫기
@@ -281,9 +322,6 @@ function MemberManagement() {
                 };
                 setSidePanelMember(memberWithDetails);
                 setShowSidePanel(true);
-                
-                // 메모 조회
-                await fetchMemberMemo(member.id);
             } catch (e) {
                 // 조회 실패 시 기본 회원 정보만 표시
                 const memberWithDefaults = {
@@ -294,9 +332,6 @@ function MemberManagement() {
                 };
                 setSidePanelMember(memberWithDefaults);
                 setShowSidePanel(true);
-                
-                // 메모 조회
-                await fetchMemberMemo(member.id);
             }
         }
     };
@@ -377,29 +412,69 @@ function MemberManagement() {
         }
     };
     
-    // 회원 메모 저장 함수 (새로 추가)
-    const handleSaveMemo = async () => {
-        if (!sidePanelMember) return;
+    // 회원 메모 목록 조회
+    const fetchMemberMemos = async (memberId) => {
         try {
-            await axios.put(`/api/admin/members/${sidePanelMember.id}/memo`, { memo: memberMemo });
-            setIsEditingMemo(false);
-            alert('메모가 저장되었습니다.');
+            const res = await axios.get(`/api/admin/members/${memberId}/memos`);
+            setMemberMemos(res.data || []);
         } catch (e) {
-            console.error('메모 저장 실패:', e);
-            alert('메모 저장에 실패했습니다.');
+            console.error('메모 목록 조회 실패:', e);
+            setMemberMemos([]);
         }
     };
     
-    // 회원 정보 조회 시 메모도 함께 조회
-    const fetchMemberMemo = async (memberId) => {
+    // 메모 모달 열기
+    const handleOpenMemoModal = async (member) => {
+        if (member) {
+            setSidePanelMember(member);
+            await fetchMemberMemos(member.id);
+        }
+        setShowMemoModal(true);
+    };
+    
+    // 메모 모달 닫기
+    const handleCloseMemoModal = () => {
+        setShowMemoModal(false);
+        setIsAddingMemo(false);
+        setNewMemoContent('');
+    };
+    
+    // 회원 메모 추가
+    const handleAddMemo = async () => {
+        if (!sidePanelMember || !newMemoContent.trim()) {
+            alert('메모 내용을 입력해주세요.');
+            return;
+        }
         try {
-            const res = await axios.get(`/api/admin/members/${memberId}/memo`);
-            setMemberMemo(res.data.memo || '');
+            const res = await axios.post(`/api/admin/members/${sidePanelMember.id}/memos`, {
+                content: newMemoContent
+            });
+            setMemberMemos([res.data, ...memberMemos]);
+            setNewMemoContent('');
+            setIsAddingMemo(false);
+            alert('메모가 추가되었습니다.');
         } catch (e) {
-            console.error('메모 조회 실패:', e);
-            setMemberMemo('');
+            console.error('메모 추가 실패:', e);
+            alert('메모 추가에 실패했습니다.');
         }
     };
+    
+    // 회원 메모 삭제
+    const handleDeleteMemo = async (memoId) => {
+        if (!window.confirm('정말로 이 메모를 삭제하시겠습니까?')) return;
+        if (!sidePanelMember) return;
+        try {
+            await axios.delete(`/api/admin/members/${sidePanelMember.id}/memos/${memoId}`);
+            setMemberMemos(memberMemos.filter(memo => memo.memoId !== memoId));
+            alert('메모가 삭제되었습니다.');
+        } catch (e) {
+            console.error('메모 삭제 실패:', e);
+            alert('메모 삭제에 실패했습니다.');
+        }
+    };
+    
+    // 기존 메모 관련 함수들 (하위 호환성)
+    // 이 함수들은 더 이상 사용되지 않지만, 필요시를 위해 남겨둠
 
     // 회원 추가 모달 열기
     const handleAddMemberClick = () => {
@@ -592,8 +667,7 @@ function MemberManagement() {
                             <th>이메일</th>
                             <th>전화번호</th>
                             {/* 등급 컬럼 제거 */}
-                            <th>주문 내역</th>
-                            <th>문의 내역</th>
+                            <th>관리</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -621,21 +695,10 @@ function MemberManagement() {
                                         className={memberStyles.viewOrderHistoryBtn}
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            handleViewOrderHistory(member);
+                                            handleViewDetails(member);
                                         }}
                                     >
-                                        주문 내역 보기
-                                    </button>
-                                </td>
-                                <td onClick={(e) => e.stopPropagation()}>
-                                    <button
-                                        className={memberStyles.viewInquiriesBtn}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleViewInquiries(member);
-                                        }}
-                                    >
-                                        문의 내역 보기
+                                        상세보기
                                     </button>
                                 </td>
                             </tr>
@@ -1047,6 +1110,141 @@ function MemberManagement() {
                             </div>
                         </div>
                     )}
+
+                    {/* 개별 회원 쿠폰 지급 모달 (사이드바용) */}
+                    {showIndividualCouponModal && (
+                        <div className={memberStyles.modalOverlay} onClick={() => setShowIndividualCouponModal(false)} style={{ zIndex: 11000 }}>
+                            <div className={memberStyles.modalContent} onClick={(e) => e.stopPropagation()} style={{ zIndex: 11001 }}>
+                                <h3>{sidePanelMember ? `${sidePanelMember.name}님에게 쿠폰 지급` : '쿠폰 지급'}</h3>
+                                <select
+                                    value={selectedCouponForIndividual}
+                                    onChange={(e) => setSelectedCouponForIndividual(e.target.value)}
+                                    className={memberStyles.couponSelect}
+                                >
+                                    {availableCoupons.map(coupon => (
+                                        <option key={coupon.id} value={coupon.id}>
+                                            {coupon.name}
+                                        </option>
+                                    ))}
+                                </select>
+                                <div className={memberStyles.modalActions}>
+                                    <button onClick={handleDistributeCouponToIndividual} className={memberStyles.modalPrimaryBtn}>지급</button>
+                                    <button onClick={() => setShowIndividualCouponModal(false)} className={memberStyles.modalSecondaryBtn}>취소</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* 메모 모달 */}
+                    {showMemoModal && (
+                        <div className={memberStyles.modalOverlay} onClick={handleCloseMemoModal} style={{ zIndex: 11000 }}>
+                            <div className={memberStyles.modalContent} onClick={(e) => e.stopPropagation()} style={{ zIndex: 11001, maxWidth: '800px', width: '90%' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                                    <h3>{sidePanelMember ? `${sidePanelMember.name}님의 관리자 메모` : '관리자 메모'}</h3>
+                                    <button onClick={handleCloseMemoModal} style={{ background: 'none', border: 'none', fontSize: '1.5em', cursor: 'pointer', color: '#666' }}>
+                                        <FiX />
+                                    </button>
+                                </div>
+                                
+                                {/* 메모 작성 버튼 */}
+                                {!isAddingMemo && (
+                                    <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+                                        <button 
+                                            onClick={() => setIsAddingMemo(true)} 
+                                            style={{ padding: '8px 16px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                        >
+                                            + 메모 작성
+                                        </button>
+                                    </div>
+                                )}
+                                
+                                {/* 메모 작성 폼 */}
+                                {isAddingMemo && (
+                                    <div style={{ width: '100%', marginBottom: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f9f9f9' }}>
+                                        <textarea
+                                            value={newMemoContent}
+                                            onChange={(e) => setNewMemoContent(e.target.value)}
+                                            style={{ width: '100%', minHeight: '120px', padding: '10px', border: '1px solid #ccc', borderRadius: '4px', resize: 'vertical', fontSize: '0.95em' }}
+                                            placeholder="메모 내용을 입력하세요"
+                                        />
+                                        <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                                            <button 
+                                                onClick={handleAddMemo}
+                                                style={{ padding: '8px 16px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                            >
+                                                작성
+                                            </button>
+                                            <button 
+                                                onClick={() => {
+                                                    setIsAddingMemo(false);
+                                                    setNewMemoContent('');
+                                                }}
+                                                style={{ padding: '8px 16px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                            >
+                                                취소
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* 메모 리스트 */}
+                                <div style={{ maxHeight: '500px', overflowY: 'auto', border: '1px solid #e0e0e0', borderRadius: '4px', padding: '10px' }}>
+                                    {memberMemos && memberMemos.length > 0 ? (
+                                        memberMemos.map((memo) => (
+                                            <div key={memo.memoId} style={{ 
+                                                marginBottom: '15px', 
+                                                padding: '15px', 
+                                                border: '1px solid #e0e0e0', 
+                                                borderRadius: '6px',
+                                                backgroundColor: '#fff',
+                                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
+                                            }}>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+                                                    <div style={{ flex: 1 }}>
+                                                        <div style={{ fontWeight: '600', color: '#333', marginBottom: '4px', fontSize: '1em' }}>
+                                                            {memo.adminName || memo.adminUsername}
+                                                        </div>
+                                                        <div style={{ fontSize: '0.85em', color: '#666' }}>
+                                                            {new Date(memo.createdAt).toLocaleString('ko-KR')}
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleDeleteMemo(memo.memoId)}
+                                                        style={{ 
+                                                            padding: '6px 12px', 
+                                                            backgroundColor: '#dc3545', 
+                                                            color: 'white', 
+                                                            border: 'none', 
+                                                            borderRadius: '4px', 
+                                                            cursor: 'pointer',
+                                                            fontSize: '0.85em'
+                                                        }}
+                                                    >
+                                                        삭제
+                                                    </button>
+                                                </div>
+                                                <div style={{ 
+                                                    whiteSpace: 'pre-wrap', 
+                                                    wordBreak: 'break-word', 
+                                                    color: '#444',
+                                                    lineHeight: '1.6',
+                                                    paddingTop: '10px',
+                                                    borderTop: '1px solid #f0f0f0',
+                                                    fontSize: '0.95em'
+                                                }}>
+                                                    {memo.content}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
+                                            작성된 메모가 없습니다.
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </>
         );
@@ -1139,6 +1337,15 @@ function MemberManagement() {
                                 <button className={memberStyles.editMemberBtn} onClick={() => handleEditMemberClick(sidePanelMember)}>회원 수정</button>
                                 <button className={memberStyles.deleteMemberBtn} onClick={handleDeleteMember}>회원 탈퇴</button>
                                 <button
+                                    className={memberStyles.viewCartBtn}
+                                    onClick={() => handleOpenMemoModal(sidePanelMember)}
+                                    style={{ backgroundColor: '#6f42c1', color: 'white' }}
+                                    onMouseOver={(e) => e.target.style.backgroundColor = '#5a32a3'}
+                                    onMouseOut={(e) => e.target.style.backgroundColor = '#6f42c1'}
+                                >
+                                    메모
+                                </button>
+                                <button
                                     className={memberStyles.viewWishlistBtn}
                                     onClick={() => handleViewWishlist(sidePanelMember)}
                                 >
@@ -1162,50 +1369,29 @@ function MemberManagement() {
                                 >
                                     작성한 견적
                                 </button>
-                            </div>
-                            
-                            {/* 회원 메모 섹션 */}
-                            <div className={memberStyles.sidePanelItem}>
-                                <strong>관리자 메모:</strong>
-                                {!isEditingMemo ? (
-                                    <>
-                                        <div style={{ marginTop: '8px', whiteSpace: 'pre-wrap', minHeight: '50px', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}>
-                                            {memberMemo || '(메모 없음)'}
-                                        </div>
-                                        <button 
-                                            onClick={() => setIsEditingMemo(true)} 
-                                            style={{ marginTop: '8px', padding: '6px 12px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                        >
-                                            수정
-                                        </button>
-                                    </>
-                                ) : (
-                                    <>
-                                        <textarea
-                                            value={memberMemo}
-                                            onChange={(e) => setMemberMemo(e.target.value)}
-                                            style={{ width: '100%', minHeight: '100px', marginTop: '8px', padding: '8px', border: '1px solid #ddd', borderRadius: '4px' }}
-                                            placeholder="메모를 입력하세요"
-                                        />
-                                        <div style={{ marginTop: '8px' }}>
-                                            <button 
-                                                onClick={handleSaveMemo}
-                                                style={{ marginRight: '8px', padding: '6px 12px', backgroundColor: '#4CAF50', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                            >
-                                                저장
-                                            </button>
-                                            <button 
-                                                onClick={() => {
-                                                    setIsEditingMemo(false);
-                                                    setMemberMemo(sidePanelMember?.adminMemo || '');
-                                                }}
-                                                style={{ padding: '6px 12px', backgroundColor: '#ccc', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                            >
-                                                취소
-                                            </button>
-                                        </div>
-                                    </>
-                                )}
+                                <button
+                                    className={memberStyles.viewCartBtn}
+                                    onClick={() => handleViewOrderHistory(sidePanelMember)}
+                                >
+                                    주문 내역 보기
+                                </button>
+                                <button
+                                    className={memberStyles.viewCartBtn}
+                                    onClick={() => handleViewInquiries(sidePanelMember)}
+                                >
+                                    문의 내역 보기
+                                </button>
+                                <button
+                                    className={memberStyles.distributeCouponBtn}
+                                    onClick={() => {
+                                        if (availableCoupons.length > 0) {
+                                            setSelectedCouponForIndividual(availableCoupons[0].id);
+                                        }
+                                        setShowIndividualCouponModal(true);
+                                    }}
+                                >
+                                    <FiGift /> 쿠폰 지급
+                                </button>
                             </div>
                         </>
                     ) : (

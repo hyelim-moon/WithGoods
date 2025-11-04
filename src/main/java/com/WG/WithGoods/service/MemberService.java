@@ -3,8 +3,11 @@ package com.WG.WithGoods.service;
 import com.WG.WithGoods.dto.MemberDTO;
 import com.WG.WithGoods.dto.SignupRequest;
 import com.WG.WithGoods.entity.Member;
+import com.WG.WithGoods.entity.MemberMemo;
 import com.WG.WithGoods.repository.MemberRepository;
+import com.WG.WithGoods.repository.MemberMemoRepository;
 import com.WG.WithGoods.repository.OrderRepository;
+import com.WG.WithGoods.repository.OrderDetailRepository;
 import com.WG.WithGoods.repository.ProductRepository;
 import com.WG.WithGoods.repository.WishlistRepository;
 import com.WG.WithGoods.repository.CartRepository;
@@ -29,7 +32,9 @@ import java.util.stream.Collectors;
 public class MemberService {
 
     private final MemberRepository memberRepository;
+    private final MemberMemoRepository memberMemoRepository;
     private final OrderRepository orderRepository;
+    private final OrderDetailRepository orderDetailRepository;
     private final ProductRepository productRepository;
     private final WishlistRepository wishlistRepository;
     private final CartRepository cartRepository;
@@ -197,13 +202,35 @@ public class MemberService {
         }
         stats.put("monthlyOrderStats", monthlyOrderStats);
         
-        // 상품별 매출 (간단한 예시 데이터)
+        // 상품별 매출 (실제 데이터)
+        List<com.WG.WithGoods.entity.OrderDetail> allOrderDetails = orderDetailRepository.findAll();
+        Map<String, Integer> categoryRevenue = new HashMap<>();
+        
+        for (com.WG.WithGoods.entity.OrderDetail detail : allOrderDetails) {
+            if (detail.getProduct() != null && detail.getProduct().getCategory() != null) {
+                String category = detail.getProduct().getCategory();
+                int revenue = detail.getFinalAmount() != null ? detail.getFinalAmount() : 0;
+                categoryRevenue.put(category, categoryRevenue.getOrDefault(category, 0) + revenue);
+            }
+        }
+        
+        // 카테고리별 매출을 리스트로 변환하고 매출 순으로 정렬
         List<Map<String, Object>> productStats = new ArrayList<>();
-        productStats.add(Map.of("name", "인형", "value", 50));
-        productStats.add(Map.of("name", "문구", "value", 30));
-        productStats.add(Map.of("name", "패션", "value", 20));
-        productStats.add(Map.of("name", "키링", "value", 13));
-        productStats.add(Map.of("name", "가전", "value", 10));
+        categoryRevenue.entrySet().stream()
+                .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+                .limit(5) // 상위 5개만
+                .forEach(entry -> {
+                    Map<String, Object> stat = new HashMap<>();
+                    stat.put("name", entry.getKey());
+                    stat.put("value", entry.getValue());
+                    productStats.add(stat);
+                });
+        
+        // 매출이 없거나 카테고리가 없는 경우 기본값 표시
+        if (productStats.isEmpty()) {
+            productStats.add(Map.of("name", "기타", "value", 0));
+        }
+        
         stats.put("productStats", productStats);
         
         // 방문자 수 (임시 데이터)
@@ -328,14 +355,66 @@ public class MemberService {
                 .collect(Collectors.toList());
     }
     
-    // 회원의 메모 조회
+    // 회원의 메모 목록 조회 (게시판 형태)
+    public List<Map<String, Object>> getMemberMemos(Integer memberId) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+        
+        List<MemberMemo> memos = memberMemoRepository.findByMember_MemberIdOrderByCreatedAtDesc(memberId);
+        
+        return memos.stream()
+                .map(memo -> {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("memoId", memo.getMemoId());
+                    item.put("content", memo.getContent());
+                    item.put("adminUsername", memo.getAdminUsername());
+                    item.put("adminName", memo.getAdminName());
+                    item.put("createdAt", memo.getCreatedAt());
+                    return item;
+                })
+                .collect(Collectors.toList());
+    }
+    
+    // 회원의 메모 추가 (게시판 형태)
+    @Transactional
+    public Map<String, Object> addMemberMemo(Integer memberId, String content, String adminUsername, String adminName) {
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+        
+        MemberMemo memo = MemberMemo.builder()
+                .member(member)
+                .content(content)
+                .adminUsername(adminUsername)
+                .adminName(adminName)
+                .build();
+        
+        MemberMemo savedMemo = memberMemoRepository.save(memo);
+        
+        Map<String, Object> result = new HashMap<>();
+        result.put("memoId", savedMemo.getMemoId());
+        result.put("content", savedMemo.getContent());
+        result.put("adminUsername", savedMemo.getAdminUsername());
+        result.put("adminName", savedMemo.getAdminName());
+        result.put("createdAt", savedMemo.getCreatedAt());
+        
+        return result;
+    }
+    
+    // 회원의 메모 삭제
+    @Transactional
+    public void deleteMemberMemo(Integer memoId) {
+        memberMemoRepository.deleteById(memoId);
+    }
+    
+    // 기존 메모 메서드들 (하위 호환성을 위해 유지)
+    @Deprecated
     public String getMemberMemo(Integer memberId) {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("Member not found"));
         return member.getAdminMemo();
     }
     
-    // 회원의 메모 업데이트
+    @Deprecated
     @Transactional
     public void updateMemberMemo(Integer memberId, String memo) {
         Member member = memberRepository.findById(memberId)

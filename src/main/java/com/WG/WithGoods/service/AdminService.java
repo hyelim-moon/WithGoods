@@ -72,4 +72,9 @@ public class AdminService {
     public void delete(Integer id) {
         adminRepository.deleteById(id);
     }
+    
+    public AdminDTO findByUsername(String username) {
+        Optional<Admin> admin = adminRepository.findByUsername(username);
+        return admin.map(this::convertToDTO).orElse(null);
+    }
 }
