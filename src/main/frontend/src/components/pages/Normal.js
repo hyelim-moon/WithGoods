@@ -1,0 +1,168 @@
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+import styles from '../../assets/styles/pages/Anniversary.module.css'; // 스타일은 기념일 페이지와 동일하게 사용
+
+const API_BASE_URL = 'http://localhost:8080';
+
+function Normal() {
+    const navigate = useNavigate();
+    const categories = ['인형', '문구', '패션', '키링', '가전'];
+    const [selectedCategories, setSelectedCategories] = useState([]);
+    const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const [sortOrder, setSortOrder] = useState(null);
+    const [products, setProducts] = useState([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        const fetchProducts = async () => {
+            try {
+                setIsLoading(true);
+                const response = await axios.get(`${API_BASE_URL}/products/normal`, {
+                    withCredentials: true
+                });
+                setProducts(Array.isArray(response.data) ? response.data : []);
+                setError(null);
+            } catch (err) {
+                setError('일반 상품을 불러오는데 실패했습니다.');
+                console.error('상품 로딩 에러:', err);
+                setProducts([]);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchProducts();
+    }, []);
+
+    const getImageUrl = (url) => {
+        if (url && !url.startsWith('http')) {
+            return `${API_BASE_URL}${url}`;
+        }
+        return url || 'https://via.placeholder.com/150';
+    };
+
+    const handleCategoryChange = (e) => {
+        const { value, checked } = e.target;
+        setSelectedCategories((prev) =>
+            checked ? [...prev, value] : prev.filter((cat) => cat !== value)
+        );
+    };
+
+    const filteredGoods = Array.isArray(products) ? products.filter(
+        (product) =>
+            selectedCategories.length === 0 || selectedCategories.includes(product.category)
+    ) : [];
+
+    const parsePrice = (price) => typeof price === 'number' ? price : 0;
+
+    const getSortedGoods = () => {
+        const sorted = [...filteredGoods];
+        switch (sortOrder) {
+            case 'low':
+                sorted.sort((a, b) => parsePrice(a.price) - parsePrice(b.price));
+                break;
+            case 'high':
+                sorted.sort((a, b) => parsePrice(b.price) - parsePrice(a.price));
+                break;
+            case 'rating':
+                sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                break;
+            case 'reviewCount':
+                sorted.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
+                break;
+            default:
+                break;
+        }
+        return sorted;
+    };
+
+    const renderStars = (rating) => {
+        const stars = [];
+        const fullStars = Math.floor(rating || 0);
+        for (let i = 0; i < 5; i++) {
+            stars.push(<span key={`star-${i}`} style={{ color: i < fullStars ? '#FFD700' : '#D3D3D3' }}>★</span>);
+        }
+        return stars;
+    };
+
+    const handleProductClick = (productId) => {
+        navigate(`/product/${productId}`);
+    };
+
+    if (isLoading) {
+        return <div className={styles.loading}>일반 상품을 불러오는 중...</div>;
+    }
+
+    if (error) {
+        return <div className={styles.error}>{error}</div>;
+    }
+
+    return (
+        <div className={styles.AnniversaryGoodsContainer}> {/* 스타일 클래스명 재사용 */}
+            <div className={styles.titleRow}>
+                <h2 className={styles.pageTitle}>일반 굿즈</h2>
+                <button
+                    className={styles.categoryToggle}
+                    onClick={() => setIsPanelOpen((prev) => !prev)}
+                >
+                    상품 유형 {isPanelOpen ? '❯' : '❮'}
+                </button>
+                <div className={`${styles.sidePanel} ${isPanelOpen ? styles.open : styles.closed}`}>
+                    {categories.map((category, index) => {
+                        const delay = isPanelOpen ? `${index * 100}ms` : `${(categories.length - index) * 100}ms`;
+                        return (
+                            <label
+                                key={category}
+                                className={`${styles.checkboxItem} ${isPanelOpen ? styles.visible : styles.hidden}`}
+                                style={{ transitionDelay: delay }}
+                            >
+                                <input
+                                    type="checkbox"
+                                    value={category}
+                                    checked={selectedCategories.includes(category)}
+                                    onChange={handleCategoryChange}
+                                />
+                                {category}
+                            </label>
+                        );
+                    })}
+                </div>
+                <div className={styles.sortOptions}>
+                    <span className={styles.sortOption} onClick={() => setSortOrder('low')}>낮은가격순</span>
+                    <span className={styles.sortOption} onClick={() => setSortOrder('high')}>높은가격순</span>
+                    <span className={styles.sortOption} onClick={() => setSortOrder('reviewCount')}>리뷰 많은 순</span>
+                    <span className={styles.sortOption} onClick={() => setSortOrder('rating')}>평점높은순</span>
+                </div>
+            </div>
+            <div className={styles.productList}>
+                {getSortedGoods().map((product) => (
+                    <div 
+                        key={product.productId} 
+                        className={styles.productCard}
+                        onClick={() => handleProductClick(product.productId)}
+                    >
+                        <div className={styles.productContent}>
+                            <img 
+                                src={getImageUrl(product.imageUrl)} 
+                                alt={product.name} 
+                                className={styles.productImage}
+                            />
+                        </div>
+                        <div className={styles.productInfo}>
+                            <div className={styles.rating}>
+                                {renderStars(product.rating)}
+                                <span className={styles.ratingNumber}>({(product.rating || 0).toFixed(1)})</span>
+                            </div>
+                            <h3 className={styles.productName}>{product.name}</h3>
+                            <p className={styles.productPrice}>{product.price?.toLocaleString()}원</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+export default Normal;

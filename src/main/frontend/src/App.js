@@ -15,6 +15,7 @@ import Forgot from './components/auth/Forgot';
 import Anniversary from './components/pages/Anniversary';
 import Customization from './components/pages/Customization';
 import Limited_Edition from './components/pages/Limited_Edition';
+import Normal from './components/pages/Normal'; // Normal 컴포넌트 import
 import Search from './components/pages/Search';
 import InquiryPage from "./components/inquiry/InquiryPage";
 import InquiryForm from "./components/inquiry/InquiryForm";
@@ -111,6 +112,7 @@ function AppContent() {
                 <Route path="/anniversary" element={<Anniversary />} />
                 <Route path="/customization" element={<Customization />} />
                 <Route path="/limited_edition" element={<Limited_Edition />} />
+                <Route path="/normal" element={<Normal />} /> {/* 일반 상품 페이지 라우트 추가 */}
 
                 <Route path="/inquiry" element={<InquiryPage />} />
                 <Route path="/inquiry/:id" element={<InquiryDetail />} />
