@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import styles from "../../assets/styles/admin/AdminDashboard.module.css";
 import productStyles from "../../assets/styles/admin/ProductManagement.module.css";
@@ -37,6 +37,23 @@ const dummyProducts = [
         description: "원하는 사진을 직접 선택하여 만드는 머그컵입니다.",
         imageUrl:
             "https://images.unsplash.com/photo-1520975922284-9d06aeb586d2?q=80&w=400&auto=format&fit=crop",
+        productType: "normal",
+        startDate: "2023-01-10",
+        endDate: null,
+        hasDiscount: true,
+        discountRate: 10,
+        rating: 4.2,
+        reviewCount: 18,
+        options: [
+            { optionName: "색상", optionValue: "화이트", price: 0 },
+            { optionName: "색상", optionValue: "블랙", price: 0 },
+            { optionName: "사이즈", optionValue: "대", price: 1000 },
+            { optionName: "사이즈", optionValue: "중", price: 0 },
+        ],
+        additionalImagesJson: JSON.stringify([
+            "https://picsum.photos/seed/1/400",
+            "https://picsum.photos/seed/2/400",
+        ]),
     },
     {
         id: "PROD-002",
@@ -49,6 +66,19 @@ const dummyProducts = [
         description: "원하는 사진을 직접 선택하여 만드는 아트 프인트입니다.",
         imageUrl:
             "https://images.unsplash.com/photo-1526318472351-c75fcf070305?q=80&w=400&auto=format&fit=crop",
+        productType: "limited",
+        startDate: "2023-02-01",
+        endDate: "2023-03-01",
+        hasDiscount: false,
+        discountRate: 0,
+        rating: 4.8,
+        reviewCount: 6,
+        options: [
+            { optionName: "프레임", optionValue: "없음", price: 0 },
+            { optionName: "프레임", optionValue: "메이플", price: 12000 },
+            { optionName: "프레임", optionValue: "월넛", price: 15000 },
+        ],
+        additionalImagesJson: "[]",
     },
     {
         id: "PROD-003",
@@ -61,6 +91,7 @@ const dummyProducts = [
         description: "케이크에 꽂아 기념을 축하할 수 있는 토퍼입니다.",
         imageUrl:
             "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?q=80&w=400&auto=format&fit=crop",
+        productType: "anniversary",
     },
     {
         id: "PROD-004",
@@ -74,6 +105,7 @@ const dummyProducts = [
             "원하는 옵션을 선택하여 자신이 직접 팔찌를 만들 수 있는 키트입니다.",
         imageUrl:
             "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=400&auto=format&fit=crop",
+        productType: "normal",
     },
     {
         id: "PROD-005",
@@ -86,6 +118,9 @@ const dummyProducts = [
         description: "원하는 사진을 직접 선택하여 만드는 폰케이스입니다.",
         imageUrl:
             "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=400&auto=format&fit=crop",
+        productType: "custom",
+        hasDiscount: true,
+        discountRate: 5,
     },
     {
         id: "PROD-006",
@@ -96,19 +131,22 @@ const dummyProducts = [
         status: "OUT_OF_STOCK",
         createdAt: "2023-06-10T13:00:00",
         description: "원하는 옵션을 선택한 인형입니다.",
+        imageUrl: "",
+        productType: "normal",
     },
 ];
 
 function ProductManagement() {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
     // 필터/검색
-    const [filter, setFilter] = useState("ALL"); // "ALL" | "IN_STOCK" | "LOW_STOCK" | "OUT_OF_STOCK"
-    const [searchCondition, setSearchCondition] = useState("productId"); // "productId" | "productname" | "category"
+    const [filter, setFilter] = useState("ALL");
+    const [searchCondition, setSearchCondition] = useState("productId");
     const [searchTerm, setSearchTerm] = useState("");
 
     const [stats, setStats] = useState({
@@ -126,9 +164,9 @@ function ProductManagement() {
         const fetched = dummyProducts.map((p) => ({
             ...p,
             status:
-                p.stockQuantity > LOW_STOCK_THRESHOLD
+                (p.stockQuantity ?? p.stock ?? 0) > LOW_STOCK_THRESHOLD
                     ? "IN_STOCK"
-                    : p.stockQuantity > 0
+                    : (p.stockQuantity ?? p.stock ?? 0) > 0
                         ? "LOW_STOCK"
                         : "OUT_OF_STOCK",
         }));
@@ -143,18 +181,73 @@ function ProductManagement() {
         setLoading(false);
     }, []);
 
-    // 행 클릭 → 상세 패널 열기
-    const openDetail = useCallback((p) => {
-        setSelectedProduct(p);
-        setActiveDetailTab("analytics");
+    // URL 쿼리 제거하며 닫기
+    const closeDetail = useCallback(() => {
+        setSelectedProduct(null);
+        const params = new URLSearchParams(location.search);
+        params.delete("open");
+        params.delete("tab");
+        navigate(
+            { pathname: location.pathname, search: params.toString() },
+            { replace: true }
+        );
+    }, [location, navigate]);
 
-        const onKey = (e) => {
-            if (e.key === "Escape") setSelectedProduct(null);
-        };
-        window.addEventListener("keydown", onKey, { once: true });
-    }, []);
+    // 탭 변경 시 URL 동기화
+    const handleTabChange = useCallback(
+        (nextTab) => {
+            setActiveDetailTab(nextTab);
+            const params = new URLSearchParams(location.search);
+            if (selectedProduct) {
+                params.set("open", selectedProduct.id);
+                params.set("tab", nextTab);
+            } else {
+                params.delete("open");
+                params.delete("tab");
+            }
+            navigate(
+                { pathname: location.pathname, search: params.toString() },
+                { replace: true }
+            );
+        },
+        [location, navigate, selectedProduct]
+    );
 
-    const closeDetail = () => setSelectedProduct(null);
+    // 행 클릭 → 상세 패널 열고 URL에 ?open & ?tab 반영
+    const openDetail = useCallback(
+        (p, nextTab = "analytics") => {
+            setSelectedProduct(p);
+            setActiveDetailTab(nextTab);
+
+            const params = new URLSearchParams(location.search);
+            params.set("open", p.id);
+            params.set("tab", nextTab);
+            navigate(
+                { pathname: location.pathname, search: params.toString() },
+                { replace: true }
+            );
+
+            const onKey = (e) => {
+                if (e.key === "Escape") closeDetail();
+            };
+            window.addEventListener("keydown", onKey, { once: true });
+        },
+        [navigate, location, closeDetail]
+    );
+
+    // 진입 시 쿼리 읽어 자동으로 드로어 열기
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const openId = params.get("open");
+        const tab = params.get("tab") || "analytics";
+        if (!openId || !products.length) return;
+
+        const target = products.find((p) => String(p.id) === String(openId));
+        if (target) {
+            setSelectedProduct(target);
+            setActiveDetailTab(tab);
+        }
+    }, [location.search, products]);
 
     const getStatusLabel = (status) => {
         switch (status) {
@@ -185,14 +278,18 @@ function ProductManagement() {
     }, [searchCondition]);
 
     const filteredProducts = useMemo(() => {
-        const base = filter === "ALL" ? products : products.filter((p) => p.status === filter);
+        const base =
+            filter === "ALL" ? products : products.filter((p) => p.status === filter);
         const term = searchTerm.trim().toLowerCase();
         if (!term) return base;
 
         return base.filter((p) => {
-            if (searchCondition === "productId") return String(p.id).toLowerCase().includes(term);
-            if (searchCondition === "productname") return String(p.name).toLowerCase().includes(term);
-            if (searchCondition === "category") return String(p.category).toLowerCase().includes(term);
+            if (searchCondition === "productId")
+                return String(p.id).toLowerCase().includes(term);
+            if (searchCondition === "productname")
+                return String(p.name).toLowerCase().includes(term);
+            if (searchCondition === "category")
+                return String(p.category).toLowerCase().includes(term);
             return true;
         });
     }, [products, filter, searchTerm, searchCondition]);
@@ -202,6 +299,38 @@ function ProductManagement() {
         p.thumbnailUrl ||
         (p.image && (p.image.url || p.image.small || p.image.thumb)) ||
         null;
+
+    // ===== 유틸 =====
+    const fmtDate = (v) => {
+        if (!v) return "-";
+        if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v; // LocalDate 그대로
+        const d = new Date(v);
+        return isNaN(d.getTime()) ? String(v) : d.toLocaleDateString();
+    };
+    const fmtPeriod = (s, e) => (s || e ? `${fmtDate(s)} ~ ${fmtDate(e)}` : "-");
+
+    const safeParseJSON = (raw) => {
+        try {
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            return parsed;
+        } catch {
+            return null;
+        }
+    };
+
+    const groupOptionsByName = (options) => {
+        if (!Array.isArray(options) || options.length === 0) return {};
+        const map = {};
+        options.forEach((o) => {
+            const name = String(o?.optionName ?? "옵션").trim();
+            const value = String(o?.optionValue ?? "").trim();
+            const price = Number(o?.price ?? 0);
+            if (!map[name]) map[name] = [];
+            map[name].push({ value, price });
+        });
+        return map;
+    };
 
     // 상세 지표 (데모)
     const makeDemoMetrics = (p) => {
@@ -232,6 +361,26 @@ function ProductManagement() {
         });
     };
 
+    // productType 배지/텍스트
+    const getTypeTextUpper = (p) => {
+        const raw =
+            (p.productType && String(p.productType).toLowerCase()) ||
+            (p.role && String(p.role).toLowerCase()) ||
+            "normal";
+        switch (raw) {
+            case "normal":
+                return "NORMAL";
+            case "custom":
+                return "CUSTOM";
+            case "limited":
+                return "LIMITED";
+            case "anniversary":
+                return "ANNIVERSARY";
+            default:
+                return String(raw).toUpperCase();
+        }
+    };
+
     const renderDetailPanel = () => {
         if (!selectedProduct) return null;
 
@@ -239,6 +388,30 @@ function ProductManagement() {
         const thumb = getThumbUrl(p);
         const m = makeDemoMetrics(p);
         const series = makeMonthlySeries(p);
+
+        // 재고
+        const stockNum = Number(p.stockQuantity ?? p.stock ?? 0);
+
+        // 할인/최종가 계산
+        const hasDiscount = Boolean(p?.hasDiscount) && Number(p?.discountRate) > 0;
+        const discountRate = Math.max(0, Number(p?.discountRate || 0));
+        const finalPrice = hasDiscount
+            ? Math.round((Number(p.price) * (100 - discountRate)) / 100)
+            : Number(p.price);
+
+        // 옵션 그룹핑
+        const optionGroups = groupOptionsByName(p?.options);
+        const hasOptions = Object.keys(optionGroups).length > 0;
+
+        // 추가 이미지 수
+        const additionalImages = safeParseJSON(p?.additionalImagesJson);
+        const additionalCount = Array.isArray(additionalImages)
+            ? additionalImages.length
+            : 0;
+
+        const typeTextUpper = getTypeTextUpper(p);
+        const roleClass =
+            productStyles[`role_${typeTextUpper}`] || productStyles.role_DEFAULT;
 
         return (
             <>
@@ -288,30 +461,113 @@ function ProductManagement() {
                                 <dl>
                                     <div>
                                         <dt>카테고리</dt>
-                                        <dd>{p.category}</dd>
+                                        <dd>{p.category || "-"}</dd>
                                     </div>
+
                                     <div>
                                         <dt>판매가</dt>
-                                        <dd>{p.price.toLocaleString()}원</dd>
+                                        <dd>
+                                            <div className={productStyles.priceBox}>
+                                                {hasDiscount && (
+                                                    <span className={productStyles.discountBadge}>
+                            -{discountRate}%
+                          </span>
+                                                )}
+                                                {hasDiscount ? (
+                                                    <>
+                            <span className={productStyles.originalPrice}>
+                              {Number(p.price).toLocaleString()}원
+                            </span>
+                                                        <span className={productStyles.salePrice}>
+                              {finalPrice.toLocaleString()}원
+                            </span>
+                                                    </>
+                                                ) : (
+                                                    <span className={productStyles.salePrice}>
+                            {Number(p.price).toLocaleString()}원
+                          </span>
+                                                )}
+                                            </div>
+                                        </dd>
                                     </div>
+
                                     <div>
                                         <dt>현재재고</dt>
-                                        <dd>{p.stockQuantity}개</dd>
+                                        <dd>
+                                            {stockNum}개
+                                            {stockNum <= LOW_STOCK_THRESHOLD && stockNum > 0 && (
+                                                <span className={productStyles.stockWarn}> (재고 부족)</span>
+                                            )}
+                                        </dd>
                                     </div>
+
                                     <div>
                                         <dt>등록일</dt>
-                                        <dd>{new Date(p.createdAt).toLocaleDateString()}</dd>
+                                        <dd>{fmtDate(p.createdAt)}</dd>
                                     </div>
+
+                                    <div>
+                                        <dt>판매기간</dt>
+                                        <dd>{fmtPeriod(p?.startDate, p?.endDate)}</dd>
+                                    </div>
+
+                                    <div>
+                                        <dt>상품 유형</dt>
+                                        <dd>
+                      <span className={`${productStyles.roleBadge} ${roleClass}`}>
+                        {typeTextUpper}
+                      </span>
+                                        </dd>
+                                    </div>
+
+                                    <div>
+                                        <dt>평점</dt>
+                                        <dd>{p?.rating ? `${Number(p.rating).toFixed(1)}/5` : "-"}</dd>
+                                    </div>
+
+                                    <div>
+                                        <dt>리뷰</dt>
+                                        <dd>{p?.reviewCount ?? 0}개</dd>
+                                    </div>
+
+                                    <div>
+                                        <dt>추가 이미지</dt>
+                                        <dd>{additionalCount}장</dd>
+                                    </div>
+
                                     <div className={productStyles.colSpan2}>
                                         <dt>상품 설명</dt>
-                                        <dd>{p.description}</dd>
+                                        <dd>{p.description || "-"}</dd>
                                     </div>
                                 </dl>
+
+                                {/* 옵션 섹션 */}
+                                <div className={productStyles.optionSection}>
+                                    <div className={productStyles.sectionTitle}>옵션</div>
+                                    {hasOptions ? (
+                                        Object.entries(optionGroups).map(([name, items]) => (
+                                            <div className={productStyles.optionGroup} key={name}>
+                                                <div className={productStyles.optionName}>{name}</div>
+                                                <div className={productStyles.chips}>
+                                                    {items.map((it, idx) => (
+                                                        <span className={productStyles.chip} key={`${name}-${idx}`}>
+                              {it.value}
+                                                            {Number(it.price) > 0 &&
+                                                                ` (+${Number(it.price).toLocaleString()}원)`}
+                            </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className={productStyles.muted}>등록된 옵션이 없습니다.</div>
+                                    )}
+                                </div>
 
                                 <div className={productStyles.detailActions}>
                                     <button
                                         className={productStyles.secondaryBtn}
-                                        onClick={() => navigate(`/admin/products/${p.id}`)}
+                                        onClick={() => navigate(`/product/edit/${p.id}`)}
                                     >
                                         <FiEdit /> 수정
                                     </button>
@@ -328,7 +584,7 @@ function ProductManagement() {
                                 className={`${productStyles.tabBtn} ${
                                     activeDetailTab === "analytics" ? productStyles.activeTab : ""
                                 }`}
-                                onClick={() => setActiveDetailTab("analytics")}
+                                onClick={() => handleTabChange("analytics")}
                             >
                                 판매 분석
                             </button>
@@ -336,7 +592,7 @@ function ProductManagement() {
                                 className={`${productStyles.tabBtn} ${
                                     activeDetailTab === "stock" ? productStyles.activeTab : ""
                                 }`}
-                                onClick={() => setActiveDetailTab("stock")}
+                                onClick={() => handleTabChange("stock")}
                             >
                                 재고 이력
                             </button>
@@ -344,7 +600,7 @@ function ProductManagement() {
                                 className={`${productStyles.tabBtn} ${
                                     activeDetailTab === "reviews" ? productStyles.activeTab : ""
                                 }`}
-                                onClick={() => setActiveDetailTab("reviews")}
+                                onClick={() => handleTabChange("reviews")}
                             >
                                 고객 리뷰
                             </button>
@@ -352,7 +608,7 @@ function ProductManagement() {
                                 className={`${productStyles.tabBtn} ${
                                     activeDetailTab === "orders" ? productStyles.activeTab : ""
                                 }`}
-                                onClick={() => setActiveDetailTab("orders")}
+                                onClick={() => handleTabChange("orders")}
                             >
                                 주문 내역
                             </button>
@@ -385,7 +641,11 @@ function ProductManagement() {
                             {activeDetailTab === "analytics" && (
                                 <div className={productStyles.chartGrid}>
                                     {/* 꺾은선 그래프: 월별 판매량 */}
-                                    <div className={productStyles.chartCard} role="region" aria-label="월별 판매량 추이">
+                                    <div
+                                        className={productStyles.chartCard}
+                                        role="region"
+                                        aria-label="월별 판매량 추이"
+                                    >
                                         <div className={productStyles.chartTitle}>월별 판매량</div>
                                         <ResponsiveContainer width="100%" height={280}>
                                             <LineChart data={series} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
@@ -549,6 +809,7 @@ function ProductManagement() {
                         {filteredProducts.length > 0 ? (
                             filteredProducts.map((p) => {
                                 const thumb = getThumbUrl(p);
+                                const stockNum = Number(p.stockQuantity ?? p.stock ?? 0);
                                 return (
                                     <tr
                                         key={p.id}
@@ -580,10 +841,10 @@ function ProductManagement() {
                         </span>
                                         </td>
                                         <td>{p.category}</td>
-                                        <td>{p.price.toLocaleString()}원</td>
-                                        <td>{p.stockQuantity}개</td>
+                                        <td>{Number(p.price).toLocaleString()}원</td>
+                                        <td>{stockNum}개</td>
                                         <td>{getStatusLabel(p.status)}</td>
-                                        <td>{new Date(p.createdAt).toLocaleDateString()}</td>
+                                        <td>{fmtDate(p.createdAt)}</td>
                                     </tr>
                                 );
                             })
