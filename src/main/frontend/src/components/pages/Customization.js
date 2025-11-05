@@ -12,7 +12,7 @@ function Customization() {
 
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
-    const [sortOrder, setSortOrder] = useState(null);
+    const [sortOrder, setSortOrder] = useState('rating');
 
     const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -27,6 +27,8 @@ function Customization() {
                     withCredentials: true,
                 });
                 const productsData = Array.isArray(response.data) ? response.data : [];
+                // 평점순으로 기본 정렬
+                productsData.sort((a, b) => (b.rating || 0) - (a.rating || 0));
                 console.log('Fetched custom products:', productsData);
                 setProducts(productsData);
                 setError(null);
@@ -87,19 +89,17 @@ function Customization() {
 
     const renderStars = (rating) => {
         const stars = [];
-        const fullStars = Math.floor(rating);
-        const halfStar = rating - fullStars >= 0.5;
+        const fullStars = Math.floor(rating || 0);
+        const hasHalfStar = (rating || 0) - fullStars >= 0.5;
 
-        for (let i = 0; i < fullStars; i++) {
-            stars.push(<span key={`full-${i}`}>★</span>);
-        }
-
-        if (halfStar) {
-            stars.push(<span key="half">☆</span>);
-        }
-
-        while (stars.length < 5) {
-            stars.push(<span key={`empty-${stars.length}`}>☆</span>);
+        for (let i = 0; i < 5; i++) {
+            if (i < fullStars) {
+                stars.push(<span key={`star-${i}`} style={{ color: '#FFD700' }}>★</span>);
+            } else if (i === fullStars && hasHalfStar) {
+                stars.push(<span key={`star-${i}`} style={{ color: '#FFD700' }}>☆</span>);
+            } else {
+                stars.push(<span key={`star-${i}`} style={{ color: '#D3D3D3' }}>☆</span>);
+            }
         }
 
         return stars;
@@ -141,20 +141,20 @@ function Customization() {
                 </div>
 
                 <div className={styles.sortOptions}>
-            <span className={styles.sortOption} onClick={() => setSortOrder('low')}>
+            <span className={`${styles.sortOption} ${sortOrder === 'low' ? styles.active : ''}`} onClick={() => setSortOrder('low')}>
                 낮은가격순
             </span>
-                    <span className={styles.sortOption} onClick={() => setSortOrder('high')}>
+                    <span className={`${styles.sortOption} ${sortOrder === 'high' ? styles.active : ''}`} onClick={() => setSortOrder('high')}>
                 높은가격순
             </span>
                     {/* <span className={styles.sortOption}>누적판매순</span> */}
                     <span 
-                        className={styles.sortOption}
+                        className={`${styles.sortOption} ${sortOrder === 'reviewCount' ? styles.active : ''}`}
                         onClick={() => setSortOrder('reviewCount')}
                     >
                         리뷰 많은 순
                     </span>
-                    <span className={styles.sortOption} onClick={() => setSortOrder('rating')}>
+                    <span className={`${styles.sortOption} ${sortOrder === 'rating' ? styles.active : ''}`} onClick={() => setSortOrder('rating')}>
                 평점높은순
             </span>
                 </div>

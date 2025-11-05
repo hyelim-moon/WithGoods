@@ -629,7 +629,8 @@ function MemberManagement() {
                             <select value={searchCondition} onChange={handleSearchConditionChange} className={memberStyles.searchCondition}>
                                 <option value="name">이름</option>
                                 <option value="email">이메일</option>
-                                {/* 등급 검색 조건 제거 */}
+                                <option value="phoneNumber">전화번호</option>
+                                <option value="nickname">닉네임</option>
                             </select>
                             <input
                                 type="text"
@@ -667,7 +668,6 @@ function MemberManagement() {
                             <th>이메일</th>
                             <th>전화번호</th>
                             {/* 등급 컬럼 제거 */}
-                            <th>관리</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -690,17 +690,6 @@ function MemberManagement() {
                                 <td>{member.email}</td>
                                 <td>{member.phoneNumber}</td>
                                 {/* 등급 데이터 제거 */}
-                                <td onClick={(e) => e.stopPropagation()}>
-                                    <button
-                                        className={memberStyles.viewOrderHistoryBtn}
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleViewDetails(member);
-                                        }}
-                                    >
-                                        상세보기
-                                    </button>
-                                </td>
                             </tr>
                         ))}
                         </tbody>

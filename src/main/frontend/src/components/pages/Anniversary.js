@@ -15,7 +15,7 @@ function Anniversary() {
     // 사이드 패널 열림/닫힘 상태
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     // 정렬 기준 상태 (낮은 가격순, 높은 가격순, 평점 높은 순)
-    const [sortOrder, setSortOrder] = useState(null);
+    const [sortOrder, setSortOrder] = useState('rating');
     // 상품 데이터 상태
     const [products, setProducts] = useState([]);
     // 로딩 상태
@@ -33,6 +33,8 @@ function Anniversary() {
                 });
                 // API 응답 데이터 구조 확인 및 처리
                 const productsData = Array.isArray(response.data) ? response.data : [];
+                // 평점순으로 기본 정렬
+                productsData.sort((a, b) => (b.rating || 0) - (a.rating || 0));
                 console.log('Fetched anniversary products:', productsData); // 디버깅용 로그
                 setProducts(productsData);
                 setError(null);
@@ -96,6 +98,7 @@ function Anniversary() {
                 sorted.sort((a, b) => (b.reviewCount || 0) - (a.reviewCount || 0));
                 break;
             default:
+                // 기본 정렬(평점순)을 유지
                 break;
         }
         return sorted;
@@ -183,28 +186,28 @@ function Anniversary() {
                 {/* 상품 정렬 옵션 */}
                 <div className={styles.sortOptions}>
                     <span
-                        className={styles.sortOption}
+                        className={`${styles.sortOption} ${sortOrder === 'low' ? styles.active : ''}`}
                         onClick={() => setSortOrder('low')}
                     >
                         낮은가격순
                     </span>
                     <span
-                        className={styles.sortOption}
+                        className={`${styles.sortOption} ${sortOrder === 'high' ? styles.active : ''}`}
                         onClick={() => setSortOrder('high')}
                     >
                         높은가격순
                     </span>
-                    {/* <span className={styles.sortOption>
+                    {/* <span className={styles.sortOption}>
                         누적판매순
                     </span> */}
                     <span 
-                        className={styles.sortOption}
+                        className={`${styles.sortOption} ${sortOrder === 'reviewCount' ? styles.active : ''}`}
                         onClick={() => setSortOrder('reviewCount')}
                     >
                         리뷰 많은 순
                     </span>
                     <span
-                        className={styles.sortOption}
+                        className={`${styles.sortOption} ${sortOrder === 'rating' ? styles.active : ''}`}
                         onClick={() => setSortOrder('rating')}
                     >
                         평점높은순

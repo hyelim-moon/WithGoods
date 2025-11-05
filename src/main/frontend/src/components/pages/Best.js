@@ -22,11 +22,11 @@ export const renderStars = (rating) => {
 
     for (let i = 0; i < 5; i++) {
         if (i < fullStars) {
-            stars.push(<span key={`star-${i}`}>★</span>);
+            stars.push(<span key={`star-${i}`} style={{ color: '#FFD700' }}>★</span>);
         } else if (i === fullStars && hasHalfStar) {
-            stars.push(<span key={`star-${i}`}>☆</span>);
+            stars.push(<span key={`star-${i}`} style={{ color: '#FFD700' }}>☆</span>);
         } else {
-            stars.push(<span key={`star-${i}`}>☆</span>);
+            stars.push(<span key={`star-${i}`} style={{ color: '#D3D3D3' }}>☆</span>);
         }
     }
 
@@ -43,7 +43,7 @@ function Best() {
     // 사이드 패널 열림/닫힘 상태
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     // 정렬 기준 상태 (낮은 가격순, 높은 가격순, 평점 높은 순)
-    const [sortOrder, setSortOrder] = useState(null);
+    const [sortOrder, setSortOrder] = useState('rating');
     // 상품 데이터 상태
     const [products, setProducts] = useState([]);
     // 로딩 상태
@@ -210,13 +210,13 @@ function Best() {
                 {/* 상품 정렬 옵션 */}
                 <div className={styles.sortOptions}>
                     <span
-                        className={styles.sortOption}
+                        className={`${styles.sortOption} ${sortOrder === 'low' ? styles.active : ''}`}
                         onClick={() => setSortOrder('low')}
                     >
                         낮은가격순
                     </span>
                     <span
-                        className={styles.sortOption}
+                        className={`${styles.sortOption} ${sortOrder === 'high' ? styles.active : ''}`}
                         onClick={() => setSortOrder('high')}
                     >
                         높은가격순
@@ -225,13 +225,13 @@ function Best() {
                         누적판매순
                     </span> */}
                     <span 
-                        className={styles.sortOption}
+                        className={`${styles.sortOption} ${sortOrder === 'reviewCount' ? styles.active : ''}`}
                         onClick={() => setSortOrder('reviewCount')}
                     >
                         리뷰 많은 순
                     </span>
                     <span
-                        className={styles.sortOption}
+                        className={`${styles.sortOption} ${sortOrder === 'rating' ? styles.active : ''}`}
                         onClick={() => setSortOrder('rating')}
                     >
                         평점높은순
