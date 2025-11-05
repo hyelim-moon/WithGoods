@@ -14,6 +14,195 @@ const isBirthdayToday = (member) => {
     return today.getMonth() === birth.getMonth() && today.getDate() === birth.getDate();
 };
 
+// WishlistModal Component (새로 추가)
+const WishlistModal = ({ show, onClose, member, wishlist }) => {
+    if (!show) return null;
+
+    return (
+        <div className={memberStyles.modalOverlay}>
+            <div className={memberStyles.modalContent}>
+                <div className={memberStyles.modalHeader}>
+                    <h3>{member?.name}님의 찜한 상품</h3>
+                    <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
+                </div>
+                <div className={memberStyles.modalBody}>
+                    {wishlist && wishlist.length > 0 ? (
+                        <ul className={memberStyles.wishlistGrid}>
+                            {wishlist.map(item => (
+                                <li key={item.productId} className={memberStyles.wishlistItem}>
+                                    <img src={item.productThumbnail} alt={item.productName} className={memberStyles.wishlistImage} />
+                                    <div className={memberStyles.wishlistDetails}>
+                                        <p className={memberStyles.wishlistProductName}>{item.productName}</p>
+                                        <p className={memberStyles.wishlistProductPrice}>{item.productPrice.toLocaleString()}원</p>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p>{member?.name}님이 찜한 상품이 없습니다.</p>
+                    )}
+                </div>
+                <div className={memberStyles.modalFooter}>
+                    <button className={memberStyles.closeButton} onClick={onClose}>닫기</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// CartModal Component (새로 추가)
+const CartModal = ({ show, onClose, member, cart }) => {
+    if (!show) return null;
+
+    return (
+        <div className={memberStyles.modalOverlay}>
+            <div className={memberStyles.modalContent}>
+                <div className={memberStyles.modalHeader}>
+                    <h3>{member?.name}님의 장바구니</h3>
+                    <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
+                </div>
+                <div className={memberStyles.modalBody}>
+                    {cart && cart.length > 0 ? (
+                        <ul className={memberStyles.cartGrid}>
+                            {cart.map(item => (
+                                <li key={item.cartItemId} className={memberStyles.cartItem}>
+                                    <img src={item.productThumbnail} alt={item.productName} className={memberStyles.cartImage} />
+                                    <div className={memberStyles.cartDetails}>
+                                        <p className={memberStyles.cartProductName}>{item.productName}</p>
+                                        <p className={memberStyles.cartProductPrice}>{item.price.toLocaleString()}원 x {item.quantity}개</p>
+                                        <p className={memberStyles.cartProductTotalPrice}>총: {(item.price * item.quantity).toLocaleString()}원</p>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p>{member?.name}님의 장바구니가 비어있습니다.</p>
+                    )}
+                </div>
+                <div className={memberStyles.modalFooter}>
+                    <button className={memberStyles.closeButton} onClick={onClose}>닫기</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// OrderHistoryModal Component (새로 추가)
+const OrderHistoryModal = ({ show, onClose, memberName, orders }) => {
+    if (!show) return null;
+
+    return (
+        <div className={memberStyles.modalOverlay}>
+            <div className={memberStyles.modalContent}>
+                <div className={memberStyles.modalHeader}>
+                    <h3>{memberName}님의 주문 내역</h3>
+                    <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
+                </div>
+                <div className={memberStyles.modalBody}>
+                    {orders && orders.length > 0 ? (
+                        <ul className={memberStyles.orderListModal}>
+                            {orders.map(order => (
+                                <li key={order.orderId} className={memberStyles.orderListItemModal}>
+                                    <span><strong>주문 번호:</strong> {order.orderId}</span>
+                                    <span><strong>주문일:</strong> {new Date(order.orderDate).toLocaleDateString()}</span>
+                                    <span><strong>총 금액:</strong> {order.totalAmount.toLocaleString()}원</span>
+                                    <span><strong>상태:</strong> {order.orderStatus}</span>
+                                    <div>
+                                        <strong>상품:</strong>
+                                        <ul className={memberStyles.orderProductList}>
+                                            {order.orderItems.map(item => (
+                                                <li key={item.orderItemId} className={memberStyles.orderProductItem}>
+                                                    {item.productName} ({item.quantity}개) - {item.price.toLocaleString()}원
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p>{memberName}님의 주문 내역이 없습니다.</p>
+                    )}
+                </div>
+                <div className={memberStyles.modalFooter}>
+                    <button className={memberStyles.closeButton} onClick={onClose}>닫기</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// InquiryModal Component (새로 추가)
+const InquiryModal = ({ show, onClose, memberName, inquiries }) => {
+    if (!show) return null;
+
+    return (
+        <div className={memberStyles.modalOverlay}>
+            <div className={memberStyles.modalContent}>
+                <div className={memberStyles.modalHeader}>
+                    <h3>{memberName}님의 문의 내역</h3>
+                    <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
+                </div>
+                <div className={memberStyles.modalBody}>
+                    {inquiries && inquiries.length > 0 ? (
+                        <ul className={memberStyles.inquiryListModal}>
+                            {inquiries.map(inquiry => (
+                                <li key={inquiry.inquiryId} className={memberStyles.inquiryListItemModal}>
+                                    <span><strong>제목:</strong> {inquiry.title}</span>
+                                    <span><strong>내용:</strong> {inquiry.content}</span>
+                                    <span><strong>작성일:</strong> {new Date(inquiry.createdAt).toLocaleDateString()}</span>
+                                    <span><strong>상태:</strong> {inquiry.status}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p>{memberName}님의 문의 내역이 없습니다.</p>
+                    )}
+                </div>
+                <div className={memberStyles.modalFooter}>
+                    <button className={memberStyles.closeButton} onClick={onClose}>닫기</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+// ReviewModal Component (새로 추가)
+const ReviewModal = ({ show, onClose, memberName, reviews }) => {
+    if (!show) return null;
+
+    return (
+        <div className={memberStyles.modalOverlay}>
+            <div className={memberStyles.modalContent}>
+                <div className={memberStyles.modalHeader}>
+                    <h3>{memberName}님의 작성한 리뷰</h3>
+                    <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
+                </div>
+                <div className={memberStyles.modalBody}>
+                    {reviews && reviews.length > 0 ? (
+                        <ul className={memberStyles.reviewListModal}>
+                            {reviews.map(review => (
+                                <li key={review.reviewId} className={memberStyles.reviewListItemModal}>
+                                    <span><strong>상품:</strong> {review.productName}</span>
+                                    <span><strong>평점:</strong> {review.rating}점</span>
+                                    <span><strong>내용:</strong> {review.content}</span>
+                                    <span><strong>작성일:</strong> {new Date(review.createdAt).toLocaleDateString()}</span>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p>{memberName}님의 작성한 리뷰가 없습니다.</p>
+                    )}
+                </div>
+                <div className={memberStyles.modalFooter}>
+                    <button className={memberStyles.closeButton} onClick={onClose}>닫기</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
 function MemberManagement() {
     const navigate = useNavigate();
     // 회원 관리 상태
@@ -899,6 +1088,46 @@ function MemberManagement() {
                     )}
                 </div>
             </div>
+
+            {/* Wishlist Modal */}
+            <WishlistModal
+                show={showWishlistModal}
+                onClose={() => setShowWishlistModal(false)}
+                member={selectedMemberForWishlist}
+                wishlist={memberWishlist}
+            />
+
+            {/* Cart Modal */}
+            <CartModal
+                show={showCartModal}
+                onClose={() => setShowCartModal(false)}
+                member={selectedMemberForCart}
+                cart={memberCart}
+            />
+
+            {/* Order History Modal */}
+            <OrderHistoryModal
+                show={showOrderHistoryModal}
+                onClose={() => setShowOrderHistoryModal(false)}
+                memberName={selectedMemberNameForOrders}
+                orders={selectedMemberOrders}
+            />
+
+            {/* Inquiry Modal */}
+            <InquiryModal
+                show={showInquiryModal}
+                onClose={() => setShowInquiryModal(false)}
+                memberName={selectedMemberNameForInquiries}
+                inquiries={selectedMemberInquiries}
+            />
+
+            {/* Review Modal */}
+            <ReviewModal
+                show={showReviewModal}
+                onClose={() => setShowReviewModal(false)}
+                memberName={selectedMemberNameForReviews}
+                reviews={selectedMemberReviews}
+            />
         </div>
     );
 }
