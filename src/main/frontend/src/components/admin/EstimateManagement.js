@@ -26,14 +26,10 @@ function EstimateManagement() {
         setError(null);
         try {
             const response = await axios.get('/inquiries', { params: { category: 'estimate' } });
-            console.log("서버 응답 데이터:", response.data);
-
             const baseURL = "http://localhost:8080";
 
             const fetchedEstimates = (response.data || []).map(e => {
                 let imageUrl = e.designFileUrl || "";
-                console.log("서버에서 받은 상태값:", e.status);
-
                 if (imageUrl && !imageUrl.startsWith("http")) {
                     imageUrl = `${baseURL}${imageUrl.startsWith("/") ? imageUrl : "/" + imageUrl}`;
                 }
@@ -49,11 +45,11 @@ function EstimateManagement() {
                     message: e.message || '-',
                     designFileUrl: imageUrl,
                     status: mapStatus(e.status),
-                    answer: e.answer || ''
+                    answer: e.answer || '',
+                    adminNote: e.adminNote || ''
                 };
             });
 
-            console.log("✅ fetchedEstimates:", fetchedEstimates);
             setEstimates(fetchedEstimates);
         } catch (e) {
             setError('견적 목록을 불러오지 못했습니다.');
@@ -63,47 +59,37 @@ function EstimateManagement() {
         }
     };
 
-    /** ✅ 백엔드 상태값을 한글로 변환 */
     const mapStatus = (status) => {
         if (!status) return '검토중';
         const normalized = status.trim().toUpperCase();
-
         switch (normalized) {
-            case 'PENDING':
-                return '검토중';
-            case 'APPROVED':
-                return '승인';
-            case 'REJECTED':
-                return '거절';
-            default:
-                return '검토중';
+            case 'PENDING': return '검토중';
+            case 'APPROVED': return '승인';
+            case 'REJECTED': return '거절';
+            default: return '검토중';
         }
     };
 
-    /** ✅ 승인 요청 */
     const handleApprove = async (estimate) => {
         try {
-            const response = await axios.put(`/inquiries/${estimate.id}/approved`);
-            console.log("서버 응답 데이터:", response.data);
+            await axios.put(`/inquiries/${estimate.id}/approved`);
             alert("견적이 승인되었습니다.");
             fetchEstimates();
             setShowSidePanel(false);
         } catch (err) {
-            console.error("승인 요청 중 오류 발생:", err);
+            console.error(err);
             alert("승인 중 오류가 발생했습니다.");
         }
     };
 
-    /** ✅ 거절 요청 */
     const handleReject = async (estimate) => {
         try {
-            const response = await axios.put(`/inquiries/${estimate.id}/rejected`);
-            console.log("서버 응답 데이터:", response.data);
+            await axios.put(`/inquiries/${estimate.id}/rejected`);
             alert("견적이 거절되었습니다.");
             fetchEstimates();
             setShowSidePanel(false);
         } catch (err) {
-            console.error("거절 요청 중 오류 발생:", err);
+            console.error(err);
             alert("거절 중 오류가 발생했습니다.");
         }
     };
@@ -115,7 +101,6 @@ function EstimateManagement() {
 
     const handleFilterChange = (newFilter) => setFilter(newFilter);
 
-    /** ✅ 필터 */
     const filteredEstimates = () => {
         let filtered = estimates;
         if (filter === 'PENDING') filtered = filtered.filter(e => e.status === '검토중');
@@ -264,6 +249,77 @@ function EstimateManagement() {
                             <div className={orderStyles.detailLabel}>상태</div>
                             <div className={orderStyles.detailValue}>{selectedEstimate.status}</div>
 
+                            {/* ✅ 관리자 노트 */}
+                            <div
+                                style={{
+                                    gridColumn: "1 / span 2",
+                                    marginTop: "10px",
+                                    display: "flex",
+                                    gap: "6px",
+                                }}
+                            >
+                                <div className={orderStyles.detailLabel}
+                                     style={{
+                                    whiteSpace: 'nowrap',
+                                    color: '#333'
+                                }}>관리자 노트</div>
+                                <textarea
+                                    id="adminNote"
+                                    value={selectedEstimate.adminNote || ""}
+                                    onChange={(e) => {
+                                        setSelectedEstimate({
+                                            ...selectedEstimate,
+                                            adminNote: e.target.value
+                                        });
+                                    }}
+                                    placeholder="관리자 메모를 입력하세요"
+                                    style={{
+                                        width: '100%',
+                                        minHeight: '80px',
+                                        padding: '6px',
+                                        borderRadius: '4px',
+                                        border: '1px solid #ccc',
+                                        resize: 'vertical',
+                                        marginLeft: '50px'
+                                    }}
+                                />
+
+                            </div>
+
+                            <div style={{
+                                gridColumn: "1 / span 2",
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                marginTop: "6px"
+                            }}>
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            await axios.put(`/inquiries/${selectedEstimate.id}/admin-note`, {
+                                                adminNote: selectedEstimate.adminNote
+                                            });
+                                            alert("관리자 노트가 저장되었습니다.");
+                                        } catch (err) {
+                                            console.error(err);
+                                            alert("저장 중 오류가 발생했습니다.");
+                                        }
+                                    }}
+                                    style={{
+                                        backgroundColor: '#007BFF',
+                                        color: '#fff',
+                                        border: 'none',
+                                        padding: '8px 14px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        alignSelf: "flex-end",
+                                        textAlign: 'right'
+                                    }}
+                                >
+                                    저장
+                                </button>
+                            </div>
+
+                            {/* ✅ 승인/거절 버튼 */}
                             <div
                                 style={{
                                     gridColumn: "1 / span 2",
