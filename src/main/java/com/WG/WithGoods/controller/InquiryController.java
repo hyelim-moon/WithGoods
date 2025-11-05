@@ -174,4 +174,18 @@
             inquiryService.answer(id, user, req.getAnswer());
             return ResponseEntity.ok("답변이 등록되었습니다.");
         }
+        // 승인 처리
+        @PutMapping("/{id}/approved")
+        public ResponseEntity<InquiryResponseDto> approveInquiry(@PathVariable("id") Long id) {
+            InquiryResponseDto updatedDto = inquiryService.approveInquiry(id);
+            return ResponseEntity.ok(updatedDto);
+        }
+
+        // 거절 처리
+        @PutMapping("/{id}/rejected")
+        public ResponseEntity<InquiryResponseDto> rejectInquiry(@PathVariable("id") Long id) {
+            InquiryResponseDto updatedDto = inquiryService.rejectInquiry(id);
+            return ResponseEntity.ok(updatedDto);
+        }
+
     }

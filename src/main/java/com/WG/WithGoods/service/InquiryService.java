@@ -2,6 +2,7 @@ package com.WG.WithGoods.service;
 
 import com.WG.WithGoods.dto.InquiryRequestDto;
 import com.WG.WithGoods.dto.InquiryResponseDto;
+import com.WG.WithGoods.entity.EstimateStatus;
 import com.WG.WithGoods.entity.Inquiry;
 import com.WG.WithGoods.entity.InquiryType;
 import com.WG.WithGoods.entity.Member;
@@ -14,6 +15,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -213,6 +215,28 @@ public class InquiryService {
         dto.setQuantity(i.getQuantity());
         dto.setMessage(i.getMessage());
         dto.setDesignFileUrl(i.getDesignFileUrl());
+
+        // ✅ 상태값 추가
+        dto.setStatus(i.getStatus() != null ? i.getStatus().name() : EstimateStatus.PENDING.name());
+
         return dto;
     }
+
+
+    public InquiryResponseDto approveInquiry(Long inquiryId) {
+        Inquiry inquiry = inquiryRepository.findById(inquiryId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 문의가 존재하지 않습니다."));
+        inquiry.setStatus(EstimateStatus.APPROVED);
+        inquiryRepository.save(inquiry);
+        return toDto(inquiry); // DTO로 반환
+    }
+
+    public InquiryResponseDto rejectInquiry(Long inquiryId) {
+        Inquiry inquiry = inquiryRepository.findById(inquiryId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 문의가 존재하지 않습니다."));
+        inquiry.setStatus(EstimateStatus.REJECTED);
+        inquiryRepository.save(inquiry);
+        return toDto(inquiry); // DTO로 반환
+    }
+
 }
