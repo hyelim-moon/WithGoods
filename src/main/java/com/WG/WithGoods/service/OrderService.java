@@ -6,6 +6,7 @@ import com.WG.WithGoods.entity.*;
 import com.WG.WithGoods.repository.MemberRepository;
 import com.WG.WithGoods.repository.OrderRepository;
 import com.WG.WithGoods.repository.ProductRepository;
+import com.WG.WithGoods.repository.StockHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,7 @@ public class OrderService {
     private final ProductRepository productRepository;
     private final MemberCouponService memberCouponService;
     private final CartService cartService;
+    private final StockHistoryRepository stockHistoryRepository;
 
     @Transactional
     public Integer createOrder(Integer memberId, OrderRequestDto orderRequest) {
@@ -57,8 +59,12 @@ public class OrderService {
                 if (product.getStock() < item.getQuantity()) {
                     throw new IllegalArgumentException("상품 '" + product.getName() + "'의 재고가 부족합니다. 현재 재고: " + product.getStock() + "개");
                 }
-                product.setStock(product.getStock() - item.getQuantity());
-                productRepository.save(product);
+                int oldStock = product.getStock();
+                product.setStock(oldStock - item.getQuantity());
+                
+                // 재고 이력 기록
+                StockHistory history = new StockHistory(product, StockHistoryType.OUT, "주문", -item.getQuantity(), product.getStock());
+                stockHistoryRepository.save(history);
             }
 
             // 옵션 정보 처리
@@ -151,8 +157,12 @@ public class OrderService {
             for (OrderDetail orderDetail : order.getOrderDetails()) {
                 Product product = orderDetail.getProduct();
                 if (product.getStock() != null) {
-                    product.setStock(product.getStock() + orderDetail.getQuantity());
-                    productRepository.save(product);
+                    int oldStock = product.getStock();
+                    product.setStock(oldStock + orderDetail.getQuantity());
+                    
+                    // 재고 이력 기록
+                    StockHistory history = new StockHistory(product, StockHistoryType.IN, "주문 취소", orderDetail.getQuantity(), product.getStock());
+                    stockHistoryRepository.save(history);
                 }
             }
         }

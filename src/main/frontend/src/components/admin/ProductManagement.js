@@ -22,6 +22,7 @@ import {
 
 import { FiBell, FiRefreshCw, FiX, FiEdit, FiTrash2 } from "react-icons/fi";
 import Sidebar from "./Sidebar";
+import StockHistoryTab from "./StockHistoryTab"; // 재고 이력 탭 컴포넌트 가져오기
 
 const API_BASE_URL = 'http://localhost:8080';
 const LOW_STOCK_THRESHOLD = 10;
@@ -589,9 +590,7 @@ function ProductManagement() {
                                 </div>
                             )}
 
-                            {activeDetailTab === "stock" && (
-                                <div className={productStyles.placeholderCard}>재고 변동 이력 테이블 영역</div>
-                            )}
+                            {activeDetailTab === "stock" && <StockHistoryTab productId={p.id} />}
                             {activeDetailTab === "reviews" && (
                                 <div className={productStyles.placeholderCard}>고객 리뷰 리스트 영역</div>
                             )}

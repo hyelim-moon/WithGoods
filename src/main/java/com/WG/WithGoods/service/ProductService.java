@@ -3,10 +3,14 @@ package com.WG.WithGoods.service;
 import com.WG.WithGoods.dto.ProductDto;
 import com.WG.WithGoods.dto.ProductOptionDto;
 import com.WG.WithGoods.dto.ProductRequestDto;
+import com.WG.WithGoods.dto.StockHistoryDto;
 import com.WG.WithGoods.entity.Product;
 import com.WG.WithGoods.entity.ProductRole;
+import com.WG.WithGoods.entity.StockHistory;
+import com.WG.WithGoods.entity.StockHistoryType;
 import com.WG.WithGoods.repository.ProductRepository;
 import com.WG.WithGoods.repository.ReviewRepository;
+import com.WG.WithGoods.repository.StockHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +27,7 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final ReviewRepository reviewRepository;
     private final FileStorageService fileStorageService;
+    private final StockHistoryRepository stockHistoryRepository;
 
     @Transactional
     public ProductDto createProduct(ProductRequestDto dto, MultipartFile image) {
@@ -49,7 +55,13 @@ public class ProductService {
         product.setDiscountRate(dto.getDiscountRate());
         product.setRating(0.0);
 
-        return toDto(productRepository.save(product));
+        Product savedProduct = productRepository.save(product);
+
+        // 재고 이력 기록
+        StockHistory history = new StockHistory(savedProduct, StockHistoryType.IN, "상품 생성", savedProduct.getStock(), savedProduct.getStock());
+        stockHistoryRepository.save(history);
+
+        return toDto(savedProduct);
     }
 
     public List<ProductDto> getAllProducts() {
@@ -91,6 +103,8 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다."));
 
+        int oldStock = product.getStock();
+
         if (dto.getName() != null) product.setName(dto.getName());
         if (dto.getDescription() != null) product.setDescription(dto.getDescription());
         if (dto.getPrice() != null) product.setPrice(dto.getPrice());
@@ -122,7 +136,18 @@ public class ProductService {
         product.setStartDate(dto.getStartDate());
         product.setEndDate(dto.getEndDate());
 
-        return toDto(productRepository.save(product));
+        Product updatedProduct = productRepository.save(product);
+
+        // 재고 변경 이력 기록
+        if (oldStock != updatedProduct.getStock()) {
+            int quantityChange = updatedProduct.getStock() - oldStock;
+            StockHistoryType type = quantityChange > 0 ? StockHistoryType.IN : StockHistoryType.OUT;
+            String reason = quantityChange > 0 ? "입고" : "출고";
+            StockHistory history = new StockHistory(updatedProduct, type, reason, quantityChange, updatedProduct.getStock());
+            stockHistoryRepository.save(history);
+        }
+
+        return toDto(updatedProduct);
     }
 
     @Transactional
@@ -161,6 +186,11 @@ public class ProductService {
         Collections.shuffle(allProducts);
         List<Product> subList = allProducts.subList(0, Math.min(count, allProducts.size()));
         return toDtoList(subList);
+    }
+
+    public List<StockHistoryDto> getStockHistory(Integer productId) {
+        List<StockHistory> history = stockHistoryRepository.findByProductProductIdOrderByChangedAtDesc(productId);
+        return history.stream().map(StockHistoryDto::fromEntity).collect(Collectors.toList());
     }
 
     private ProductDto toDto(Product product) {

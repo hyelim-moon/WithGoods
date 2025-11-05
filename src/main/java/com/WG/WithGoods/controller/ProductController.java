@@ -2,6 +2,7 @@ package com.WG.WithGoods.controller;
 
 import com.WG.WithGoods.dto.ProductDto;
 import com.WG.WithGoods.dto.ProductRequestDto;
+import com.WG.WithGoods.dto.StockHistoryDto;
 import com.WG.WithGoods.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -90,5 +91,10 @@ public class ProductController {
             return ResponseEntity.noContent().build();
         }
         return ResponseEntity.ok(recommended);
+    }
+
+    @GetMapping("/{id}/stock-history")
+    public ResponseEntity<List<StockHistoryDto>> getStockHistory(@PathVariable("id") Integer id) {
+        return ResponseEntity.ok(productService.getStockHistory(id));
     }
 }
