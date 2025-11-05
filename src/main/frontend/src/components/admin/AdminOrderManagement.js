@@ -7,7 +7,72 @@ import { FiBell, FiX, FiRefreshCw, FiSave, FiSlash } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 import axios from "../../utils/axios";
 
-// Dummy data removed - now using real data from API
+// Dummy data for admin orders (re-activated and new item added)
+const dummyAdminOrders = [
+    {
+        orderId: 'ADMIN-DUMMY-001',
+        ordererInfo: { name: '관리자 테스트1' },
+        orderSummary: { finalAmount: 75000 },
+        orderDate: '2023-10-26T11:00:00',
+        status: 'PAID',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-002',
+        ordererInfo: { name: '관리자 테스트2' },
+        orderSummary: { finalAmount: 120000 },
+        orderDate: '2023-10-25T14:00:00',
+        status: 'SHIPPING',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-003',
+        ordererInfo: { name: '관리자 테스트3' },
+        orderSummary: { finalAmount: 30000 },
+        orderDate: '2023-10-24T09:00:00',
+        status: 'DELIVERED',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-004',
+        ordererInfo: { name: '관리자 테스트4' },
+        orderSummary: { finalAmount: 50000 },
+        orderDate: '2023-10-23T10:00:00',
+        status: 'PENDING',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-005',
+        ordererInfo: { name: '관리자 테스트5' },
+        orderSummary: { finalAmount: 80000 },
+        orderDate: '2023-10-22T16:00:00',
+        status: 'PREPARING',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-006',
+        ordererInfo: { name: '관리자 테스트6' },
+        orderSummary: { finalAmount: 60000 },
+        orderDate: '2023-10-21T13:00:00',
+        status: 'CANCELLED',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-007',
+        ordererInfo: { name: '관리자 테스트7' },
+        orderSummary: { finalAmount: 95000 },
+        orderDate: '2023-10-20T10:00:00',
+        status: 'DELIVERED',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-008',
+        ordererInfo: { name: '관리자 테스트8' },
+        orderSummary: { finalAmount: 40000 },
+        orderDate: '2023-10-19T15:00:00',
+        status: 'PAID',
+    },
+    {
+        orderId: 'ADMIN-DUMMY-009', // New dummy data
+        ordererInfo: { name: '관리자 테스트9' },
+        orderSummary: { finalAmount: 15000 },
+        orderDate: '2023-11-06T12:00:00',
+        status: 'PENDING',
+    },
+];
 
 const STATUS_OPTIONS = [
     { value: 'PENDING', label: '주문 대기' },
@@ -54,13 +119,13 @@ function AdminOrderManagement() {
         setLoading(true);
         setError(null);
         try {
-            // Always fetch all orders for stats calculation and client-side filtering
-            // Sort by orderDate descending (newest first)
             const res = await axios.get('/api/admin/orders', { params: { size: 1000, sort: 'orderDate,desc' } });
-            // API returns Page object with content array
-            const fetchedOrders = res.data?.content || [];
-            // Additional client-side sorting to ensure newest first
-            const sortedOrders = fetchedOrders.sort((a, b) => {
+            const apiOrders = res.data?.content || [];
+
+            // Combine dummy data with API data
+            const combinedOrders = [...dummyAdminOrders, ...apiOrders];
+
+            const sortedOrders = combinedOrders.sort((a, b) => {
                 const dateA = new Date(a.orderDate);
                 const dateB = new Date(b.orderDate);
                 return dateB - dateA; // Descending order (newest first)
@@ -68,8 +133,16 @@ function AdminOrderManagement() {
             setOrders(sortedOrders);
             recomputeStats(sortedOrders);
         } catch (e) {
-            setError('주문 목록을 불러오지 못했습니다.');
+            setError('주문 목록을 불러오지 못했습니다. 더미 데이터만 표시됩니다.');
             console.error(e);
+            // In case of API failure, show only dummy data
+            const sortedDummyOrders = dummyAdminOrders.sort((a, b) => {
+                const dateA = new Date(a.orderDate);
+                const dateB = new Date(b.orderDate);
+                return dateB - dateA;
+            });
+            setOrders(sortedDummyOrders);
+            recomputeStats(sortedDummyOrders);
         } finally {
             setLoading(false);
         }
@@ -99,7 +172,7 @@ function AdminOrderManagement() {
             setEditedOrder(null);
             return;
         }
-        
+
         // Fetch fresh order details from API
         try {
             const res = await axios.get(`/api/admin/orders/${order.orderId}`);
@@ -164,32 +237,30 @@ function AdminOrderManagement() {
         try {
             // Update order status
             if (editedOrder.status && editedOrder.status !== sidePanelOrder.status) {
-                await axios.put(`/api/admin/orders/${editedOrder.orderId}/status`, {
-                    status: editedOrder.status
-                });
+                await axios.put(`/api/admin/orders/${editedOrder.orderId}/status`, { status: editedOrder.status });
             }
-            
+
             // Update orderer email if changed
             if (editedOrder.ordererInfo?.email !== sidePanelOrder.ordererInfo?.email) {
                 await axios.put(`/api/admin/orders/${editedOrder.orderId}/orderer/email`, {
                     email: editedOrder.ordererInfo?.email
                 });
             }
-            
+
             // Update shipping info if changed
             if (JSON.stringify(editedOrder.shippingInfo) !== JSON.stringify(sidePanelOrder.shippingInfo)) {
                 await axios.put(`/api/admin/orders/${editedOrder.orderId}/shipping`, editedOrder.shippingInfo);
             }
-            
+
             // Refresh the order list
             await fetchOrders();
-            
+
             alert('주문이 저장되었습니다.');
-            
+
             // Close editing mode
             setIsEditing(false);
             setEditedOrder(null);
-            
+
             // Refresh side panel with updated data
             const res = await axios.get(`/api/admin/orders/${editedOrder.orderId}`);
             setSidePanelOrder(res.data);
@@ -225,13 +296,11 @@ function AdminOrderManagement() {
         try {
             if (cancelMode === 'CANCEL') {
                 // Update order status to CANCELLED
-                await axios.put(`/api/admin/orders/${sidePanelOrder.orderId}/status`, {
-                    status: 'CANCELLED'
-                });
-                
+                await axios.put(`/api/admin/orders/${sidePanelOrder.orderId}/status`, { status: 'CANCELLED' });
+
                 // Refresh the order list
                 await fetchOrders();
-                
+
                 setShowSidePanel(false);
                 setSidePanelOrder(null);
                 alert('주문이 취소되었습니다.');
@@ -250,11 +319,11 @@ function AdminOrderManagement() {
 
     const renderContent = () => {
         if (loading) return <div className={orderStyles.loading}>주문 정보를 불러오는 중...</div>;
-        if (error) return <div className={orderStyles.error}>{error}</div>;
+        if (error && !orders.some(o => o.orderId.startsWith('ADMIN-DUMMY'))) return <div className={orderStyles.error}>{error}</div>;
 
         // Filter by status
         let filteredOrders = filter === 'ALL' ? orders : orders.filter(order => order.status === filter);
-        
+
         // Apply search filter
         if (searchTerm.trim()) {
             const term = searchTerm.trim().toLowerCase();
@@ -270,7 +339,7 @@ function AdminOrderManagement() {
                 return true;
             });
         }
-        
+
         // Ensure filtered orders are sorted by date (newest first)
         filteredOrders = [...filteredOrders].sort((a, b) => {
             const dateA = new Date(a.orderDate);
@@ -294,6 +363,7 @@ function AdminOrderManagement() {
 
                 <div className={orderStyles.container}>
                     <h3>주문목록</h3>
+                    {error && <div className={orderStyles.error}>{error}</div>} {/* Show error message but still render table */}
 
                     <div className={orderStyles.toolbar}>
                         <div className={orderStyles.searchBar}>
