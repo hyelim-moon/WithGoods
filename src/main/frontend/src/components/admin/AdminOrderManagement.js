@@ -286,7 +286,7 @@ function AdminOrderManagement() {
                 </div>
 
                 <div className={orderStyles.container}>
-                    <h3>주문목록</h3>
+                    <h3>주문 목록</h3>
                     {error && <div className={orderStyles.error}>{error}</div>} {/* Show error message but still render table */}
 
                     <div className={orderStyles.toolbar}>

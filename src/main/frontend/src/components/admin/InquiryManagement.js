@@ -60,10 +60,11 @@ function InquiryManagement() {
     const [error, setError] = useState(null);
     const [filter, setFilter] = useState('ALL');
     const [searchTerm, setSearchTerm] = useState('');
-    
+    const [searchCondition, setSearchCondition] = useState('title'); // 검색 조건 추가
+
     const [showSidePanel, setShowSidePanel] = useState(false);
     const [sidePanelInquiry, setSidePanelInquiry] = useState(null);
-    
+
     const [isEditing, setIsEditing] = useState(false);
     const [answerContent, setAnswerContent] = useState('');
 
@@ -90,9 +91,9 @@ function InquiryManagement() {
             setAnswerContent(inquiry.answer || '');
         }
     };
-    
+
     const handleFilterChange = (newFilter) => setFilter(newFilter);
-    
+
     const handleSaveAnswer = () => {
         if (!sidePanelInquiry) return;
 
@@ -115,7 +116,7 @@ function InquiryManagement() {
 
     const filteredInquiries = () => {
         let filtered = inquiries;
-        
+
         if (filter === 'PENDING') {
             filtered = filtered.filter(inq => inq.status === '답변 대기');
         } else if (filter === 'ANSWERED') {
@@ -123,15 +124,19 @@ function InquiryManagement() {
         } else if (filter === 'ESTIMATE') {
             filtered = filtered.filter(inq => inq.type === '견적문의');
         }
-        
+
         if (searchTerm.trim()) {
             const term = searchTerm.trim().toLowerCase();
-            filtered = filtered.filter(inq => 
-                inq.title.toLowerCase().includes(term) ||
-                inq.writer.toLowerCase().includes(term)
-            );
+            filtered = filtered.filter(inq => {
+                if (searchCondition === 'title') {
+                    return inq.title.toLowerCase().includes(term);
+                } else if (searchCondition === 'writer') {
+                    return inq.writer.toLowerCase().includes(term);
+                }
+                return false;
+            });
         }
-        
+
         return filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     };
 
@@ -147,7 +152,7 @@ function InquiryManagement() {
         const estimateCount = inquiries.filter(inq => inq.type === '견적문의').length;
 
         return (
-            <>
+            <div className="inquiry-content-wrapper">
                 {error && <div className={memberStyles.error}>{error}</div>}
                 <div className={memberStyles.statsContainer}>
                     <div className={`${memberStyles.statBox} ${filter === 'ALL' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('ALL')}>
@@ -165,24 +170,30 @@ function InquiryManagement() {
                 </div>
 
                 <div className={memberStyles.container}>
-                    <div className={memberStyles.toolbar}>
-                        <h3>문의 목록</h3>
-                        <div className={memberStyles.searchBar}>
-                            <input 
-                                type="text" 
-                                placeholder="제목 또는 작성자로 검색" 
-                                value={searchTerm} 
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                            <button 
-                                onClick={() => { setSearchTerm(''); setFilter('ALL'); }}
-                                className={memberStyles.iconBtn} 
-                                aria-label="초기화" 
-                                title="초기화"
-                            >
-                                <FiRefreshCw />
-                            </button>
-                        </div>
+                    <h3>문의 목록</h3>
+                    <div className={memberStyles.searchBar} style={{ marginBottom: '20px', justifyContent: 'flex-start' }}>
+                        <select
+                            className={memberStyles.searchCondition}
+                            value={searchCondition}
+                            onChange={(e) => setSearchCondition(e.target.value)}
+                        >
+                            <option value="title">제목</option>
+                            <option value="writer">작성자</option>
+                        </select>
+                        <input
+                            type="text"
+                            placeholder="검색어를 입력하세요"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        <button
+                            onClick={() => { setSearchTerm(''); setFilter('ALL'); setSearchCondition('title'); }}
+                            className={memberStyles.iconBtn}
+                            aria-label="초기화"
+                            title="초기화"
+                        >
+                            <FiRefreshCw />
+                        </button>
                     </div>
 
                     <table className={memberStyles.memberTable}>
@@ -214,7 +225,7 @@ function InquiryManagement() {
                         </tbody>
                     </table>
                 </div>
-            </>
+            </div>
         );
     };
 
@@ -256,7 +267,7 @@ function InquiryManagement() {
                                 <strong>작성일:</strong> <span>{new Date(sidePanelInquiry.createdAt).toLocaleString()}</span>
                             </div>
                             <div className={memberStyles.sidePanelItem}>
-                                <strong>상태:</strong> 
+                                <strong>상태:</strong>
                                 <span>
                                     {sidePanelInquiry.status}
                                     {sidePanelInquiry.status === '답변 완료' && sidePanelInquiry.answeredAt &&
@@ -280,9 +291,9 @@ function InquiryManagement() {
                             <div className={memberStyles.sidePanelItem}>
                                 <strong>답변:</strong>
                                 {isEditing ? (
-                                    <textarea 
-                                        className={memberStyles.textarea} 
-                                        value={answerContent} 
+                                    <textarea
+                                        className={memberStyles.textarea}
+                                        value={answerContent}
                                         onChange={(e) => setAnswerContent(e.target.value)}
                                         rows={8}
                                     />

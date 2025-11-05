@@ -624,6 +624,7 @@ function MemberManagement() {
 
                 {/* 나머지 본문: container 안 */}
                 <div className={memberStyles.container}>
+                    <h3>회원 목록</h3>
                     <div className={memberStyles.toolbar}>
                         <div className={memberStyles.searchBar}>
                             <select value={searchCondition} onChange={handleSearchConditionChange} className={memberStyles.searchCondition}>

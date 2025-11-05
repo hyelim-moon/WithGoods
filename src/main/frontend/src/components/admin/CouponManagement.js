@@ -160,6 +160,7 @@ function CouponManagement() {
 
         return (
             <div className={memberStyles.container}>
+                <h3>쿠폰 목록</h3>
                 <div className={memberStyles.toolbar}>
                     <div className={memberStyles.actionButtons}>
                         <button className={memberStyles.addMemberBtn} onClick={() => {
