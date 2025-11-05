@@ -12,6 +12,36 @@ import {
 import Sidebar from "./Sidebar";
 import axios from "../../utils/axios";
 
+/* ----- 유틸: 활동 데이터 정규화(문자열/객체 둘 다 지원) ----- */
+const normalizeActivities = (arr) => {
+    if (!Array.isArray(arr)) return [];
+    return arr.map((item) => {
+        if (typeof item === "string") {
+            const text = item;
+            const t = text.toLowerCase();
+            let type = "OTHER";
+            if (text.includes("회원가입")) type = "SIGNUP";
+            else if (text.includes("견적")) type = "QUOTE";
+            else if (text.includes("일반문의") || text.includes("문의")) type = "INQUIRY";
+            else if (text.includes("주문")) type = "ORDER";
+            return { type, text };
+        }
+        if (item && typeof item === "object") {
+            const text = item.message || item.text || "";
+            const type = (item.type || "OTHER").toUpperCase();
+            return { type, text: text || JSON.stringify(item) };
+        }
+        return { type: "OTHER", text: String(item) };
+    });
+};
+
+const CAT_LABELS = {
+    SIGNUP: "회원가입",
+    QUOTE: "견적문의",
+    INQUIRY: "일반문의",
+    ORDER: "주문",
+};
+
 function StatCard({ title, value, icon, onClick }) {
     return (
         <div
@@ -96,9 +126,9 @@ function SmallCard({ title, value, icon }) {
     );
 }
 
-/** 최근 활동 카드 (항상 '전체보기' 노출) */
+/* 최근 활동 카드 (항상 '전체보기' 노출) */
 function RecentActivity({ activities, onViewAll }) {
-    const recentActivities = activities ? activities.slice(0, 3) : [];
+    const recent = (activities || []).slice(0, 3);
     return (
         <div className={styles.activityCard}>
             <div className={styles.activityHeader}>
@@ -106,8 +136,8 @@ function RecentActivity({ activities, onViewAll }) {
                 <button className={styles.viewAllBtn} onClick={onViewAll}>전체보기</button>
             </div>
             <ul className={styles.activityList}>
-                {recentActivities.length > 0 ? (
-                    recentActivities.map((activity, i) => <li key={i}>{activity}</li>)
+                {recent.length > 0 ? (
+                    recent.map((a, i) => <li key={i}>{a.text}</li>)
                 ) : (
                     <li>최근 활동이 없습니다.</li>
                 )}
@@ -116,9 +146,9 @@ function RecentActivity({ activities, onViewAll }) {
     );
 }
 
-/** ✅ 회원 메모 카드 */
+/* 회원 메모 카드 */
 function MemberNotes({ notes, onViewAll }) {
-    const recentNotes = notes ? notes.slice(0, 3) : [];
+    const recent = (notes || []).slice(0, 3);
     return (
         <div className={styles.activityCard}>
             <div className={styles.activityHeader}>
@@ -126,8 +156,8 @@ function MemberNotes({ notes, onViewAll }) {
                 <button className={styles.viewAllBtn} onClick={onViewAll}>전체보기</button>
             </div>
             <ul className={styles.activityList}>
-                {recentNotes.length > 0 ? (
-                    recentNotes.map((note, i) => <li key={i}>{note}</li>)
+                {recent.length > 0 ? (
+                    recent.map((note, i) => <li key={i}>{note}</li>)
                 ) : (
                     <li>메모가 없습니다.</li>
                 )}
@@ -148,11 +178,18 @@ function AdminDashboard() {
         visitors: 0,
         cancelRate: "0%"
     });
-    const [recentActivities, setRecentActivities] = useState([]);
-    const [memberNotes, setMemberNotes] = useState([]);          // ✅ 회원 메모
+
+    const [recentActivities, setRecentActivities] = useState([]); // [{type,text}]
+    const [memberNotes, setMemberNotes] = useState([]);          // [string]
+
     const [loading, setLoading] = useState(true);
+
     const [showAllActivities, setShowAllActivities] = useState(false);
-    const [showAllNotes, setShowAllNotes] = useState(false);      // ✅ 메모 모달
+    const [showAllNotes, setShowAllNotes] = useState(false);
+
+    /* 모달 필터 상태 */
+    const [activityQuery, setActivityQuery] = useState("");
+    const [activityCat, setActivityCat] = useState("ALL"); // ALL | SIGNUP | QUOTE | INQUIRY | ORDER
 
     useEffect(() => {
         fetchDashboardData();
@@ -163,11 +200,10 @@ function AdminDashboard() {
             const [statsRes, activitiesRes, notesRes] = await Promise.all([
                 axios.get("/api/admin/dashboard/stats"),
                 axios.get("/api/admin/dashboard/recent-activity"),
-                // 메모 API가 아직 없어도 오류 없이 빈 배열로 처리
                 axios.get("/api/admin/dashboard/member-notes").catch(() => ({ data: [] }))
             ]);
             setDashboardData(statsRes.data);
-            setRecentActivities(activitiesRes.data);
+            setRecentActivities(normalizeActivities(activitiesRes.data));
             setMemberNotes(notesRes.data || []);
         } catch (e) {
             console.error("대시보드 데이터 로드 실패:", e);
@@ -175,6 +211,14 @@ function AdminDashboard() {
             setLoading(false);
         }
     };
+
+    /* 필터링된 활동 목록 */
+    const filteredActivities = (recentActivities || []).filter((a) => {
+        const matchCat = activityCat === "ALL" ? true : a.type === activityCat;
+        const q = activityQuery.trim().toLowerCase();
+        const matchText = q ? a.text.toLowerCase().includes(q) : true;
+        return matchCat && matchText;
+    });
 
     if (loading) {
         return (
@@ -255,26 +299,79 @@ function AdminDashboard() {
                     />
                 </section>
 
-                {/* 전체 활동내역 모달 */}
+                {/* 전체 활동내역 모달 (검색 + 카테고리 필터) */}
                 {showAllActivities && (
                     <div className={styles.modalOverlay}>
                         <div className={styles.modalContent}>
                             <h3>전체 활동내역</h3>
+
+                            {/* 필터 바 */}
+                            <div className={styles.modalFilterBar}>
+                                <div className={styles.categoryChips}>
+                                    {/* '전체'는 선택 해제 용도로 두면 편리함 */}
+                                    <button
+                                        className={`${styles.chip} ${activityCat === "ALL" ? styles.chipActive : ""}`}
+                                        onClick={() => setActivityCat("ALL")}
+                                    >
+                                        전체
+                                    </button>
+                                    <button
+                                        className={`${styles.chip} ${activityCat === "SIGNUP" ? styles.chipActive : ""}`}
+                                        onClick={() => setActivityCat("SIGNUP")}
+                                    >
+                                        {CAT_LABELS.SIGNUP}
+                                    </button>
+                                    <button
+                                        className={`${styles.chip} ${activityCat === "QUOTE" ? styles.chipActive : ""}`}
+                                        onClick={() => setActivityCat("QUOTE")}
+                                    >
+                                        {CAT_LABELS.QUOTE}
+                                    </button>
+                                    <button
+                                        className={`${styles.chip} ${activityCat === "INQUIRY" ? styles.chipActive : ""}`}
+                                        onClick={() => setActivityCat("INQUIRY")}
+                                    >
+                                        {CAT_LABELS.INQUIRY}
+                                    </button>
+                                    <button
+                                        className={`${styles.chip} ${activityCat === "ORDER" ? styles.chipActive : ""}`}
+                                        onClick={() => setActivityCat("ORDER")}
+                                    >
+                                        {CAT_LABELS.ORDER}
+                                    </button>
+                                </div>
+
+                                <input
+                                    className={styles.searchInput}
+                                    placeholder="검색어를 입력하세요."
+                                    value={activityQuery}
+                                    onChange={(e) => setActivityQuery(e.target.value)}
+                                />
+                            </div>
+
+                            {/* 결과 리스트 */}
                             <div className={styles.allActivitiesList}>
-                                {recentActivities && recentActivities.length > 0 ? (
+                                {filteredActivities.length > 0 ? (
                                     <ul>
-                                        {recentActivities.map((activity, i) => (
-                                            <li key={i}>{activity}</li>
+                                        {filteredActivities.map((a, i) => (
+                                            <li key={i}>
+                                                {a.text}
+                                            </li>
                                         ))}
                                     </ul>
                                 ) : (
-                                    <p>활동내역이 없습니다.</p>
+                                    <p>해당 조건의 활동이 없습니다.</p>
                                 )}
                             </div>
+
                             <div className={styles.modalActions}>
                                 <button
                                     className={styles.cleanupBtn}
-                                    onClick={() => setShowAllActivities(false)}
+                                    onClick={() => {
+                                        setShowAllActivities(false);
+                                        setActivityQuery("");
+                                        setActivityCat("ALL");
+                                    }}
                                 >
                                     닫기
                                 </button>
@@ -283,7 +380,7 @@ function AdminDashboard() {
                     </div>
                 )}
 
-                {/* 회원 메모 전체보기 모달 */}
+                {/* 회원 메모 전체보기 모달 (기존 유지) */}
                 {showAllNotes && (
                     <div className={styles.modalOverlay}>
                         <div className={styles.modalContent}>
