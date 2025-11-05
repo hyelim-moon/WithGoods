@@ -198,6 +198,58 @@
     font-size: 18px;
 }
 
+/* Pagination Styles */
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 30px;
+    gap: 5px;
+}
+
+.paginationButton {
+    padding: 10px 15px;
+    border: 1px solid #ddd;
+    background-color: #f8f9fa;
+    color: #333;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    font-size: 1rem;
+    min-width: 40px;
+    text-align: center;
+}
+
+.paginationButton:hover:not(:disabled) {
+    background-color: #e9ecef;
+    border-color: #c0c0c0;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.paginationButton:disabled {
+    background-color: #e9ecef;
+    color: #adb5bd;
+    cursor: not-allowed;
+    border-color: #dee2e6;
+}
+
+.activePaginationButton {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0, 123, 255, 0.2);
+}
+
+.activePaginationButton:hover {
+    background-color: #0056b3;
+    border-color: #0056b3;
+}
+
+.activePaginationButton:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.5);
+}
+
 /* Coupon Distribution Modal Styles (kept for now) */
 .modalOverlay {
     position: fixed;
@@ -548,7 +600,7 @@
     margin-right: 1000px; /* 사이드 패널 너비만큼 메인 컨텐츠 이동 */
 }
 
-/* 기존 모달 관련 스타일 중 사용하지 않는 것들은 제거 */
+/* 기존 모달 관련 함수들 (하위 호환성) */
 .viewOrdersBtn {
     padding: 6px 12px;
     border: 1px solid #007bff;

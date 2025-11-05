@@ -61,6 +61,8 @@ function InquiryManagement() {
     const [filter, setFilter] = useState('ALL');
     const [searchTerm, setSearchTerm] = useState('');
     const [searchCondition, setSearchCondition] = useState('title'); // 검색 조건 추가
+    const [currentPage, setCurrentPage] = useState(1); // 현재 페이지 상태 추가
+    const [itemsPerPage] = useState(10); // 페이지당 항목 수
 
     const [showSidePanel, setShowSidePanel] = useState(false);
     const [sidePanelInquiry, setSidePanelInquiry] = useState(null);
@@ -92,7 +94,10 @@ function InquiryManagement() {
         }
     };
 
-    const handleFilterChange = (newFilter) => setFilter(newFilter);
+    const handleFilterChange = (newFilter) => {
+        setFilter(newFilter);
+        setCurrentPage(1); // 필터 변경 시 페이지 초기화
+    };
 
     const handleSaveAnswer = () => {
         if (!sidePanelInquiry) return;
@@ -140,32 +145,42 @@ function InquiryManagement() {
         return filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
     };
 
+    // 페이지 변경 핸들러
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
     const renderContent = () => {
         if (loading) {
             return <div className={memberStyles.loading}>문의 정보를 불러오는 중...</div>;
         }
 
         const filtered = filteredInquiries();
-        const allCount = inquiries.length;
-        const pendingCount = inquiries.filter(inq => inq.status === '답변 대기').length;
-        const answeredCount = inquiries.filter(inq => inq.status === '답변 완료').length;
-        const estimateCount = inquiries.filter(inq => inq.type === '견적문의').length;
+        const totalPages = Math.ceil(filtered.length / itemsPerPage);
+        const indexOfLastItem = currentPage * itemsPerPage;
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+        const currentItems = filtered.slice(indexOfFirstItem, indexOfLastItem);
+
+        const pageNumbers = [];
+        for (let i = 1; i <= totalPages; i++) {
+            pageNumbers.push(i);
+        }
 
         return (
             <div className="inquiry-content-wrapper">
                 {error && <div className={memberStyles.error}>{error}</div>}
                 <div className={memberStyles.statsContainer}>
                     <div className={`${memberStyles.statBox} ${filter === 'ALL' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('ALL')}>
-                        <h2>전체 문의</h2><p>{allCount}건</p>
+                        <h2>전체 문의</h2><p>{inquiries.length}건</p>
                     </div>
                     <div className={`${memberStyles.statBox} ${filter === 'PENDING' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('PENDING')}>
-                        <h2>답변 대기</h2><p>{pendingCount}건</p>
+                        <h2>답변 대기</h2><p>{inquiries.filter(inq => inq.status === '답변 대기').length}건</p>
                     </div>
                     <div className={`${memberStyles.statBox} ${filter === 'ANSWERED' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('ANSWERED')}>
-                        <h2>답변 완료</h2><p>{answeredCount}건</p>
+                        <h2>답변 완료</h2><p>{inquiries.filter(inq => inq.status === '답변 완료').length}건</p>
                     </div>
                     <div className={`${memberStyles.statBox} ${filter === 'ESTIMATE' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('ESTIMATE')}>
-                        <h2>견적 문의</h2><p>{estimateCount}건</p>
+                        <h2>견적 문의</h2><p>{inquiries.filter(inq => inq.type === '견적문의').length}건</p>
                     </div>
                 </div>
 
@@ -175,7 +190,7 @@ function InquiryManagement() {
                         <select
                             className={memberStyles.searchCondition}
                             value={searchCondition}
-                            onChange={(e) => setSearchCondition(e.target.value)}
+                            onChange={(e) => { setSearchCondition(e.target.value); setCurrentPage(1); }}
                         >
                             <option value="title">제목</option>
                             <option value="writer">작성자</option>
@@ -184,10 +199,10 @@ function InquiryManagement() {
                             type="text"
                             placeholder="검색어를 입력하세요"
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
                         />
                         <button
-                            onClick={() => { setSearchTerm(''); setFilter('ALL'); setSearchCondition('title'); }}
+                            onClick={() => { setSearchTerm(''); setFilter('ALL'); setSearchCondition('title'); setCurrentPage(1); }}
                             className={memberStyles.iconBtn}
                             aria-label="초기화"
                             title="초기화"
@@ -207,8 +222,8 @@ function InquiryManagement() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filtered.length > 0 ? (
-                                filtered.map(inquiry => (
+                            {currentItems.length > 0 ? (
+                                currentItems.map(inquiry => (
                                     <tr key={inquiry.id} className={memberStyles.memberRow} onClick={() => handleInquiryClick(inquiry)}>
                                         <td>{inquiry.id}</td>
                                         <td>{inquiry.title}</td>
@@ -224,6 +239,33 @@ function InquiryManagement() {
                             )}
                         </tbody>
                     </table>
+
+                {/* Pagination Controls */}
+                <div className={memberStyles.pagination} style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                    <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className={memberStyles.paginationButton}
+                    >
+                        이전
+                    </button>
+                    {pageNumbers.map(number => (
+                        <button
+                            key={number}
+                            onClick={() => handlePageChange(number)}
+                            className={`${memberStyles.paginationButton} ${currentPage === number ? memberStyles.activePaginationButton : ''}`}
+                        >
+                            {number}
+                        </button>
+                    ))}
+                    <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className={memberStyles.paginationButton}
+                    >
+                        다음
+                    </button>
+                </div>
                 </div>
             </div>
         );
