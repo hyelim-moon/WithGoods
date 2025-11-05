@@ -26,14 +26,10 @@ function EstimateManagement() {
         setError(null);
         try {
             const response = await axios.get('/inquiries', { params: { category: 'estimate' } });
-
-            // ✅ 백엔드 기본 주소 (본인 서버 주소로 변경)
             const baseURL = "http://localhost:8080";
 
             const fetchedEstimates = (response.data || []).map(e => {
                 let imageUrl = e.designFileUrl || "";
-
-                // ✅ designFileUrl이 상대경로(`/uploads/...`)라면 절대경로로 변환
                 if (imageUrl && !imageUrl.startsWith("http")) {
                     imageUrl = `${baseURL}${imageUrl.startsWith("/") ? imageUrl : "/" + imageUrl}`;
                 }
@@ -47,13 +43,12 @@ function EstimateManagement() {
                     product: e.product || '-',
                     quantity: e.quantity || '-',
                     message: e.message || '-',
-                    designFileUrl: imageUrl, // ✅ 수정된 부분
-                    status: mapStatus(e),
-                    answer: e.answer || ''
+                    designFileUrl: imageUrl,
+                    status: mapStatus(e.status),
+                    answer: e.answer || '',
+                    adminNote: e.adminNote || ''
                 };
             });
-
-            console.log("✅ fetchedEstimates:", fetchedEstimates); // ← 디버깅용
 
             setEstimates(fetchedEstimates);
         } catch (e) {
@@ -64,11 +59,39 @@ function EstimateManagement() {
         }
     };
 
+    const mapStatus = (status) => {
+        if (!status) return '검토중';
+        const normalized = status.trim().toUpperCase();
+        switch (normalized) {
+            case 'PENDING': return '검토중';
+            case 'APPROVED': return '승인';
+            case 'REJECTED': return '거절';
+            default: return '검토중';
+        }
+    };
 
-    const mapStatus = (estimate) => {
-        if (estimate.answer) return '승인';
-        if (!estimate.answer) return '검토중';
-        return '상태 정보 없음';
+    const handleApprove = async (estimate) => {
+        try {
+            await axios.put(`/inquiries/${estimate.id}/approved`);
+            alert("견적이 승인되었습니다.");
+            fetchEstimates();
+            setShowSidePanel(false);
+        } catch (err) {
+            console.error(err);
+            alert("승인 중 오류가 발생했습니다.");
+        }
+    };
+
+    const handleReject = async (estimate) => {
+        try {
+            await axios.put(`/inquiries/${estimate.id}/rejected`);
+            alert("견적이 거절되었습니다.");
+            fetchEstimates();
+            setShowSidePanel(false);
+        } catch (err) {
+            console.error(err);
+            alert("거절 중 오류가 발생했습니다.");
+        }
     };
 
     const handleEstimateClick = (estimate) => {
@@ -81,7 +104,6 @@ function EstimateManagement() {
     const filteredEstimates = () => {
         let filtered = estimates;
         if (filter === 'PENDING') filtered = filtered.filter(e => e.status === '검토중');
-        if (filter === 'IN_PROGRESS') filtered = filtered.filter(e => e.status === '진행중');
         if (filter === 'APPROVED') filtered = filtered.filter(e => e.status === '승인');
         if (filter === 'REJECTED') filtered = filtered.filter(e => e.status === '거절');
         return filtered.sort((a, b) => new Date(b.requestDate) - new Date(a.requestDate));
@@ -95,7 +117,6 @@ function EstimateManagement() {
         const stats = {
             total: estimates.length,
             PENDING: estimates.filter(e => e.status === '검토중').length,
-            IN_PROGRESS: estimates.filter(e => e.status === '진행중').length,
             APPROVED: estimates.filter(e => e.status === '승인').length,
             REJECTED: estimates.filter(e => e.status === '거절').length,
         };
@@ -108,9 +129,6 @@ function EstimateManagement() {
                     </div>
                     <div className={`${memberStyles.statBox} ${filter === 'PENDING' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('PENDING')}>
                         <h2>검토중</h2><p>{stats.PENDING}건</p>
-                    </div>
-                    <div className={`${memberStyles.statBox} ${filter === 'IN_PROGRESS' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('IN_PROGRESS')}>
-                        <h2>진행중</h2><p>{stats.IN_PROGRESS}건</p>
                     </div>
                     <div className={`${memberStyles.statBox} ${filter === 'APPROVED' ? memberStyles.activeStatBox : ''}`} onClick={() => handleFilterChange('APPROVED')}>
                         <h2>승인</h2><p>{stats.APPROVED}건</p>
@@ -161,10 +179,10 @@ function EstimateManagement() {
                 <header className={styles.header}>
                     <div className={styles.headerTitle}>견적 관리</div>
                     <div className={styles.headerActions}>
-                        <button className={styles.iconBtn} aria-label="새로고침" onClick={fetchEstimates} title="새로고침">
+                        <button className={styles.iconBtn} onClick={fetchEstimates} title="새로고침">
                             <FiRefreshCw />
                         </button>
-                        <button className={styles.iconBtn} aria-label="알림">
+                        <button className={styles.iconBtn}>
                             <FiBell />
                         </button>
                     </div>
@@ -214,8 +232,6 @@ function EstimateManagement() {
                                                 maxHeight: '250px',
                                                 objectFit: 'contain',
                                                 borderRadius: '4px',
-                                                display: 'block',
-                                                marginTop: '5px',
                                                 border: '1px solid #ddd',
                                                 padding: '2px',
                                                 background: '#fff'
@@ -226,17 +242,120 @@ function EstimateManagement() {
                             )}
 
                             <div className={orderStyles.detailLabel}>문의일</div>
-                            <div className={orderStyles.detailValue}>{selectedEstimate.requestDate ? new Date(selectedEstimate.requestDate).toLocaleString() : '-'}</div>
+                            <div className={orderStyles.detailValue}>
+                                {selectedEstimate.requestDate ? new Date(selectedEstimate.requestDate).toLocaleString() : '-'}
+                            </div>
 
                             <div className={orderStyles.detailLabel}>상태</div>
                             <div className={orderStyles.detailValue}>{selectedEstimate.status}</div>
 
-                            {selectedEstimate.answer && (
-                                <>
-                                    <div className={orderStyles.detailLabel}>답변 내용</div>
-                                    <div className={orderStyles.detailValue}>{selectedEstimate.answer}</div>
-                                </>
-                            )}
+                            {/* ✅ 관리자 노트 */}
+                            <div
+                                style={{
+                                    gridColumn: "1 / span 2",
+                                    marginTop: "10px",
+                                    display: "flex",
+                                    gap: "6px",
+                                }}
+                            >
+                                <div className={orderStyles.detailLabel}
+                                     style={{
+                                    whiteSpace: 'nowrap',
+                                    color: '#333'
+                                }}>관리자 노트</div>
+                                <textarea
+                                    id="adminNote"
+                                    value={selectedEstimate.adminNote || ""}
+                                    onChange={(e) => {
+                                        setSelectedEstimate({
+                                            ...selectedEstimate,
+                                            adminNote: e.target.value
+                                        });
+                                    }}
+                                    placeholder="관리자 메모를 입력하세요"
+                                    style={{
+                                        width: '100%',
+                                        minHeight: '80px',
+                                        padding: '6px',
+                                        borderRadius: '4px',
+                                        border: '1px solid #ccc',
+                                        resize: 'vertical',
+                                        marginLeft: '50px'
+                                    }}
+                                />
+
+                            </div>
+
+                            <div style={{
+                                gridColumn: "1 / span 2",
+                                display: "flex",
+                                justifyContent: "flex-end",
+                                marginTop: "6px"
+                            }}>
+                                <button
+                                    onClick={async () => {
+                                        try {
+                                            await axios.put(`/inquiries/${selectedEstimate.id}/admin-note`, {
+                                                adminNote: selectedEstimate.adminNote
+                                            });
+                                            alert("관리자 노트가 저장되었습니다.");
+                                        } catch (err) {
+                                            console.error(err);
+                                            alert("저장 중 오류가 발생했습니다.");
+                                        }
+                                    }}
+                                    style={{
+                                        backgroundColor: '#007BFF',
+                                        color: '#fff',
+                                        border: 'none',
+                                        padding: '8px 14px',
+                                        borderRadius: '6px',
+                                        cursor: 'pointer',
+                                        alignSelf: "flex-end",
+                                        textAlign: 'right'
+                                    }}
+                                >
+                                    저장
+                                </button>
+                            </div>
+
+                            {/* ✅ 승인/거절 버튼 */}
+                            <div
+                                style={{
+                                    gridColumn: "1 / span 2",
+                                    display: "flex",
+                                    justifyContent: "flex-end",
+                                    gap: "10px",
+                                    marginTop: "10px",
+                                }}
+                            >
+                                <button
+                                    onClick={() => handleApprove(selectedEstimate)}
+                                    style={{
+                                        backgroundColor: "#4CAF50",
+                                        color: "#fff",
+                                        border: "none",
+                                        padding: "8px 14px",
+                                        borderRadius: "6px",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    승인
+                                </button>
+                                <button
+                                    onClick={() => handleReject(selectedEstimate)}
+                                    style={{
+                                        backgroundColor: "#f44336",
+                                        color: "#fff",
+                                        border: "none",
+                                        padding: "8px 14px",
+                                        borderRadius: "6px",
+                                        cursor: "pointer",
+                                    }}
+                                >
+                                    거절
+                                </button>
+                            </div>
                         </div>
                     ) : (
                         <p>선택된 견적 정보가 없습니다.</p>
