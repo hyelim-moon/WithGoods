@@ -9,7 +9,8 @@ function MainContent() {
         best: [],
         anniversary: [],
         custom: [],
-        limited: []
+        limited: [],
+        normal: []
     });
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -38,6 +39,12 @@ function MainContent() {
                 });
                 const limitedProducts = limitedResponse.data;
 
+                // 일반 상품 가져오기
+                const normalResponse = await axios.get('http://localhost:8080/products/normal', {
+                    withCredentials: true
+                });
+                const normalProducts = normalResponse.data;
+
                 // 커스텀 상품은 일반 상품 중 CUSTOM role을 가진 상품
                 const customProducts = allProducts.filter(product => product.role === 'CUSTOM');
 
@@ -51,7 +58,8 @@ function MainContent() {
                     best: bestProducts,
                     anniversary: anniversaryProducts.slice(0, 5),
                     custom: customProducts.slice(0, 5),
-                    limited: limitedProducts.slice(0, 5)
+                    limited: limitedProducts.slice(0, 5),
+                    normal: normalProducts.slice(0, 5)
                 });
 
                 setError(null);
@@ -92,9 +100,9 @@ function MainContent() {
         { 
             title: '일반',
             icon: '⭐', 
-            route: '/best', 
+            route: '/normal', 
             emoji: '🧸',
-            products: products.best 
+            products: products.normal 
         }
     ];
 

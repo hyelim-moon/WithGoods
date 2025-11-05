@@ -189,6 +189,12 @@ function AdminDashboard() {
 
                 {/* Top stats */}
                 <section className={styles.statsGrid}>
+                    <StatCard
+                        title="이번 달 매출"
+                        value={`₩${dashboardData.monthlyRevenue.toLocaleString()}`}
+                        icon={<FiCreditCard />}
+                        onClick={() => navigate("/admin/orders")}
+                    />
                     <StatCard 
                         title="총 회원 수" 
                         value={dashboardData.totalMembers.toLocaleString()} 
@@ -198,17 +204,19 @@ function AdminDashboard() {
                     <StatCard 
                         title="이번 달 주문" 
                         value={dashboardData.monthlyOrders.toLocaleString()} 
-                        icon={<FiShoppingCart />} 
+                        icon={<FiShoppingCart />}
+                        onClick={() => navigate("/admin/orders")}
                     />
                     <StatCard 
                         title="총 상품 수" 
                         value={dashboardData.totalProducts.toLocaleString()} 
-                        icon={<FiBox />} 
+                        icon={<FiBox />}
+                        onClick={() => navigate("/admin/products")}
                     />
-                    <StatCard 
-                        title="이번 달 매출" 
-                        value={`₩${dashboardData.monthlyRevenue.toLocaleString()}`} 
-                        icon={<FiCreditCard />} 
+                    <StatCard
+                        title="방문자 수"
+                        value={dashboardData.visitors.toLocaleString()}
+                        icon={<FiTrendingUp />}
                     />
                 </section>
 
@@ -220,10 +228,14 @@ function AdminDashboard() {
 
                 {/* Bottom */}
                 <section className={styles.bottomGrid}>
-                    <SmallCard title="방문자 수" value={dashboardData.visitors.toLocaleString()} icon={<FiTrendingUp />} />
-                    <SmallCard title="취소/반품율" value={dashboardData.cancelRate} icon={<FiPercent />} />
+                    {/*<SmallCard title="방문자 수" value={dashboardData.visitors.toLocaleString()} icon={<FiTrendingUp />} />*/}
+                    {/*<SmallCard title="취소/반품율" value={dashboardData.cancelRate} icon={<FiPercent />} />*/}
                     <RecentActivity 
                         activities={recentActivities} 
+                        onViewAll={() => setShowAllActivities(true)}
+                    />
+                    <RecentActivity
+                        activities={recentActivities}
                         onViewAll={() => setShowAllActivities(true)}
                     />
                 </section>

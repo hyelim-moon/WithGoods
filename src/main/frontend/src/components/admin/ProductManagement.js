@@ -1,85 +1,34 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import axios from 'axios';
+
 import styles from "../../assets/styles/admin/AdminDashboard.module.css";
 import productStyles from "../../assets/styles/admin/ProductManagement.module.css";
-import memberStyles from "../../assets/styles/admin/MemberManagement.module.css"; // 통계 박스 재사용
+import memberStyles from "../../assets/styles/admin/MemberManagement.module.css";
+import orderStyles from "../../assets/styles/admin/AdminOrderManagement.module.css";
+
+import {
+    ResponsiveContainer,
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    BarChart,
+    Bar,
+    Legend,
+} from "recharts";
+
 import { FiBell, FiRefreshCw, FiX, FiEdit, FiTrash2 } from "react-icons/fi";
 import Sidebar from "./Sidebar";
-import orderStyles from "../../assets/styles/admin/AdminOrderManagement.module.css";
-import {ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, BarChart, Bar, Legend} from "recharts";
 
+const API_BASE_URL = 'http://localhost:8080';
 const LOW_STOCK_THRESHOLD = 10;
-
-// Dummy (imageUrl 포함)
-const dummyProducts = [
-    {
-        id: "PROD-001",
-        name: "커스텀 머그컵",
-        category: "커스텀 상품",
-        price: 15000,
-        stockQuantity: 50,
-        status: "IN_STOCK",
-        createdAt: "2023-01-10T10:00:00",
-        imageUrl:
-            "https://images.unsplash.com/photo-1520975922284-9d06aeb586d2?q=80&w=400&auto=format&fit=crop",
-    },
-    {
-        id: "PROD-002",
-        name: "한정판 아트 프린트",
-        category: "한정판",
-        price: 120000,
-        stockQuantity: 5,
-        status: "LOW_STOCK",
-        createdAt: "2023-02-15T11:30:00",
-        imageUrl:
-            "https://images.unsplash.com/photo-1526318472351-c75fcf070305?q=80&w=400&auto=format&fit=crop",
-    },
-    {
-        id: "PROD-003",
-        name: "기념일 케이크 토퍼",
-        category: "기념일 상품",
-        price: 25000,
-        stockQuantity: 0,
-        status: "OUT_OF_STOCK",
-        createdAt: "2023-03-20T14:00:00",
-        imageUrl:
-            "https://images.unsplash.com/photo-1541781774459-bb2af2f05b55?q=80&w=400&auto=format&fit=crop",
-    },
-    {
-        id: "PROD-004",
-        name: "DIY 팔찌 키트",
-        category: "일반 상품",
-        price: 18000,
-        stockQuantity: 20,
-        status: "IN_STOCK",
-        createdAt: "2023-04-01T09:00:00",
-        imageUrl:
-            "https://images.unsplash.com/photo-1519681393784-d120267933ba?q=80&w=400&auto=format&fit=crop",
-    },
-    {
-        id: "PROD-005",
-        name: "주문제작 폰케이스",
-        category: "커스텀 상품",
-        price: 30000,
-        stockQuantity: 8,
-        status: "LOW_STOCK",
-        createdAt: "2023-05-05T16:00:00",
-        imageUrl:
-            "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?q=80&w=400&auto=format&fit=crop",
-    },
-    {
-        id: "PROD-006",
-        name: "품절된 상품 예시",
-        category: "일반 상품",
-        price: 5000,
-        stockQuantity: 0,
-        status: "OUT_OF_STOCK",
-        createdAt: "2023-06-10T13:00:00",
-    },
-];
 
 function ProductManagement() {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -99,38 +48,111 @@ function ProductManagement() {
 
     // 상세 패널
     const [selectedProduct, setSelectedProduct] = useState(null);
-    const [activeDetailTab, setActiveDetailTab] = useState("analytics"); // analytics | stock | reviews | orders
+    const [activeDetailTab, setActiveDetailTab] = useState("analytics"); // "analytics" | "stock" | "reviews" | "orders"
 
     useEffect(() => {
-        const fetched = dummyProducts.map((p) => ({
-            ...p,
-            status:
-                p.stockQuantity > LOW_STOCK_THRESHOLD
-                    ? "IN_STOCK"
-                    : p.stockQuantity > 0
-                        ? "LOW_STOCK"
-                        : "OUT_OF_STOCK",
-        }));
-        setProducts(fetched);
-        setStats({
-            total: fetched.length,
-            inStock: fetched.filter((p) => p.status === "IN_STOCK").length,
-            lowStock: fetched.filter((p) => p.status === "LOW_STOCK").length,
-            outOfStock: fetched.filter((p) => p.status === "OUT_OF_STOCK").length,
-        });
-        setLoading(false);
+        const fetchProducts = async () => {
+            try {
+                setLoading(true);
+                const response = await axios.get(`${API_BASE_URL}/products`, { withCredentials: true });
+                const fetched = response.data.map((p) => ({
+                    ...p,
+                    id: p.productId, // id 필드 추가
+                    stockQuantity: p.stock, // stockQuantity 필드 추가
+                    status:
+                        (p.stock ?? 0) > LOW_STOCK_THRESHOLD
+                            ? "IN_STOCK"
+                            : (p.stock ?? 0) > 0
+                                ? "LOW_STOCK"
+                                : "OUT_OF_STOCK",
+                }));
+
+                setProducts(fetched);
+                setStats({
+                    total: fetched.length,
+                    inStock: fetched.filter((p) => p.status === "IN_STOCK").length,
+                    lowStock: fetched.filter((p) => p.status === "LOW_STOCK").length,
+                    outOfStock: fetched.filter((p) => p.status === "OUT_OF_STOCK").length,
+                });
+                setError(null);
+            } catch (err) {
+                setError('상품 정보를 불러오는데 실패했습니다.');
+                console.error('상품 로딩 에러:', err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchProducts();
     }, []);
 
-    // tbody 행 클릭 → 상세 패널 열기
-    const openDetail = useCallback((p) => {
-        setSelectedProduct(p);
-        setActiveDetailTab("analytics");
-        // ESC로 닫기
-        const onKey = (e) => e.key === "Escape" && setSelectedProduct(null);
-        window.addEventListener("keydown", onKey);
-        return () => window.removeEventListener("keydown", onKey);
-    }, []);
-    const closeDetail = () => setSelectedProduct(null);
+    // URL 쿼리 제거하며 닫기
+    const closeDetail = useCallback(() => {
+        setSelectedProduct(null);
+        const params = new URLSearchParams(location.search);
+        params.delete("open");
+        params.delete("tab");
+        navigate(
+            { pathname: location.pathname, search: params.toString() },
+            { replace: true }
+        );
+    }, [location, navigate]);
+
+    // 탭 변경 시 URL 동기화
+    const handleTabChange = useCallback(
+        (nextTab) => {
+            setActiveDetailTab(nextTab);
+            const params = new URLSearchParams(location.search);
+            if (selectedProduct) {
+                params.set("open", selectedProduct.id);
+                params.set("tab", nextTab);
+            } else {
+                params.delete("open");
+                params.delete("tab");
+            }
+            navigate(
+                { pathname: location.pathname, search: params.toString() },
+                { replace: true }
+            );
+        },
+        [location, navigate, selectedProduct]
+    );
+
+    // 행 클릭 → 상세 패널 열고 URL에 ?open & ?tab 반영
+    const openDetail = useCallback(
+        (p, nextTab = "analytics") => {
+            setSelectedProduct(p);
+            setActiveDetailTab(nextTab);
+
+            const params = new URLSearchParams(location.search);
+            params.set("open", p.id);
+            params.set("tab", nextTab);
+            navigate(
+                { pathname: location.pathname, search: params.toString() },
+                { replace: true }
+            );
+
+            const onKey = (e) => {
+                if (e.key === "Escape") closeDetail();
+            };
+            window.addEventListener("keydown", onKey, { once: true });
+        },
+        [navigate, location, closeDetail]
+    );
+
+    // 진입 시 쿼리 읽어 자동으로 드로어 열기
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const openId = params.get("open");
+        const tab = params.get("tab") || "analytics";
+        if (!openId || !products.length) return;
+
+        const target = products.find((p) => String(p.id) === String(openId));
+        if (target) {
+            setSelectedProduct(target);
+            setActiveDetailTab(tab);
+        }
+    }, [location.search, products]);
 
     const getStatusLabel = (status) => {
         switch (status) {
@@ -151,7 +173,7 @@ function ProductManagement() {
         switch (searchCondition) {
             case "productId":
                 return "상품ID를 입력하세요";
-            case "productname": // ✅ 오타 통일
+            case "productname":
                 return "상품명을 입력하세요";
             case "category":
                 return "카테고리를 입력하세요";
@@ -161,12 +183,12 @@ function ProductManagement() {
     }, [searchCondition]);
 
     const filteredProducts = useMemo(() => {
-        let temp =
+        const base =
             filter === "ALL" ? products : products.filter((p) => p.status === filter);
         const term = searchTerm.trim().toLowerCase();
-        if (!term) return temp;
+        if (!term) return base;
 
-        return temp.filter((p) => {
+        return base.filter((p) => {
             if (searchCondition === "productId")
                 return String(p.id).toLowerCase().includes(term);
             if (searchCondition === "productname")
@@ -177,46 +199,126 @@ function ProductManagement() {
         });
     }, [products, filter, searchTerm, searchCondition]);
 
-    const getThumbUrl = (p) =>
-        p.imageUrl ||
-        p.thumbnailUrl ||
-        (p.image && (p.image.url || p.image.small || p.image.thumb)) ||
-        null;
+    const getThumbUrl = (p) => {
+        let url = p.imageUrl || p.thumbnailUrl || (p.image && (p.image.url || p.image.small || p.image.thumb)) || null;
+        if (url && !url.startsWith('http')) {
+            return `${API_BASE_URL}${url}`;
+        }
+        return url;
+    };
 
-    // 상세 패널용 임시 지표 (데모)
+    // ===== 유틸 =====
+    const fmtDate = (v) => {
+        if (!v) return "-";
+        if (/^\d{4}-\d{2}-\d{2}$/.test(v)) return v; // LocalDate 그대로
+        const d = new Date(v);
+        return isNaN(d.getTime()) ? String(v) : d.toLocaleDateString();
+    };
+    const fmtPeriod = (s, e) => (s || e ? `${fmtDate(s)} ~ ${fmtDate(e)}` : "-");
+
+    const safeParseJSON = (raw) => {
+        try {
+            if (!raw) return null;
+            const parsed = JSON.parse(raw);
+            return parsed;
+        } catch {
+            return null;
+        }
+    };
+
+    const groupOptionsByName = (options) => {
+        if (!Array.isArray(options) || options.length === 0) return {};
+        const map = {};
+        options.forEach((o) => {
+            const name = String(o?.optionName ?? "옵션").trim();
+            const value = String(o?.optionValue ?? "").trim();
+            const price = Number(o?.price ?? 0);
+            if (!map[name]) map[name] = [];
+            map[name].push({ value, price });
+        });
+        return map;
+    };
+
+    // 상세 지표 (데모)
     const makeDemoMetrics = (p) => {
         const seed = Number(String(p.id).replace(/\D/g, "").slice(-2) || 7);
         const totalQty = (seed % 9) * 5 + 5; // 5~45
         const revenue = totalQty * p.price;
-        const rating = ((seed % 5) + 1) - 0.7; // 0.3~4.3 (데모)
+        const baseRating = (seed % 5) + 1 - 0.7; // 0.3~4.3
+        const rating = Math.max(3.5, Math.min(5, baseRating + 0.8)); // 3.5~5.0
         const reorder = ((seed * 3) % 40) + 5; // 5~44
         return {
             totalQty,
             revenue,
-            rating: Math.max(3.5, Math.min(5, rating + 0.8)).toFixed(1),
+            rating: rating.toFixed(1),
             reorderRate: `${Math.min(95, reorder)}%`,
         };
     };
-    // 월별 판매량/매출 더미 시계열(최근 6개월)
+
+    // 최근 6개월 시계열
     const makeMonthlySeries = (p) => {
         const seed = Number(String(p.id).replace(/\D/g, "").slice(-2) || 7);
-        const months = Array.from({ length: 6 }, (_, i) => {
+        return Array.from({ length: 6 }, (_, i) => {
             const d = new Date();
             d.setMonth(d.getMonth() - (5 - i));
             const label = `${d.getMonth() + 1}월`;
-            // 간단한 난수성 패턴
-            const qty = ((seed + i * 3) % 15) + 1;      // 1~15
+            const qty = ((seed + i * 3) % 15) + 1;
             const revenue = qty * p.price;
             return { month: label, qty, revenue };
         });
-        return months;
+    };
+
+    // productType 배지/텍스트
+    const getTypeTextUpper = (p) => {
+        const raw =
+            (p.productType && String(p.productType).toLowerCase()) ||
+            (p.role && String(p.role).toLowerCase()) ||
+            "normal";
+        switch (raw) {
+            case "normal":
+                return "NORMAL";
+            case "custom":
+                return "CUSTOM";
+            case "limited":
+                return "LIMITED";
+            case "anniversary":
+                return "ANNIVERSARY";
+            default:
+                return String(raw).toUpperCase();
+        }
     };
 
     const renderDetailPanel = () => {
         if (!selectedProduct) return null;
+
         const p = selectedProduct;
         const thumb = getThumbUrl(p);
         const m = makeDemoMetrics(p);
+        const series = makeMonthlySeries(p);
+
+        // 재고
+        const stockNum = Number(p.stockQuantity ?? p.stock ?? 0);
+
+        // 할인/최종가 계산
+        const hasDiscount = Boolean(p?.hasDiscount) && Number(p?.discountRate) > 0;
+        const discountRate = Math.max(0, Number(p?.discountRate || 0));
+        const finalPrice = hasDiscount
+            ? Math.round((Number(p.price) * (100 - discountRate)) / 100)
+            : Number(p.price);
+
+        // 옵션 그룹핑
+        const optionGroups = groupOptionsByName(p?.options);
+        const hasOptions = Object.keys(optionGroups).length > 0;
+
+        // 추가 이미지 수
+        const additionalImages = safeParseJSON(p?.additionalImagesJson);
+        const additionalCount = Array.isArray(additionalImages)
+            ? additionalImages.length
+            : 0;
+
+        const typeTextUpper = getTypeTextUpper(p);
+        const roleClass =
+            productStyles[`role_${typeTextUpper}`] || productStyles.role_DEFAULT;
 
         return (
             <>
@@ -224,162 +326,280 @@ function ProductManagement() {
                 <aside className={productStyles.detailPanel} role="dialog" aria-modal="true">
                     <header className={productStyles.detailHeader}>
                         <h4>상품 상세</h4>
-                        <button
-                            className={productStyles.closeBtn}
-                            aria-label="닫기"
-                            onClick={closeDetail}
-                        >
+                        <button className={productStyles.closeBtn} aria-label="닫기" onClick={closeDetail}>
                             <FiX />
                         </button>
                     </header>
 
-                    {/* 상단 정보 블록 */}
-                    <section className={productStyles.detailTop}>
-                        <div className={productStyles.detailImageCard}>
-                            {thumb ? (
-                                <img
-                                    src={thumb}
-                                    alt={`${p.name} 이미지`}
-                                    className={productStyles.detailThumb}
-                                    loading="lazy"
-                                />
-                            ) : (
-                                <div className={productStyles.detailThumbPlaceholder}>
-                                    {(p.name || "•").charAt(0).toUpperCase()}
+                    <div className={productStyles.detailBody}>
+                        {/* 상단 정보 */}
+                        <section className={productStyles.detailTop}>
+                            <div className={productStyles.detailImageCard}>
+                                {thumb ? (
+                                    <img
+                                        src={thumb}
+                                        alt={`${p.name} 이미지`}
+                                        className={productStyles.detailThumb}
+                                        loading="lazy"
+                                    />
+                                ) : (
+                                    <div className={productStyles.detailThumbPlaceholder}>
+                                        {(p.name || "•").charAt(0).toUpperCase()}
+                                    </div>
+                                )}
+
+                                <div className={productStyles.detailStatusRow}>
+                  <span className={productStyles.detailName} title={p.name}>
+                    {p.name}
+                  </span>
+                                    <span
+                                        className={`${productStyles.badge} ${
+                                            productStyles[`badge_${p.status}`] || ""
+                                        }`}
+                                    >
+                    {getStatusLabel(p.status)}
+                  </span>
+                                </div>
+
+                                <div className={productStyles.skuLine}>SKU: {p.id}</div>
+                            </div>
+
+                            <div className={productStyles.detailInfoCard}>
+                                <dl>
+                                    <div>
+                                        <dt>카테고리</dt>
+                                        <dd>{p.category || "-"}</dd>
+                                    </div>
+
+                                    <div>
+                                        <dt>판매가</dt>
+                                        <dd>
+                                            <div className={productStyles.priceBox}>
+                                                {hasDiscount && (
+                                                    <span className={productStyles.discountBadge}>
+                            -{discountRate}%
+                          </span>
+                                                )}
+                                                {hasDiscount ? (
+                                                    <>
+                            <span className={productStyles.originalPrice}>
+                              {Number(p.price).toLocaleString()}원
+                            </span>
+                                                        <span className={productStyles.salePrice}>
+                              {finalPrice.toLocaleString()}원
+                            </span>
+                                                    </>
+                                                ) : (
+                                                    <span className={productStyles.salePrice}>
+                            {Number(p.price).toLocaleString()}원
+                          </span>
+                                                )}
+                                            </div>
+                                        </dd>
+                                    </div>
+
+                                    <div>
+                                        <dt>현재재고</dt>
+                                        <dd>
+                                            {stockNum}개
+                                            {stockNum <= LOW_STOCK_THRESHOLD && stockNum > 0 && (
+                                                <span className={productStyles.stockWarn}> (재고 부족)</span>
+                                            )}
+                                        </dd>
+                                    </div>
+
+                                    <div>
+                                        <dt>등록일</dt>
+                                        <dd>{fmtDate(p.createdAt)}</dd>
+                                    </div>
+
+                                    <div>
+                                        <dt>판매기간</dt>
+                                        <dd>{fmtPeriod(p?.startDate, p?.endDate)}</dd>
+                                    </div>
+
+                                    <div>
+                                        <dt>상품 유형</dt>
+                                        <dd>
+                      <span className={`${productStyles.roleBadge} ${roleClass}`}>
+                        {typeTextUpper}
+                      </span>
+                                        </dd>
+                                    </div>
+
+                                    <div>
+                                        <dt>평점</dt>
+                                        <dd>{p?.rating ? `${Number(p.rating).toFixed(1)}/5` : "-"}</dd>
+                                    </div>
+
+                                    <div>
+                                        <dt>리뷰</dt>
+                                        <dd>{p?.reviewCount ?? 0}개</dd>
+                                    </div>
+
+                                    <div>
+                                        <dt>추가 이미지</dt>
+                                        <dd>{additionalCount}장</dd>
+                                    </div>
+
+                                    <div className={productStyles.colSpan2}>
+                                        <dt>상품 설명</dt>
+                                        <dd>{p.description || "-"}</dd>
+                                    </div>
+                                </dl>
+
+                                {/* 옵션 섹션 */}
+                                <div className={productStyles.optionSection}>
+                                    <div className={productStyles.sectionTitle}>옵션</div>
+                                    {hasOptions ? (
+                                        Object.entries(optionGroups).map(([name, items]) => (
+                                            <div className={productStyles.optionGroup} key={name}>
+                                                <div className={productStyles.optionName}>{name}</div>
+                                                <div className={productStyles.chips}>
+                                                    {items.map((it, idx) => (
+                                                        <span className={productStyles.chip} key={`${name}-${idx}`}>
+                              {it.value}
+                                                            {Number(it.price) > 0 &&
+                                                                ` (+${Number(it.price).toLocaleString()}원)`}
+                            </span>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <div className={productStyles.muted}>등록된 옵션이 없습니다.</div>
+                                    )}
+                                </div>
+
+                                <div className={productStyles.detailActions}>
+                                    <button
+                                        className={productStyles.secondaryBtn}
+                                        onClick={() => navigate(`/product/edit/${p.id}`)}
+                                    >
+                                        <FiEdit /> 수정
+                                    </button>
+                                    <button className={productStyles.dangerGhostBtn}>
+                                        <FiTrash2 /> 삭제
+                                    </button>
+                                </div>
+                            </div>
+                        </section>
+
+                        {/* 탭 */}
+                        <nav className={productStyles.tabBar} aria-label="상세 탭">
+                            <button
+                                className={`${productStyles.tabBtn} ${
+                                    activeDetailTab === "analytics" ? productStyles.activeTab : ""
+                                }`}
+                                onClick={() => handleTabChange("analytics")}
+                            >
+                                판매 분석
+                            </button>
+                            <button
+                                className={`${productStyles.tabBtn} ${
+                                    activeDetailTab === "stock" ? productStyles.activeTab : ""
+                                }`}
+                                onClick={() => handleTabChange("stock")}
+                            >
+                                재고 이력
+                            </button>
+                            <button
+                                className={`${productStyles.tabBtn} ${
+                                    activeDetailTab === "reviews" ? productStyles.activeTab : ""
+                                }`}
+                                onClick={() => handleTabChange("reviews")}
+                            >
+                                고객 리뷰
+                            </button>
+                            <button
+                                className={`${productStyles.tabBtn} ${
+                                    activeDetailTab === "orders" ? productStyles.activeTab : ""
+                                }`}
+                                onClick={() => handleTabChange("orders")}
+                            >
+                                주문 내역
+                            </button>
+                        </nav>
+
+                        {/* 요약 카드 */}
+                        <section className={productStyles.summaryGrid}>
+                            <div className={productStyles.summaryCard}>
+                                <span className={productStyles.summaryTitle}>총 판매량</span>
+                                <strong className={productStyles.summaryValue}>{m.totalQty}</strong>
+                            </div>
+                            <div className={productStyles.summaryCard}>
+                                <span className={productStyles.summaryTitle}>매출</span>
+                                <strong className={productStyles.summaryValue}>
+                                    {Number(m.revenue).toLocaleString()}원
+                                </strong>
+                            </div>
+                            <div className={productStyles.summaryCard}>
+                                <span className={productStyles.summaryTitle}>평점</span>
+                                <strong className={productStyles.summaryValue}>{m.rating}/5</strong>
+                            </div>
+                            <div className={productStyles.summaryCard}>
+                                <span className={productStyles.summaryTitle}>재주문율</span>
+                                <strong className={productStyles.summaryValue}>{m.reorderRate}</strong>
+                            </div>
+                        </section>
+
+                        {/* 탭 컨텐츠 */}
+                        <section className={productStyles.tabPanel}>
+                            {activeDetailTab === "analytics" && (
+                                <div className={productStyles.chartGrid}>
+                                    {/* 꺾은선 그래프: 월별 판매량 */}
+                                    <div
+                                        className={productStyles.chartCard}
+                                        role="region"
+                                        aria-label="월별 판매량 추이"
+                                    >
+                                        <div className={productStyles.chartTitle}>월별 판매량</div>
+                                        <ResponsiveContainer width="100%" height={280}>
+                                            <LineChart data={series} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+                                                <CartesianGrid strokeDasharray="3 3" />
+                                                <XAxis dataKey="month" />
+                                                <YAxis allowDecimals={false} />
+                                                <Tooltip />
+                                                <Legend />
+                                                <Line
+                                                    type="monotone"
+                                                    dataKey="qty"
+                                                    name="판매량"
+                                                    strokeWidth={2}
+                                                    activeDot={{ r: 6 }}
+                                                />
+                                            </LineChart>
+                                        </ResponsiveContainer>
+                                    </div>
+
+                                    {/* 막대 그래프: 월별 매출 */}
+                                    <div className={productStyles.chartCard} role="region" aria-label="월별 매출">
+                                        <div className={productStyles.chartTitle}>월별 매출</div>
+                                        <ResponsiveContainer width="100%" height={280}>
+                                            <BarChart data={series} margin={{ top: 8, right: 16, bottom: 0, left: 0 }}>
+                                                <CartesianGrid strokeDasharray="3 3" />
+                                                <XAxis dataKey="month" />
+                                                <YAxis tickFormatter={(v) => Number(v).toLocaleString()} />
+                                                <Tooltip formatter={(v) => `${Number(v).toLocaleString()}원`} />
+                                                <Legend />
+                                                <Bar dataKey="revenue" name="매출" radius={[6, 6, 0, 0]} />
+                                            </BarChart>
+                                        </ResponsiveContainer>
+                                    </div>
                                 </div>
                             )}
-                            <div className={productStyles.detailStatusRow}>
-                <span className={productStyles.detailName} title={p.name}>
-                  {p.name}
-                </span>
-                                <span className={`${productStyles.badge} ${productStyles[`badge_${p.status}`]}`}>
-                  {getStatusLabel(p.status)}
-                </span>
-                            </div>
-                            <div className={productStyles.skuLine}>SKU: {p.id}</div>
-                        </div>
 
-                        <div className={productStyles.detailInfoCard}>
-                            <dl>
-                                <div>
-                                    <dt>카테고리</dt>
-                                    <dd>{p.category}</dd>
-                                </div>
-                                <div>
-                                    <dt>판매가</dt>
-                                    <dd>{p.price.toLocaleString()}원</dd>
-                                </div>
-                                <div>
-                                    <dt>현재재고</dt>
-                                    <dd>{p.stockQuantity}개</dd>
-                                </div>
-                                <div>
-                                    <dt>등록일</dt>
-                                    <dd>{new Date(p.createdAt).toLocaleDateString()}</dd>
-                                </div>
-                                <div className={productStyles.colSpan2}>
-                                    <dt>상품 설명</dt>
-                                    <dd className={productStyles.muted}>
-                                        (설명 미입력) 이 상품의 설명은 아직 등록되지 않았습니다.
-                                    </dd>
-                                </div>
-                            </dl>
-
-                            <div className={productStyles.detailActions}>
-                                <button
-                                    className={productStyles.secondaryBtn}
-                                    onClick={() => navigate(`/admin/products/${p.id}`)}
-                                >
-                                    <FiEdit /> 수정
-                                </button>
-                                <button className={productStyles.dangerGhostBtn}>
-                                    <FiTrash2 /> 삭제
-                                </button>
-                            </div>
-                        </div>
-                    </section>
-
-                    {/* 탭 */}
-                    <nav className={productStyles.tabBar} aria-label="상세 탭">
-                        <button
-                            className={`${productStyles.tabBtn} ${
-                                activeDetailTab === "analytics" ? productStyles.activeTab : ""
-                            }`}
-                            onClick={() => setActiveDetailTab("analytics")}
-                        >
-                            판매 분석
-                        </button>
-                        <button
-                            className={`${productStyles.tabBtn} ${
-                                activeDetailTab === "stock" ? productStyles.activeTab : ""
-                            }`}
-                            onClick={() => setActiveDetailTab("stock")}
-                        >
-                            재고 이력
-                        </button>
-                        <button
-                            className={`${productStyles.tabBtn} ${
-                                activeDetailTab === "reviews" ? productStyles.activeTab : ""
-                            }`}
-                            onClick={() => setActiveDetailTab("reviews")}
-                        >
-                            고객 리뷰
-                        </button>
-                        <button
-                            className={`${productStyles.tabBtn} ${
-                                activeDetailTab === "orders" ? productStyles.activeTab : ""
-                            }`}
-                            onClick={() => setActiveDetailTab("orders")}
-                        >
-                            주문 내역
-                        </button>
-                    </nav>
-
-                    {/* 요약 카드 (시안의 4개 박스) */}
-                    <section className={productStyles.summaryGrid}>
-                        <div className={productStyles.summaryCard}>
-                            <span className={productStyles.summaryTitle}>총 판매량</span>
-                            <strong className={productStyles.summaryValue}>{m.totalQty}</strong>
-                        </div>
-                        <div className={productStyles.summaryCard}>
-                            <span className={productStyles.summaryTitle}>매출</span>
-                            <strong className={productStyles.summaryValue}>
-                                {m.revenue.toLocaleString()}원
-                            </strong>
-                        </div>
-                        <div className={productStyles.summaryCard}>
-                            <span className={productStyles.summaryTitle}>평점</span>
-                            <strong className={productStyles.summaryValue}>{m.rating}/5</strong>
-                        </div>
-                        <div className={productStyles.summaryCard}>
-                            <span className={productStyles.summaryTitle}>재주문율</span>
-                            <strong className={productStyles.summaryValue}>{m.reorderRate}</strong>
-                        </div>
-                    </section>
-
-                    {/* 탭별 내용 (간단한 자리표시자) */}
-                    <section className={productStyles.tabPanel}>
-                        {activeDetailTab === "analytics" && (
-                            <div className={productStyles.placeholderCard}>
-                                월별 판매량/매출 그래프 영역 (필요 시 Recharts 추가 가능)
-                            </div>
-                        )}
-                        {activeDetailTab === "stock" && (
-                            <div className={productStyles.placeholderCard}>
-                                재고 변동 이력 테이블 영역
-                            </div>
-                        )}
-                        {activeDetailTab === "reviews" && (
-                            <div className={productStyles.placeholderCard}>
-                                고객 리뷰 리스트 영역
-                            </div>
-                        )}
-                        {activeDetailTab === "orders" && (
-                            <div className={productStyles.placeholderCard}>
-                                관련 주문 내역 테이블 영역
-                            </div>
-                        )}
-                    </section>
+                            {activeDetailTab === "stock" && (
+                                <div className={productStyles.placeholderCard}>재고 변동 이력 테이블 영역</div>
+                            )}
+                            {activeDetailTab === "reviews" && (
+                                <div className={productStyles.placeholderCard}>고객 리뷰 리스트 영역</div>
+                            )}
+                            {activeDetailTab === "orders" && (
+                                <div className={productStyles.placeholderCard}>관련 주문 내역 테이블 영역</div>
+                            )}
+                        </section>
+                    </div>
                 </aside>
             </>
         );
@@ -391,7 +611,7 @@ function ProductManagement() {
 
         return (
             <>
-                {/* 통계 박스 (회원관리 스타일 재사용) */}
+                {/* 통계 박스 */}
                 <div className={memberStyles.statsContainer}>
                     <div
                         className={`${memberStyles.statBox} ${
@@ -468,7 +688,7 @@ function ProductManagement() {
                         </div>
                     </div>
 
-                    {/* 열폭 합계 = 100% / 모두 '왼쪽 정렬'로 통일 */}
+                    {/* 표 */}
                     <table className={productStyles.productTable}>
                         <colgroup>
                             <col style={{ width: "6%" }} />
@@ -496,6 +716,7 @@ function ProductManagement() {
                         {filteredProducts.length > 0 ? (
                             filteredProducts.map((p) => {
                                 const thumb = getThumbUrl(p);
+                                const stockNum = Number(p.stockQuantity ?? p.stock ?? 0);
                                 return (
                                     <tr
                                         key={p.id}
@@ -527,10 +748,10 @@ function ProductManagement() {
                         </span>
                                         </td>
                                         <td>{p.category}</td>
-                                        <td>{p.price.toLocaleString()}원</td>
-                                        <td>{p.stockQuantity}개</td>
+                                        <td>{Number(p.price).toLocaleString()}원</td>
+                                        <td>{stockNum}개</td>
                                         <td>{getStatusLabel(p.status)}</td>
-                                        <td>{new Date(p.createdAt).toLocaleDateString()}</td>
+                                        <td>{fmtDate(p.createdAt)}</td>
                                     </tr>
                                 );
                             })
@@ -545,7 +766,7 @@ function ProductManagement() {
                     </table>
                 </div>
 
-                {renderContent && renderDetailPanel()}
+                {renderDetailPanel()}
             </>
         );
     };
@@ -562,6 +783,7 @@ function ProductManagement() {
                         </button>
                     </div>
                 </header>
+
                 {renderContent()}
             </main>
         </div>

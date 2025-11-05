@@ -17,7 +17,7 @@ function SidebarItem({ icon, label, active, onClick }) {
 
 function Sidebar({ activeLabel }) {
     const navigate = useNavigate();
-    const { applyUser } = useAuth();
+    const { applyUser, user } = useAuth();
 
     const handleLogout = async () => {
         try {
@@ -37,7 +37,7 @@ function Sidebar({ activeLabel }) {
                 <img src={logo} alt="WITH GOODS Logo" />
             </div>
             <div className={styles.userRow}>
-                <span><FiUser /> &nbsp;000님</span>
+                <span><FiUser /> &nbsp;{user?.nickname || user?.username || '관리자'}님</span>
                 <div className={styles.userActions}>
                     <button className={styles.iconBtn} onClick={handleLogout} title="로그아웃">
                         <FiLogOut />

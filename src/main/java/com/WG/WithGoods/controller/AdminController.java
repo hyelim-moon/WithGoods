@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import jakarta.servlet.http.HttpSession;
 import java.util.List;
 import java.util.Map;
 
@@ -115,14 +116,57 @@ public class AdminController {
         return ResponseEntity.ok(estimates);
     }
     
-    // 회원의 메모 조회
+    // 회원의 메모 목록 조회 (게시판 형태)
+    @GetMapping("/admin/members/{id}/memos")
+    public ResponseEntity<List<Map<String, Object>>> getMemberMemos(@PathVariable Integer id) {
+        List<Map<String, Object>> memos = memberService.getMemberMemos(id);
+        return ResponseEntity.ok(memos);
+    }
+    
+    // 회원의 메모 추가 (게시판 형태)
+    @PostMapping("/admin/members/{id}/memos")
+    public ResponseEntity<Map<String, Object>> addMemberMemo(
+            @PathVariable Integer id,
+            @RequestBody Map<String, String> request,
+            HttpSession session
+    ) {
+        String content = request.get("content");
+        String adminUsername = (String) session.getAttribute("username");
+        
+        // Admin 정보 조회하여 이름 가져오기
+        String adminName = adminUsername; // 기본값
+        try {
+            AdminDTO admin = adminService.findByUsername(adminUsername);
+            if (admin != null && admin.getName() != null) {
+                adminName = admin.getName();
+            }
+        } catch (Exception e) {
+            // Admin 정보를 찾을 수 없으면 username 사용
+        }
+        
+        Map<String, Object> memo = memberService.addMemberMemo(id, content, adminUsername, adminName);
+        return ResponseEntity.ok(memo);
+    }
+    
+    // 회원의 메모 삭제
+    @DeleteMapping("/admin/members/{id}/memos/{memoId}")
+    public ResponseEntity<Map<String, String>> deleteMemberMemo(
+            @PathVariable Integer id,
+            @PathVariable Integer memoId
+    ) {
+        memberService.deleteMemberMemo(memoId);
+        return ResponseEntity.ok(Map.of("message", "메모가 삭제되었습니다."));
+    }
+    
+    // 기존 메모 API (하위 호환성을 위해 유지)
+    @Deprecated
     @GetMapping("/admin/members/{id}/memo")
     public ResponseEntity<Map<String, String>> getMemberMemo(@PathVariable Integer id) {
         String memo = memberService.getMemberMemo(id);
         return ResponseEntity.ok(Map.of("memo", memo != null ? memo : ""));
     }
     
-    // 회원의 메모 저장
+    @Deprecated
     @PutMapping("/admin/members/{id}/memo")
     public ResponseEntity<Map<String, String>> updateMemberMemo(
             @PathVariable Integer id,
