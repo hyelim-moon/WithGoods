@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "../../assets/styles/admin/AdminDashboard.module.css";
 import {
@@ -7,18 +7,17 @@ import {
 } from "recharts";
 import {
     FiUsers, FiShoppingCart, FiBell,
-    FiBox, FiCreditCard, FiTrendingUp, FiPercent
+    FiBox, FiCreditCard, FiTrendingUp, FiPercent, FiSearch
 } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 import axios from "../../utils/axios";
 
-/* ----- 유틸: 활동 데이터 정규화(문자열/객체 둘 다 지원) ----- */
+/* ----- 활동 데이터 정규화(문자열/객체 모두 지원) ----- */
 const normalizeActivities = (arr) => {
     if (!Array.isArray(arr)) return [];
     return arr.map((item) => {
         if (typeof item === "string") {
             const text = item;
-            const t = text.toLowerCase();
             let type = "OTHER";
             if (text.includes("회원가입")) type = "SIGNUP";
             else if (text.includes("견적")) type = "QUOTE";
@@ -126,7 +125,7 @@ function SmallCard({ title, value, icon }) {
     );
 }
 
-/* 최근 활동 카드 (항상 '전체보기' 노출) */
+/* 최근 활동 카드 */
 function RecentActivity({ activities, onViewAll }) {
     const recent = (activities || []).slice(0, 3);
     return (
@@ -212,6 +211,14 @@ function AdminDashboard() {
         }
     };
 
+    /* 카테고리 개수 */
+    const catCounts = useMemo(() => {
+        return (recentActivities || []).reduce((acc, a) => {
+            acc[a.type] = (acc[a.type] || 0) + 1;
+            return acc;
+        }, {});
+    }, [recentActivities]);
+
     /* 필터링된 활동 목록 */
     const filteredActivities = (recentActivities || []).filter((a) => {
         const matchCat = activityCat === "ALL" ? true : a.type === activityCat;
@@ -248,7 +255,7 @@ function AdminDashboard() {
                     </div>
                 </header>
 
-                {/* Top stats */}
+                {/* Top stats — 5개 한 줄 */}
                 <section className={styles.statsGrid}>
                     <StatCard
                         title="이번 달 매출"
@@ -299,68 +306,70 @@ function AdminDashboard() {
                     />
                 </section>
 
-                {/* 전체 활동내역 모달 (검색 + 카테고리 필터) */}
+                {/* 전체 활동내역 모달 */}
                 {showAllActivities && (
                     <div className={styles.modalOverlay}>
                         <div className={styles.modalContent}>
                             <h3>전체 활동내역</h3>
 
-                            {/* 필터 바 */}
+                            {/* 필터 바 (Sticky) */}
                             <div className={styles.modalFilterBar}>
                                 <div className={styles.categoryChips}>
-                                    {/* '전체'는 선택 해제 용도로 두면 편리함 */}
                                     <button
                                         className={`${styles.chip} ${activityCat === "ALL" ? styles.chipActive : ""}`}
                                         onClick={() => setActivityCat("ALL")}
                                     >
-                                        전체
+                                        전체 {recentActivities.length ? `(${recentActivities.length})` : ""}
                                     </button>
                                     <button
                                         className={`${styles.chip} ${activityCat === "SIGNUP" ? styles.chipActive : ""}`}
                                         onClick={() => setActivityCat("SIGNUP")}
                                     >
-                                        {CAT_LABELS.SIGNUP}
+                                        {CAT_LABELS.SIGNUP} {catCounts.SIGNUP ? `(${catCounts.SIGNUP})` : ""}
                                     </button>
                                     <button
                                         className={`${styles.chip} ${activityCat === "QUOTE" ? styles.chipActive : ""}`}
                                         onClick={() => setActivityCat("QUOTE")}
                                     >
-                                        {CAT_LABELS.QUOTE}
+                                        {CAT_LABELS.QUOTE} {catCounts.QUOTE ? `(${catCounts.QUOTE})` : ""}
                                     </button>
                                     <button
                                         className={`${styles.chip} ${activityCat === "INQUIRY" ? styles.chipActive : ""}`}
                                         onClick={() => setActivityCat("INQUIRY")}
                                     >
-                                        {CAT_LABELS.INQUIRY}
+                                        {CAT_LABELS.INQUIRY} {catCounts.INQUIRY ? `(${catCounts.INQUIRY})` : ""}
                                     </button>
                                     <button
                                         className={`${styles.chip} ${activityCat === "ORDER" ? styles.chipActive : ""}`}
                                         onClick={() => setActivityCat("ORDER")}
                                     >
-                                        {CAT_LABELS.ORDER}
+                                        {CAT_LABELS.ORDER} {catCounts.ORDER ? `(${catCounts.ORDER})` : ""}
                                     </button>
                                 </div>
-
-                                <input
-                                    className={styles.searchInput}
-                                    placeholder="검색어를 입력하세요."
-                                    value={activityQuery}
-                                    onChange={(e) => setActivityQuery(e.target.value)}
-                                />
                             </div>
+                                <div className={styles.searchWrap}>
+                                    <FiSearch className={styles.searchIcon} />
+                                    <input
+                                        className={styles.searchInput}
+                                        placeholder="검색어를 입력하세요"
+                                        value={activityQuery}
+                                        onChange={(e) => setActivityQuery(e.target.value)}
+                                    />
+                                </div>
 
                             {/* 결과 리스트 */}
                             <div className={styles.allActivitiesList}>
                                 {filteredActivities.length > 0 ? (
                                     <ul>
                                         {filteredActivities.map((a, i) => (
-                                            <li key={i}>
-                                                {a.text}
+                                            <li key={i} className={styles.activityRow}>
+                                                <span className={styles.activityText}>{a.text}</span>
+                                                <span className={styles.activityTag}>{CAT_LABELS[a.type] ?? "기타"}</span>
                                             </li>
                                         ))}
                                     </ul>
                                 ) : (
-                                    <p>해당 조건의 활동이 없습니다.</p>
+                                    <p className={styles.emptyState}>해당 조건의 활동이 없습니다.</p>
                                 )}
                             </div>
 
@@ -380,7 +389,7 @@ function AdminDashboard() {
                     </div>
                 )}
 
-                {/* 회원 메모 전체보기 모달 (기존 유지) */}
+                {/* 회원 메모 전체보기 모달 */}
                 {showAllNotes && (
                     <div className={styles.modalOverlay}>
                         <div className={styles.modalContent}>
@@ -389,11 +398,13 @@ function AdminDashboard() {
                                 {memberNotes && memberNotes.length > 0 ? (
                                     <ul>
                                         {memberNotes.map((note, i) => (
-                                            <li key={i}>{note}</li>
+                                            <li key={i} className={styles.activityRow}>
+                                                <span className={styles.activityText}>{note}</span>
+                                            </li>
                                         ))}
                                     </ul>
                                 ) : (
-                                    <p>메모가 없습니다.</p>
+                                    <p className={styles.emptyState}>메모가 없습니다.</p>
                                 )}
                             </div>
                             <div className={styles.modalActions}>
