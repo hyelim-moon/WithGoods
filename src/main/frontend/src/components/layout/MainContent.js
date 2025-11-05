@@ -56,10 +56,10 @@ function MainContent() {
 
                 setProducts({
                     best: bestProducts,
-                    anniversary: anniversaryProducts.slice(0, 5),
-                    custom: customProducts.slice(0, 5),
-                    limited: limitedProducts.slice(0, 5),
-                    normal: normalProducts.slice(0, 5)
+                    anniversary: anniversaryProducts.sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5),
+                    custom: customProducts.sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5),
+                    limited: limitedProducts.sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5),
+                    normal: normalProducts.sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5)
                 });
 
                 setError(null);

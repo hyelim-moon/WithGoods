@@ -10,7 +10,7 @@ function Normal() {
     const categories = ['인형', '문구', '패션', '키링', '가전'];
     const [selectedCategories, setSelectedCategories] = useState([]);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
-    const [sortOrder, setSortOrder] = useState(null);
+    const [sortOrder, setSortOrder] = useState('rating');
     const [products, setProducts] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -22,7 +22,9 @@ function Normal() {
                 const response = await axios.get(`${API_BASE_URL}/products/normal`, {
                     withCredentials: true
                 });
-                setProducts(Array.isArray(response.data) ? response.data : []);
+                const productsData = Array.isArray(response.data) ? response.data : [];
+                productsData.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                setProducts(productsData);
                 setError(null);
             } catch (err) {
                 setError('일반 상품을 불러오는데 실패했습니다.');
@@ -81,8 +83,16 @@ function Normal() {
     const renderStars = (rating) => {
         const stars = [];
         const fullStars = Math.floor(rating || 0);
+        const hasHalfStar = (rating || 0) - fullStars >= 0.5;
+
         for (let i = 0; i < 5; i++) {
-            stars.push(<span key={`star-${i}`} style={{ color: i < fullStars ? '#FFD700' : '#D3D3D3' }}>★</span>);
+            if (i < fullStars) {
+                stars.push(<span key={`star-${i}`} style={{ color: '#FFD700' }}>★</span>);
+            } else if (i === fullStars && hasHalfStar) {
+                stars.push(<span key={`star-${i}`} style={{ color: '#FFD700' }}>☆</span>);
+            } else {
+                stars.push(<span key={`star-${i}`} style={{ color: '#D3D3D3' }}>☆</span>);
+            }
         }
         return stars;
     };
@@ -130,10 +140,10 @@ function Normal() {
                     })}
                 </div>
                 <div className={styles.sortOptions}>
-                    <span className={styles.sortOption} onClick={() => setSortOrder('low')}>낮은가격순</span>
-                    <span className={styles.sortOption} onClick={() => setSortOrder('high')}>높은가격순</span>
-                    <span className={styles.sortOption} onClick={() => setSortOrder('reviewCount')}>리뷰 많은 순</span>
-                    <span className={styles.sortOption} onClick={() => setSortOrder('rating')}>평점높은순</span>
+                    <span className={`${styles.sortOption} ${sortOrder === 'low' ? styles.active : ''}`} onClick={() => setSortOrder('low')}>낮은가격순</span>
+                    <span className={`${styles.sortOption} ${sortOrder === 'high' ? styles.active : ''}`} onClick={() => setSortOrder('high')}>높은가격순</span>
+                    <span className={`${styles.sortOption} ${sortOrder === 'reviewCount' ? styles.active : ''}`} onClick={() => setSortOrder('reviewCount')}>리뷰 많은 순</span>
+                    <span className={`${styles.sortOption} ${sortOrder === 'rating' ? styles.active : ''}`} onClick={() => setSortOrder('rating')}>평점높은순</span>
                 </div>
             </div>
             <div className={styles.productList}>
