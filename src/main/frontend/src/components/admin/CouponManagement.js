@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "../../assets/styles/admin/AdminDashboard.module.css";
-import memberStyles from "../../assets/styles/admin/MemberManagement.module.css"; // 변경
-import { FiBell } from "react-icons/fi";
+import memberStyles from "../../assets/styles/admin/MemberManagement.module.css";
+import { FiBell, FiRefreshCw } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 import axios from "../../utils/axios";
 
@@ -15,6 +15,8 @@ function CouponManagement() {
     const [showMembersModal, setShowMembersModal] = useState(false);
     const [couponMembers, setCouponMembers] = useState([]);
     const [selectedCouponName, setSelectedCouponName] = useState('');
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchCondition, setSearchCondition] = useState('name');
     const [form, setForm] = useState({
         name: '',
         event: '',
@@ -42,8 +44,8 @@ function CouponManagement() {
                     try {
                         const issuedRes = await axios.get(`/api/coupons/${c.couponId}/issued-count`);
                         return {
-                id: c.couponId,
-                name: c.name,
+                            id: c.couponId,
+                            name: c.name,
                             event: c.event,
                             couponType: c.couponType,
                             discountAmount: c.discountAmount,
@@ -53,7 +55,7 @@ function CouponManagement() {
                             usageLimit: c.usageLimit,
                             expiryDate: c.expiryDate,
                             isActive: c.isActive,
-                discount: c.couponType === 'PERCENTAGE' ? `${c.discountPercentage}%` : `${c.discountAmount?.toLocaleString()}원`,
+                            discount: c.couponType === 'PERCENTAGE' ? `${c.discountPercentage}%` : `${c.discountAmount?.toLocaleString()}원`,
                             quantity: c.usageLimit ?? '-',
                             issued: issuedRes.data || 0
                         };
@@ -68,10 +70,10 @@ function CouponManagement() {
                             minOrderAmount: c.minOrderAmount,
                             maxDiscountAmount: c.maxDiscountAmount,
                             usageLimit: c.usageLimit,
-                expiryDate: c.expiryDate,
+                            expiryDate: c.expiryDate,
                             isActive: c.isActive,
                             discount: c.couponType === 'PERCENTAGE' ? `${c.discountPercentage}%` : `${c.discountAmount?.toLocaleString()}원`,
-                quantity: c.usageLimit ?? '-',
+                            quantity: c.usageLimit ?? '-',
                             issued: 0
                         };
                     }
@@ -149,6 +151,23 @@ function CouponManagement() {
         });
     };
 
+    const filteredCoupons = () => {
+        let currentCoupons = coupons;
+
+        if (searchTerm.trim()) {
+            const term = searchTerm.trim().toLowerCase();
+            currentCoupons = currentCoupons.filter(coupon => {
+                if (searchCondition === 'name') {
+                    return coupon.name.toLowerCase().includes(term);
+                } else if (searchCondition === 'event') {
+                    return coupon.event.toLowerCase().includes(term);
+                }
+                return false;
+            });
+        }
+        return currentCoupons;
+    };
+
     const renderContent = () => {
         if (loading) {
             return <div className={memberStyles.loading}>쿠폰 정보를 불러오는 중...</div>;
@@ -158,10 +177,36 @@ function CouponManagement() {
             return <div className={memberStyles.error}>{error}</div>;
         }
 
+        const displayedCoupons = filteredCoupons();
+
         return (
             <div className={memberStyles.container}>
                 <h3>쿠폰 목록</h3>
-                <div className={memberStyles.toolbar}>
+                <div className={memberStyles.toolbar} style={{ marginBottom: '20px' }}>
+                    <div className={memberStyles.searchBar}>
+                        <select
+                            className={memberStyles.searchCondition}
+                            value={searchCondition}
+                            onChange={(e) => setSearchCondition(e.target.value)}
+                        >
+                            <option value="name">쿠폰명</option>
+                            <option value="event">이벤트</option>
+                        </select>
+                        <input
+                            type="text"
+                            placeholder="검색어를 입력하세요"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                        <button
+                            onClick={() => { setSearchTerm(''); setSearchCondition('name'); }}
+                            className={memberStyles.iconBtn}
+                            aria-label="초기화"
+                            title="초기화"
+                        >
+                            <FiRefreshCw />
+                        </button>
+                    </div>
                     <div className={memberStyles.actionButtons}>
                         <button className={memberStyles.addMemberBtn} onClick={() => {
                             resetForm();
@@ -184,20 +229,26 @@ function CouponManagement() {
                         </tr>
                     </thead>
                     <tbody>
-                        {coupons.map(coupon => (
-                            <tr key={coupon.id} className={memberStyles.memberRow} onClick={() => handleViewMembers(coupon)}>
-                                <td>{coupon.id}</td>
-                                <td>{coupon.name}</td>
-                                <td>{coupon.discount}</td>
-                                <td>{coupon.expiryDate ? new Date(coupon.expiryDate).toLocaleDateString() : '-'}</td>
-                                <td>{coupon.quantity}</td>
-                                <td>{coupon.issued}</td>
-                                <td onClick={(e) => e.stopPropagation()}>
-                                    <button className={memberStyles.editMemberBtn} onClick={() => handleEdit(coupon)}>수정</button>
-                                    <button className={memberStyles.deleteMemberBtn} onClick={() => handleDelete(coupon.id)}>삭제</button>
-                                </td>
+                        {displayedCoupons.length > 0 ? (
+                            displayedCoupons.map(coupon => (
+                                <tr key={coupon.id} className={memberStyles.memberRow} onClick={() => handleViewMembers(coupon)}>
+                                    <td>{coupon.id}</td>
+                                    <td>{coupon.name}</td>
+                                    <td>{coupon.discount}</td>
+                                    <td>{coupon.expiryDate ? new Date(coupon.expiryDate).toLocaleDateString() : '-'}</td>
+                                    <td>{coupon.quantity}</td>
+                                    <td>{coupon.issued}</td>
+                                    <td onClick={(e) => e.stopPropagation()}>
+                                        <button className={memberStyles.editMemberBtn} onClick={() => handleEdit(coupon)}>수정</button>
+                                        <button className={memberStyles.deleteMemberBtn} onClick={() => handleDelete(coupon.id)}>삭제</button>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="7">쿠폰 내역이 없습니다.</td>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </table>
             </div>
