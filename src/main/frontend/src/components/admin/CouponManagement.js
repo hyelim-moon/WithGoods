@@ -17,6 +17,8 @@ function CouponManagement() {
     const [selectedCouponName, setSelectedCouponName] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [searchCondition, setSearchCondition] = useState('name');
+    const [currentPage, setCurrentPage] = useState(1); // 현재 페이지 상태 추가
+    const [itemsPerPage] = useState(10); // 페이지당 항목 수
     const [form, setForm] = useState({
         name: '',
         event: '',
@@ -168,6 +170,11 @@ function CouponManagement() {
         return currentCoupons;
     };
 
+    // 페이지 변경 핸들러
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
     const renderContent = () => {
         if (loading) {
             return <div className={memberStyles.loading}>쿠폰 정보를 불러오는 중...</div>;
@@ -177,7 +184,16 @@ function CouponManagement() {
             return <div className={memberStyles.error}>{error}</div>;
         }
 
-        const displayedCoupons = filteredCoupons();
+        const filtered = filteredCoupons();
+        const totalPages = Math.ceil(filtered.length / itemsPerPage);
+        const indexOfLastItem = currentPage * itemsPerPage;
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+        const currentItems = filtered.slice(indexOfFirstItem, indexOfLastItem);
+
+        const pageNumbers = [];
+        for (let i = 1; i <= totalPages; i++) {
+            pageNumbers.push(i);
+        }
 
         return (
             <div className={memberStyles.container}>
@@ -199,7 +215,7 @@ function CouponManagement() {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                         <button
-                            onClick={() => { setSearchTerm(''); setSearchCondition('name'); }}
+                            onClick={() => { setSearchTerm(''); setSearchCondition('name'); setCurrentPage(1); }}
                             className={memberStyles.iconBtn}
                             aria-label="초기화"
                             title="초기화"
@@ -229,8 +245,8 @@ function CouponManagement() {
                         </tr>
                     </thead>
                     <tbody>
-                        {displayedCoupons.length > 0 ? (
-                            displayedCoupons.map(coupon => (
+                        {currentItems.length > 0 ? (
+                            currentItems.map(coupon => (
                                 <tr key={coupon.id} className={memberStyles.memberRow} onClick={() => handleViewMembers(coupon)}>
                                     <td>{coupon.id}</td>
                                     <td>{coupon.name}</td>
@@ -251,6 +267,33 @@ function CouponManagement() {
                         )}
                     </tbody>
                 </table>
+
+                {/* Pagination Controls */}
+                <div className={memberStyles.pagination} style={{ display: 'flex', justifyContent: 'center', marginTop: '20px' }}>
+                    <button
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                        className={memberStyles.paginationButton}
+                    >
+                        이전
+                    </button>
+                    {pageNumbers.map(number => (
+                        <button
+                            key={number}
+                            onClick={() => handlePageChange(number)}
+                            className={`${memberStyles.paginationButton} ${currentPage === number ? memberStyles.activePaginationButton : ''}`}
+                        >
+                            {number}
+                        </button>
+                    ))}
+                    <button
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                        className={memberStyles.paginationButton}
+                    >
+                        다음
+                    </button>
+                </div>
             </div>
         );
     };

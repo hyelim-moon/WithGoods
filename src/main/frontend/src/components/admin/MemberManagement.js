@@ -30,6 +30,8 @@ function MemberManagement() {
         new: 0,
         birthday: 0 // VIP 대신 생일인 회원 통계 추가
     });
+    const [currentPage, setCurrentPage] = useState(1); // 페이지네이션: 현재 페이지
+    const [itemsPerPage] = useState(10); // 페이지네이션: 페이지당 항목 수
 
     // 쿠폰 지급 관련 상태
     const [showCouponModal, setShowCouponModal] = useState(false);
@@ -120,6 +122,7 @@ function MemberManagement() {
             });
         }
         setFilteredMembers(results);
+        setCurrentPage(1); // 필터 또는 검색어 변경 시 현재 페이지를 1로 초기화
     }, [searchTerm, searchCondition, allMembers, currentFilter]);
 
     const fetchMembers = async () => {
@@ -185,9 +188,9 @@ function MemberManagement() {
         });
     };
 
-    const handleSelectAll = (e) => {
+    const handleSelectAll = (e, displayedItems) => { // displayedItems 인자 추가
         if (e.target.checked) {
-            setSelectedMembers(filteredMembers.map(member => member.id));
+            setSelectedMembers(displayedItems.map(member => member.id)); // 현재 페이지의 회원만 선택
         } else {
             setSelectedMembers([]);
         }
@@ -584,7 +587,11 @@ function MemberManagement() {
         }
     };
 
-    // ⬇️ 여기만 구조 변경: statsContainer를 container 바깥으로 이동
+    // 페이지 변경 핸들러
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
     const renderContent = () => {
         if (loading) {
             return <div className={memberStyles.loading}>회원 정보를 불러오는 중...</div>;
@@ -592,6 +599,16 @@ function MemberManagement() {
 
         if (error) {
             return <div className={memberStyles.error}>{error}</div>;
+        }
+
+        const totalPages = Math.ceil(filteredMembers.length / itemsPerPage);
+        const indexOfLastItem = currentPage * itemsPerPage;
+        const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+        const currentItems = filteredMembers.slice(indexOfFirstItem, indexOfLastItem);
+
+        const pageNumbers = [];
+        for (let i = 1; i <= totalPages; i++) {
+            pageNumbers.push(i);
         }
 
         return (
@@ -639,7 +656,7 @@ function MemberManagement() {
                                 value={searchTerm}
                                 onChange={handleSearchChange}
                             />
-                            <button onClick={() => setSearchTerm('')} className={memberStyles.iconBtn} aria-label="초기화" title="초기화"><FiRefreshCw /></button>
+                            <button onClick={() => { setSearchTerm(''); setCurrentPage(1); }} className={memberStyles.iconBtn} aria-label="초기화" title="초기화"><FiRefreshCw /></button>
                         </div>
                         <div className={memberStyles.actionButtons}>
                             <button
@@ -659,8 +676,8 @@ function MemberManagement() {
                             <th>
                                 <input
                                     type="checkbox"
-                                    onChange={handleSelectAll}
-                                    checked={filteredMembers.length > 0 && selectedMembers.length === filteredMembers.length}
+                                    onChange={(e) => handleSelectAll(e, currentItems)} // currentItems 전달
+                                    checked={currentItems.length > 0 && selectedMembers.length === currentItems.filter(member => selectedMembers.includes(member.id)).length}
                                 />
                             </th>
                             <th>회원ID</th>
@@ -672,569 +689,62 @@ function MemberManagement() {
                         </tr>
                         </thead>
                         <tbody>
-                        {filteredMembers.map(member => (
-                            <tr key={member.id} onClick={() => handleViewDetails(member)} className={memberStyles.memberRow}>
-                                <td onClick={(e) => e.stopPropagation()}>
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedMembers.includes(member.id)}
-                                        onChange={(e) => {
-                                            e.stopPropagation();
-                                            handleMemberSelect(member.id, e);
-                                        }}
-                                        onClick={(e) => e.stopPropagation()}
-                                    />
-                                </td>
-                                <td className={memberStyles.memberIdCell}>{member.id}</td>
-                                <td>{member.nickname}</td>
-                                <td>{member.name}</td>
-                                <td>{member.email}</td>
-                                <td>{member.phoneNumber}</td>
-                                {/* 등급 데이터 제거 */}
+                        {currentItems.length > 0 ? (
+                            currentItems.map(member => (
+                                <tr key={member.id} onClick={() => handleViewDetails(member)} className={memberStyles.memberRow}>
+                                    <td onClick={(e) => e.stopPropagation()}>
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedMembers.includes(member.id)}
+                                            onChange={(e) => {
+                                                e.stopPropagation();
+                                                handleMemberSelect(member.id, e);
+                                            }}
+                                            onClick={(e) => e.stopPropagation()}
+                                        />
+                                    </td>
+                                    <td className={memberStyles.memberIdCell}>{member.id}</td>
+                                    <td>{member.nickname}</td>
+                                    <td>{member.name}</td>
+                                    <td>{member.email}</td>
+                                    <td>{member.phoneNumber}</td>
+                                    {/* 등급 데이터 제거 */}
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan="6">회원 내역이 없습니다.</td>
                             </tr>
-                        ))}
+                        )}
                         </tbody>
                     </table>
 
-                    {/* 쿠폰 지급 모달 */}
-                    {showCouponModal && (
-                        <div className={memberStyles.modalOverlay} onClick={() => setShowCouponModal(false)}>
-                            <div className={memberStyles.modalContent} onClick={(e) => e.stopPropagation()}>
-                                <h3>선택된 회원에게 쿠폰 지급</h3>
-                                <p>선택된 회원: {selectedMembers.length}명</p>
-                                <select
-                                    value={selectedCouponToDistribute}
-                                    onChange={(e) => setSelectedCouponToDistribute(e.target.value)}
-                                    className={memberStyles.couponSelect}
-                                >
-                                    {availableCoupons.map(coupon => (
-                                        <option key={coupon.id} value={coupon.id}>
-                                            {coupon.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className={memberStyles.modalActions}>
-                                    <button onClick={handleDistributeCoupon} className={memberStyles.modalPrimaryBtn}>지급</button>
-                                    <button onClick={() => setShowCouponModal(false)} className={memberStyles.modalSecondaryBtn}>취소</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* 주문 내역 모달 */}
-                    {showOrderHistoryModal && (
-                        <div className={memberStyles.orderHistoryModalOverlay} onClick={() => setShowOrderHistoryModal(false)}>
-                            <div className={memberStyles.orderHistoryModalContent} onClick={(e) => e.stopPropagation()}>
-                                <h3>{selectedMemberNameForOrders ? `${selectedMemberNameForOrders}님의 주문 내역` : '주문 내역'}</h3>
-                                {selectedMemberOrders && selectedMemberOrders.length > 0 ? (
-                                    <ul className={memberStyles.orderListModal}>
-                                        {selectedMemberOrders.map(order => (
-                                            <li key={order.orderId} className={memberStyles.orderListItemModal}>
-                                                <div>
-                                                    <strong>주문 ID: {order.orderId}</strong>
-                                                    <br />
-                                                    <span>주문일: {new Date(order.orderDate).toLocaleDateString()}</span>
-                                                    <br />
-                                                    <span>총 금액: {order.orderSummary?.finalAmount?.toLocaleString() || '0'}원</span>
-                                                    <br />
-                                                    <span>상태: {order.status}</span>
-                                                    {order.shippingInfo?.address && (
-                                                        <>
-                                                            <br />
-                                                            <span>배송지: {order.shippingInfo.address}</span>
-                                                        </>
-                                                    )}
-                                                    {order.ordererInfo?.name && (
-                                                        <>
-                                                            <br />
-                                                            <span>주문자: {order.ordererInfo.name}</span>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p>주문 내역이 없습니다.</p>
-                                )}
-                                <div className={memberStyles.modalActions}>
-                                    <button onClick={() => setShowOrderHistoryModal(false)} className={memberStyles.modalSecondaryBtn}>닫기</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* 문의 내역 모달 (새로 추가) */}
-                    {showInquiryModal && (
-                        <div className={memberStyles.inquiryModalOverlay} onClick={() => setShowInquiryModal(false)}>
-                            <div className={memberStyles.inquiryModalContent} onClick={(e) => e.stopPropagation()}>
-                                <h3>{selectedMemberNameForInquiries ? `${selectedMemberNameForInquiries}님의 문의 내역` : '문의 내역'}</h3>
-                                {selectedMemberInquiries && selectedMemberInquiries.length > 0 ? (
-                                    <ul className={memberStyles.inquiryListModal}>
-                                        {selectedMemberInquiries.map(inquiry => (
-                                            <li key={inquiry.id} className={memberStyles.inquiryListItemModal} onClick={() => navigate(`/inquiry/${inquiry.id}`)}>
-                                                <div>
-                                                    <strong>문의 ID: {inquiry.id}</strong>
-                                                    <br />
-                                                    <span>제목: {inquiry.title}</span>
-                                                    <br />
-                                                    <span>작성일: {new Date(inquiry.createdAt).toLocaleDateString()}</span>
-                                                    <br />
-                                                    <span>상태: {inquiry.status}</span>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p>문의 내역이 없습니다.</p>
-                                )}
-                                <div className={memberStyles.modalActions}>
-                                    <button onClick={() => setShowInquiryModal(false)} className={memberStyles.modalSecondaryBtn}>닫기</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* 찜한 상품 모달 */}
-                    {showWishlistModal && (
-                        <div className={memberStyles.wishlistModalOverlay} onClick={() => setShowWishlistModal(false)}>
-                            <div className={memberStyles.wishlistModalContent} onClick={(e) => e.stopPropagation()}>
-                                <h3>{selectedMemberForWishlist ? `${selectedMemberForWishlist.name}님의 찜한 상품` : '찜한 상품'}</h3>
-                                <div className={memberStyles.wishlistList}>
-                                    {memberWishlist && memberWishlist.length > 0 ? (
-                                        <ul className={memberStyles.wishlistItems}>
-                                            {memberWishlist.map(item => (
-                                                <li key={item.wishlistId} className={memberStyles.wishlistItem}>
-                                                    <div className={memberStyles.wishlistItemContent}>
-                                                        <div className={memberStyles.wishlistItemInfo}>
-                                                            <strong>{item.productName}</strong>
-                                                            <br />
-                                                            <small>
-                                                                상품 ID: {item.productId} |
-                                                                가격: {item.productPrice?.toLocaleString() || '0'}원 |
-                                                                찜한 날짜: {new Date(item.addedAt).toLocaleDateString()}
-                                                            </small>
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <p>찜한 상품이 없습니다.</p>
-                                    )}
-                                </div>
-                                <div className={memberStyles.modalActions}>
-                                    <button
-                                        className={memberStyles.modalSecondaryBtn}
-                                        onClick={() => setShowWishlistModal(false)}
-                                    >
-                                        닫기
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* 장바구니 모달 */}
-                    {showCartModal && (
-                        <div className={memberStyles.cartModalOverlay} onClick={() => setShowCartModal(false)}>
-                            <div className={memberStyles.cartModalContent} onClick={(e) => e.stopPropagation()}>
-                                <h3>{selectedMemberForCart ? `${selectedMemberForCart.name}님의 장바구니` : '장바구니'}</h3>
-                                <div className={memberStyles.cartList}>
-                                    {memberCart && memberCart.length > 0 ? (
-                                        <ul className={memberStyles.cartItems}>
-                                            {memberCart.map(item => (
-                                                <li key={item.cartId} className={memberStyles.cartItem}>
-                                                    <div className={memberStyles.cartItemContent}>
-                                                        <div className={memberStyles.cartItemInfo}>
-                                                            <strong>{item.productName}</strong>
-                                                            <br />
-                                                            <small>
-                                                                상품 ID: {item.productId} |
-                                                                단가: {item.productPrice?.toLocaleString() || '0'}원 |
-                                                                수량: {item.quantity}개 |
-                                                                총액: {item.totalPrice?.toLocaleString() || '0'}원
-                                                            </small>
-                                                            <br />
-                                                            <small style={{ color: '#666' }}>
-                                                                담은 날짜: {new Date(item.addedAt).toLocaleDateString()}
-                                                            </small>
-                                                        </div>
-                                                    </div>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    ) : (
-                                        <p>장바구니가 비어있습니다.</p>
-                                    )}
-                                </div>
-                                <div className={memberStyles.modalActions}>
-                                    <button
-                                        className={memberStyles.modalSecondaryBtn}
-                                        onClick={() => setShowCartModal(false)}
-                                    >
-                                        닫기
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {/* 리뷰 내역 모달 */}
-                    {showReviewModal && (
-                        <div className={memberStyles.inquiryModalOverlay} onClick={() => setShowReviewModal(false)}>
-                            <div className={memberStyles.inquiryModalContent} onClick={(e) => e.stopPropagation()}>
-                                <h3>{selectedMemberNameForReviews ? `${selectedMemberNameForReviews}님의 리뷰` : '리뷰 내역'}</h3>
-                                {selectedMemberReviews && selectedMemberReviews.length > 0 ? (
-                                    <ul className={memberStyles.inquiryListModal}>
-                                        {selectedMemberReviews.map(review => (
-                                            <li key={review.reviewId} className={memberStyles.inquiryListItemModal}>
-                                                <div>
-                                                    <strong>리뷰 ID: {review.reviewId}</strong>
-                                                    <br />
-                                                    <span>상품명: {review.productName}</span>
-                                                    <br />
-                                                    <span>평점: {'⭐'.repeat(review.rating || 0)}</span>
-                                                    <br />
-                                                    <span>내용: {review.content}</span>
-                                                    <br />
-                                                    <span>작성일: {new Date(review.createdAt).toLocaleDateString()}</span>
-                                                    {review.imageUrl && (
-                                                        <>
-                                                            <br />
-                                                            <img src={review.imageUrl} alt="리뷰 이미지" style={{ maxWidth: '200px', marginTop: '10px' }} />
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p>리뷰 내역이 없습니다.</p>
-                                )}
-                                <div className={memberStyles.modalActions}>
-                                    <button onClick={() => setShowReviewModal(false)} className={memberStyles.modalSecondaryBtn}>닫기</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                    
-                    {/* 견적 내역 모달 */}
-                    {showEstimateModal && (
-                        <div className={memberStyles.inquiryModalOverlay} onClick={() => setShowEstimateModal(false)}>
-                            <div className={memberStyles.inquiryModalContent} onClick={(e) => e.stopPropagation()}>
-                                <h3>{selectedMemberNameForEstimates ? `${selectedMemberNameForEstimates}님의 견적` : '견적 내역'}</h3>
-                                {selectedMemberEstimates && selectedMemberEstimates.length > 0 ? (
-                                    <ul className={memberStyles.inquiryListModal}>
-                                        {selectedMemberEstimates.map(estimate => (
-                                            <li key={estimate.id} className={memberStyles.inquiryListItemModal}>
-                                                <div>
-                                                    <strong>견적 ID: {estimate.id}</strong>
-                                                    <br />
-                                                    <span>제목: {estimate.title}</span>
-                                                    <br />
-                                                    <span>고객명: {estimate.customerName}</span>
-                                                    <br />
-                                                    <span>연락처: {estimate.contact}</span>
-                                                    <br />
-                                                    <span>상품: {estimate.product}</span>
-                                                    <br />
-                                                    <span>수량: {estimate.quantity}개</span>
-                                                    <br />
-                                                    <span>요청사항: {estimate.message}</span>
-                                                    <br />
-                                                    <span>작성일: {new Date(estimate.createdAt).toLocaleDateString()}</span>
-                                                    {estimate.answer && (
-                                                        <>
-                                                            <br />
-                                                            <span style={{ color: '#4CAF50', fontWeight: 'bold' }}>답변: {estimate.answer}</span>
-                                                        </>
-                                                    )}
-                                                    {estimate.designFileUrl && (
-                                                        <>
-                                                            <br />
-                                                            <a href={`http://localhost:8080${estimate.designFileUrl}`} target="_blank" rel="noopener noreferrer">
-                                                                설계파일 다운로드
-                                                            </a>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                ) : (
-                                    <p>견적 내역이 없습니다.</p>
-                                )}
-                                <div className={memberStyles.modalActions}>
-                                    <button onClick={() => setShowEstimateModal(false)} className={memberStyles.modalSecondaryBtn}>닫기</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* 회원 추가/수정 모달 */}
-                    {showAddEditModal && (
-                        <div className={memberStyles.modalOverlay} onClick={() => setShowAddEditModal(false)}>
-                            <div className={memberStyles.modalContent} onClick={(e) => e.stopPropagation()}>
-                                <h3>{isEditing ? '회원 정보 수정' : '새 회원 추가'}</h3>
-
-                                {!isEditing && (
-                                    <div className={memberStyles.formGroup}>
-                                        <label htmlFor="username">아이디:</label>
-                                        <input
-                                            type="text"
-                                            id="username"
-                                            name="username"
-                                            value={newMemberData.username}
-                                            onChange={handleNewMemberDataChange}
-                                            required
-                                            placeholder="로그인에 사용할 아이디"
-                                        />
-                                    </div>
-                                )}
-
-                                {!isEditing && (
-                                    <div className={memberStyles.formGroup}>
-                                        <label htmlFor="password">비밀번호:</label>
-                                        <input
-                                            type="password"
-                                            id="password"
-                                            name="password"
-                                            value={newMemberData.password}
-                                            onChange={handleNewMemberDataChange}
-                                            required
-                                            placeholder="비밀번호를 입력하세요"
-                                        />
-                                    </div>
-                                )}
-
-                                <div className={memberStyles.formGroup}>
-                                    <label htmlFor="name">이름:</label>
-                                    <input
-                                        type="text"
-                                        id="name"
-                                        name="name"
-                                        value={newMemberData.name}
-                                        onChange={handleNewMemberDataChange}
-                                        required
-                                    />
-                                </div>
-
-                                <div className={memberStyles.formGroup}>
-                                    <label htmlFor="nickname">닉네임:</label>
-                                    <input
-                                        type="text"
-                                        id="nickname"
-                                        name="nickname"
-                                        value={newMemberData.nickname}
-                                        onChange={handleNewMemberDataChange}
-                                    />
-                                </div>
-
-                                <div className={memberStyles.formGroup}>
-                                    <label htmlFor="email">이메일:</label>
-                                    <input
-                                        type="email"
-                                        id="email"
-                                        name="email"
-                                        value={newMemberData.email}
-                                        onChange={handleNewMemberDataChange}
-                                        required
-                                    />
-                                </div>
-
-                                <div className={memberStyles.formGroup}>
-                                    <label htmlFor="phoneNumber">전화번호:</label>
-                                    <input
-                                        type="tel"
-                                        id="phoneNumber"
-                                        name="phoneNumber"
-                                        value={newMemberData.phoneNumber}
-                                        onChange={handleNewMemberDataChange}
-                                        required
-                                    />
-                                </div>
-
-                                <div className={memberStyles.formGroup}>
-                                    <label htmlFor="gender">성별:</label>
-                                    <select
-                                        id="gender"
-                                        name="gender"
-                                        value={newMemberData.gender}
-                                        onChange={handleNewMemberDataChange}
-                                    >
-                                        <option value="">선택하세요</option>
-                                        <option value="M">남성</option>
-                                        <option value="F">여성</option>
-                                    </select>
-                                </div>
-
-                                <div className={memberStyles.formGroup}>
-                                    <label htmlFor="birthDate">생년월일:</label>
-                                    <input
-                                        type="date"
-                                        id="birthDate"
-                                        name="birthDate"
-                                        value={newMemberData.birthDate}
-                                        onChange={handleNewMemberDataChange}
-                                    />
-                                </div>
-
-                                <div className={memberStyles.formGroup}>
-                                    <label htmlFor="address">주소:</label>
-                                    <input
-                                        type="text"
-                                        id="address"
-                                        name="address"
-                                        value={newMemberData.address}
-                                        onChange={handleNewMemberDataChange}
-                                    />
-                                </div>
-
-                                <div className={memberStyles.modalActions}>
-                                    <button onClick={handleSaveMember} className={memberStyles.modalPrimaryBtn}>
-                                        {isEditing ? '수정' : '추가'}
-                                    </button>
-                                    <button onClick={closeAddEditModal} className={memberStyles.modalSecondaryBtn}>취소</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* 개별 회원 쿠폰 지급 모달 (사이드바용) */}
-                    {showIndividualCouponModal && (
-                        <div className={memberStyles.modalOverlay} onClick={() => setShowIndividualCouponModal(false)} style={{ zIndex: 11000 }}>
-                            <div className={memberStyles.modalContent} onClick={(e) => e.stopPropagation()} style={{ zIndex: 11001 }}>
-                                <h3>{sidePanelMember ? `${sidePanelMember.name}님에게 쿠폰 지급` : '쿠폰 지급'}</h3>
-                                <select
-                                    value={selectedCouponForIndividual}
-                                    onChange={(e) => setSelectedCouponForIndividual(e.target.value)}
-                                    className={memberStyles.couponSelect}
-                                >
-                                    {availableCoupons.map(coupon => (
-                                        <option key={coupon.id} value={coupon.id}>
-                                            {coupon.name}
-                                        </option>
-                                    ))}
-                                </select>
-                                <div className={memberStyles.modalActions}>
-                                    <button onClick={handleDistributeCouponToIndividual} className={memberStyles.modalPrimaryBtn}>지급</button>
-                                    <button onClick={() => setShowIndividualCouponModal(false)} className={memberStyles.modalSecondaryBtn}>취소</button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* 메모 모달 */}
-                    {showMemoModal && (
-                        <div className={memberStyles.modalOverlay} onClick={handleCloseMemoModal} style={{ zIndex: 11000 }}>
-                            <div className={memberStyles.modalContent} onClick={(e) => e.stopPropagation()} style={{ zIndex: 11001, maxWidth: '800px', width: '90%' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                                    <h3>{sidePanelMember ? `${sidePanelMember.name}님의 관리자 메모` : '관리자 메모'}</h3>
-                                    <button onClick={handleCloseMemoModal} style={{ background: 'none', border: 'none', fontSize: '1.5em', cursor: 'pointer', color: '#666' }}>
-                                        <FiX />
-                                    </button>
-                                </div>
-                                
-                                {/* 메모 작성 버튼 */}
-                                {!isAddingMemo && (
-                                    <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'flex-end' }}>
-                                        <button 
-                                            onClick={() => setIsAddingMemo(true)} 
-                                            style={{ padding: '8px 16px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                        >
-                                            + 메모 작성
-                                        </button>
-                                    </div>
-                                )}
-                                
-                                {/* 메모 작성 폼 */}
-                                {isAddingMemo && (
-                                    <div style={{ width: '100%', marginBottom: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f9f9f9' }}>
-                                        <textarea
-                                            value={newMemoContent}
-                                            onChange={(e) => setNewMemoContent(e.target.value)}
-                                            style={{ width: '100%', minHeight: '120px', padding: '10px', border: '1px solid #ccc', borderRadius: '4px', resize: 'vertical', fontSize: '0.95em' }}
-                                            placeholder="메모 내용을 입력하세요"
-                                        />
-                                        <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                                            <button 
-                                                onClick={handleAddMemo}
-                                                style={{ padding: '8px 16px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                            >
-                                                작성
-                                            </button>
-                                            <button 
-                                                onClick={() => {
-                                                    setIsAddingMemo(false);
-                                                    setNewMemoContent('');
-                                                }}
-                                                style={{ padding: '8px 16px', backgroundColor: '#6c757d', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
-                                            >
-                                                취소
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
-                                
-                                {/* 메모 리스트 */}
-                                <div style={{ maxHeight: '500px', overflowY: 'auto', border: '1px solid #e0e0e0', borderRadius: '4px', padding: '10px' }}>
-                                    {memberMemos && memberMemos.length > 0 ? (
-                                        memberMemos.map((memo) => (
-                                            <div key={memo.memoId} style={{ 
-                                                marginBottom: '15px', 
-                                                padding: '15px', 
-                                                border: '1px solid #e0e0e0', 
-                                                borderRadius: '6px',
-                                                backgroundColor: '#fff',
-                                                boxShadow: '0 1px 3px rgba(0,0,0,0.1)'
-                                            }}>
-                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
-                                                    <div style={{ flex: 1 }}>
-                                                        <div style={{ fontWeight: '600', color: '#333', marginBottom: '4px', fontSize: '1em' }}>
-                                                            {memo.adminName || memo.adminUsername}
-                                                        </div>
-                                                        <div style={{ fontSize: '0.85em', color: '#666' }}>
-                                                            {new Date(memo.createdAt).toLocaleString('ko-KR')}
-                                                        </div>
-                                                    </div>
-                                                    <button
-                                                        onClick={() => handleDeleteMemo(memo.memoId)}
-                                                        style={{ 
-                                                            padding: '6px 12px', 
-                                                            backgroundColor: '#dc3545', 
-                                                            color: 'white', 
-                                                            border: 'none', 
-                                                            borderRadius: '4px', 
-                                                            cursor: 'pointer',
-                                                            fontSize: '0.85em'
-                                                        }}
-                                                    >
-                                                        삭제
-                                                    </button>
-                                                </div>
-                                                <div style={{ 
-                                                    whiteSpace: 'pre-wrap', 
-                                                    wordBreak: 'break-word', 
-                                                    color: '#444',
-                                                    lineHeight: '1.6',
-                                                    paddingTop: '10px',
-                                                    borderTop: '1px solid #f0f0f0',
-                                                    fontSize: '0.95em'
-                                                }}>
-                                                    {memo.content}
-                                                </div>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
-                                            작성된 메모가 없습니다.
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
+                    {/* Pagination Controls */}
+                    <div className={memberStyles.pagination}>
+                        <button
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 1}
+                            className={memberStyles.paginationButton}
+                        >
+                            이전
+                        </button>
+                        {pageNumbers.map(number => (
+                            <button
+                                key={number}
+                                onClick={() => handlePageChange(number)}
+                                className={`${memberStyles.paginationButton} ${currentPage === number ? memberStyles.activePaginationButton : ''}`}
+                            >
+                                {number}
+                            </button>
+                        ))}
+                        <button
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages}
+                            className={memberStyles.paginationButton}
+                        >
+                            다음
+                        </button>
+                    </div>
                 </div>
             </>
         );
