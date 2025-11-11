@@ -34,11 +34,7 @@ import Checkout from "./components/order/Checkout";
 import OrderComplete from "./components/order/OrderComplete";
 import OrderHistory from './components/order/OrderHistory';
 import ReviewWrite from './components/product/ReviewWrite';
-import ProductRegisterMain from './components/product/ProductRegisterMain';
 import GeneralProductForm from './components/ProductRegister/GeneralProductForm';
-import CustomProductForm from './components/ProductRegister/CustomProductForm';
-import LimitedProductForm from './components/ProductRegister/LimitedProductForm';
-import AnniversaryProductForm from './components/ProductRegister/AnniversaryProductForm';
 import MyReviews from './components/my-page/MyReviews';
 import ReviewEdit from './components/my-page/ReviewEdit';
 import AdminOrderManagement from './components/admin/AdminOrderManagement';
@@ -139,19 +135,12 @@ function AppContent() {
                 <Route path="/search" element={<Search />} />
                 <Route path="/search/:category" element={<Search />} />
 
+                <Route path="/product/register" element={<GeneralProductForm />} />
                 <Route path="/product/:id" element={<ProductDetail />} />
                 <Route path="/product/edit/:id" element={<GeneralProductForm />} />
                 <Route path="/product/:id/stats" element={<ProductStats />} />
 
                 <Route path="/edit-profile" element={<EditProfile />} />
-
-                <Route path="/product-register" element={<ProductRegisterMain />}>
-                    <Route index element={<GeneralProductForm />} />
-                    <Route path="general" element={<GeneralProductForm />} />
-                    <Route path="custom" element={<CustomProductForm />} />
-                    <Route path="limited" element={<LimitedProductForm />} />
-                    <Route path="anniversary" element={<AnniversaryProductForm />} />
-                </Route>
 
                 <Route
                     path="/checkout"

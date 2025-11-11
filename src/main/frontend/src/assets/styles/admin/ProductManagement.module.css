@@ -18,6 +18,30 @@
     font-size: 18px;
 }
 
+.listHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.addProductBtn {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.addProductBtn:hover {
+    background-color: #0056b3;
+}
+
 .toolbar {
     display: flex;
     justify-content: space-between;

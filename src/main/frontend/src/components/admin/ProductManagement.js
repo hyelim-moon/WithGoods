@@ -20,7 +20,7 @@ import {
     Legend,
 } from "recharts";
 
-import { FiBell, FiRefreshCw, FiX, FiEdit, FiTrash2, FiArrowUp, FiArrowDown } from "react-icons/fi";
+import { FiBell, FiRefreshCw, FiX, FiEdit, FiTrash2, FiArrowUp, FiArrowDown, FiPlus } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 import StockHistoryTab from "./StockHistoryTab"; // 재고 이력 탭 컴포넌트 가져오기
 
@@ -713,7 +713,15 @@ function ProductManagement() {
                 </div>
 
                 <div className={productStyles.container}>
-                    <h3>상품 목록</h3>
+                    <div className={productStyles.listHeader}>
+                        <h3>상품 목록</h3>
+                        <button
+                            className={productStyles.addProductBtn}
+                            onClick={() => navigate('/product/register')}
+                        >
+                            <FiPlus /> 상품 생성
+                        </button>
+                    </div>
 
                     {/* 검색 툴바 */}
                     <div className={productStyles.toolbar}>
