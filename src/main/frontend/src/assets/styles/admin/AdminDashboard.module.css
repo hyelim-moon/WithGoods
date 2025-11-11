@@ -93,7 +93,19 @@ body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI
 .smallValue { margin-top: 18px; font-size: 40px; font-weight: 800; }
 
 .activityList { margin: 6px 0 0; padding-left: 23px; color: #374151; }
-.activityList li { margin: 8px 0; font-size: 20px; }
+.activityList li { 
+    margin: 8px 0; 
+    font-size: 20px; 
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.activityDate {
+    font-size: 0.75em;
+    color: var(--muted);
+    opacity: 0.7;
+    margin-top: 2px;
+}
 
 /* Responsive */
 @media (max-width: 1100px) {
@@ -219,6 +231,18 @@ body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI
 .allActivitiesList li:last-child { border-bottom: none; }
 
 .activityText { color: #2d2f34; font-size: 0.98em; line-height: 1.5; }
+.activityContent {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex: 1;
+}
+.activityDate {
+    font-size: 0.75em;
+    color: var(--muted);
+    opacity: 0.7;
+    margin-top: 2px;
+}
 
 /* 우측 카테고리 태그 */
 .activityTag {

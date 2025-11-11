@@ -6,53 +6,6 @@ import { FiBell, FiRefreshCw, FiX, FiSave, FiSlash } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 import axios from "../../utils/axios";
 
-const dummyInquiries = [
-    {
-        id: 10001,
-        title: "배송 관련 문의드립니다.",
-        writer: "김고객",
-        createdAt: "2023-11-01T10:00:00Z",
-        status: "답변 완료",
-        type: "일반문의",
-        content: "주문한 상품이 언제쯤 배송되나요? 주문번호는 12345입니다.",
-        answer: "안녕하세요, 고객님. 주문하신 상품은 오늘 출고될 예정이며, 2-3일 내로 받아보실 수 있습니다.",
-        answeredAt: "2023-11-01T14:30:00Z"
-    },
-    {
-        id: 10002,
-        title: "상품 재고 문의",
-        writer: "이회원",
-        createdAt: "2023-10-31T15:20:00Z",
-        status: "답변 대기",
-        type: "일반문의",
-        content: "XX상품 재입고 예정이 있나요?",
-        answer: null,
-        answeredAt: null
-    },
-    {
-        id: 10003,
-        title: "대량 구매 견적 문의",
-        writer: "박기업",
-        createdAt: "2023-10-30T11:45:00Z",
-        status: "답변 완료",
-        type: "견적문의",
-        content: "OO제품 100개 구매 시 견적 부탁드립니다.",
-        answer: "안녕하세요, 박기업 고객님. 요청하신 견적은 이메일로 발송해드렸습니다.",
-        answeredAt: "2023-10-30T18:00:00Z"
-    },
-    {
-        id: 10004,
-        title: "상품 불량 관련 문의",
-        writer: "최소비",
-        createdAt: "2023-11-02T09:00:00Z",
-        status: "답변 대기",
-        type: "일반문의",
-        content: "상품을 받았는데 파손되어 있습니다. 교환 절차 안내 부탁드립니다.",
-        answer: null,
-        answeredAt: null
-    }
-];
-
 function InquiryManagement() {
     const navigate = useNavigate();
     const [inquiries, setInquiries] = useState([]);
@@ -74,11 +27,38 @@ function InquiryManagement() {
         fetchInquiries();
     }, []);
 
-    const fetchInquiries = () => {
+    const fetchInquiries = async () => {
         setLoading(true);
         setError(null);
-        setInquiries(dummyInquiries);
-        setLoading(false);
+        try {
+            const response = await axios.get("/inquiries/all");
+            // InquiryResponseDto를 프론트엔드 형식으로 변환
+            const formattedInquiries = response.data.map(inq => ({
+                id: inq.id,
+                title: inq.title,
+                writer: inq.writer || "익명",
+                createdAt: inq.createdAt,
+                status: inq.answer ? "답변 완료" : "답변 대기",
+                type: inq.type === "ESTIMATE" ? "견적문의" : "일반문의",
+                content: inq.content || inq.message || "",
+                answer: inq.answer || null,
+                answeredAt: inq.answeredAt || null,
+                // 견적문의 전용 필드
+                customerName: inq.customerName,
+                contact: inq.contact,
+                product: inq.product,
+                quantity: inq.quantity,
+                message: inq.message,
+                designFileUrl: inq.designFileUrl
+            }));
+            setInquiries(formattedInquiries);
+        } catch (err) {
+            console.error("문의 목록 조회 실패:", err);
+            setError("문의 목록을 불러오는데 실패했습니다.");
+            setInquiries([]);
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleInquiryClick = (inquiry) => {
@@ -99,24 +79,37 @@ function InquiryManagement() {
         setCurrentPage(1); // 필터 변경 시 페이지 초기화
     };
 
-    const handleSaveAnswer = () => {
-        if (!sidePanelInquiry) return;
+    const handleSaveAnswer = async () => {
+        if (!sidePanelInquiry || !answerContent.trim()) {
+            alert("답변 내용을 입력해주세요.");
+            return;
+        }
 
-        const updatedInquiries = inquiries.map(inq => {
-            if (inq.id === sidePanelInquiry.id) {
-                return {
-                    ...inq,
+        try {
+            await axios.post(`/inquiries/${sidePanelInquiry.id}/answer`, {
+                answer: answerContent
+            });
+            
+            // 성공 시 목록 새로고침
+            await fetchInquiries();
+            
+            // 사이드 패널 업데이트
+            const updatedInquiry = inquiries.find(inq => inq.id === sidePanelInquiry.id);
+            if (updatedInquiry) {
+                setSidePanelInquiry({
+                    ...updatedInquiry,
                     answer: answerContent,
                     status: '답변 완료',
                     answeredAt: new Date().toISOString()
-                };
+                });
             }
-            return inq;
-        });
-
-        setInquiries(updatedInquiries);
-        setSidePanelInquiry(prev => ({ ...prev, answer: answerContent, status: '답변 완료', answeredAt: new Date().toISOString() }));
-        setIsEditing(false);
+            
+            setIsEditing(false);
+            alert("답변이 등록되었습니다.");
+        } catch (err) {
+            console.error("답변 등록 실패:", err);
+            alert("답변 등록에 실패했습니다.");
+        }
     };
 
     const filteredInquiries = () => {
@@ -325,9 +318,34 @@ function InquiryManagement() {
                                 <strong>제목:</strong>
                                 <p>{sidePanelInquiry.title}</p>
                             </div>
+                            {sidePanelInquiry.type === "견적문의" && (
+                                <>
+                                    {sidePanelInquiry.customerName && (
+                                        <div className={memberStyles.sidePanelItem}>
+                                            <strong>고객명:</strong> <span>{sidePanelInquiry.customerName}</span>
+                                        </div>
+                                    )}
+                                    {sidePanelInquiry.contact && (
+                                        <div className={memberStyles.sidePanelItem}>
+                                            <strong>연락처:</strong> <span>{sidePanelInquiry.contact}</span>
+                                        </div>
+                                    )}
+                                    {sidePanelInquiry.product && (
+                                        <div className={memberStyles.sidePanelItem}>
+                                            <strong>상품명:</strong> <span>{sidePanelInquiry.product}</span>
+                                        </div>
+                                    )}
+                                    {sidePanelInquiry.quantity && (
+                                        <div className={memberStyles.sidePanelItem}>
+                                            <strong>수량:</strong> <span>{sidePanelInquiry.quantity}</span>
+                                        </div>
+                                    )}
+                                    <hr className={memberStyles.hr} />
+                                </>
+                            )}
                             <div className={memberStyles.sidePanelItem}>
                                 <strong>내용:</strong>
-                                <p style={{whiteSpace: 'pre-wrap'}}>{sidePanelInquiry.content}</p>
+                                <p style={{whiteSpace: 'pre-wrap'}}>{sidePanelInquiry.content || sidePanelInquiry.message || ""}</p>
                             </div>
                             <hr className={memberStyles.hr} />
                             <div className={memberStyles.sidePanelItem}>

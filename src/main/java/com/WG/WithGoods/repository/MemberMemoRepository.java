@@ -7,5 +7,8 @@ import java.util.List;
 
 public interface MemberMemoRepository extends JpaRepository<MemberMemo, Integer> {
     List<MemberMemo> findByMember_MemberIdOrderByCreatedAtDesc(Integer memberId);
+    // 전체 메모를 최신순으로 조회
+    List<MemberMemo> findAllByOrderByCreatedAtDesc();
 }
+
 

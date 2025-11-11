@@ -4,6 +4,7 @@ import com.WG.WithGoods.dto.MemberDTO;
 import com.WG.WithGoods.dto.SignupRequest;
 import com.WG.WithGoods.entity.Member;
 import com.WG.WithGoods.entity.MemberMemo;
+import com.WG.WithGoods.entity.InquiryType;
 import com.WG.WithGoods.repository.MemberRepository;
 import com.WG.WithGoods.repository.MemberMemoRepository;
 import com.WG.WithGoods.repository.OrderRepository;
@@ -19,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.sql.Timestamp;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -41,6 +44,7 @@ public class MemberService {
     private final ReviewRepository reviewRepository;
     private final InquiryRepository inquiryRepository;
     private final PasswordEncoder passwordEncoder;
+    private final VisitorService visitorService;
 
     @Transactional
     public void signup(SignupRequest request) {
@@ -233,8 +237,9 @@ public class MemberService {
         
         stats.put("productStats", productStats);
         
-        // 방문자 수 (임시 데이터)
-        stats.put("visitors", 219);
+        // 일일 방문자 수 (오늘)
+        long todayVisitors = visitorService.getTodayVisitorCount();
+        stats.put("visitors", todayVisitors);
         
         // 취소/반품율 (임시 데이터)
         stats.put("cancelRate", "12.34%");
@@ -242,26 +247,100 @@ public class MemberService {
         return stats;
     }
 
-    // 최근 활동 조회
-    public List<String> getRecentActivity() {
-        List<String> activities = new ArrayList<>();
+    // 최근 활동 조회 (날짜 정보 포함)
+    @Transactional(readOnly = true)
+    public List<Map<String, Object>> getRecentActivity() {
+        List<Map<String, Object>> activitiesWithDate = new ArrayList<>();
         
-        // 최근 주문들 조회 (더 많이)
-        List<com.WG.WithGoods.entity.Order> recentOrders = orderRepository.findTop10ByOrderByOrderDateDesc();
-        for (com.WG.WithGoods.entity.Order order : recentOrders) {
-            activities.add(order.getOrdererName() + "님이 " + order.getPaymentAmount() + "원 주문을 완료했습니다.");
+        try {
+            // 모든 활동을 먼저 수집 (타입별 제한 없이 충분히 많이 가져옴)
+            
+            // 최근 주문들 조회 (더 많이 가져옴)
+            List<com.WG.WithGoods.entity.Order> recentOrders = orderRepository.findTop50ByOrderByOrderDateDesc();
+            for (com.WG.WithGoods.entity.Order order : recentOrders) {
+                if (order.getOrderDate() != null) {
+                    Map<String, Object> activity = new HashMap<>();
+                    activity.put("text", (order.getOrdererName() != null ? order.getOrdererName() : "고객") + "님이 " + 
+                            (order.getPaymentAmount() != null ? order.getPaymentAmount() : 0) + "원 주문을 완료했습니다.");
+                    activity.put("date", order.getOrderDate());
+                    activity.put("type", "ORDER");
+                    activitiesWithDate.add(activity);
+                }
+            }
+            
+            // 최근 회원 가입들 조회 (더 많이 가져옴)
+            List<Member> recentMembers = memberRepository.findTop50ByOrderByCreatedAtDesc();
+            for (Member member : recentMembers) {
+                if (member.getCreatedAt() != null) {
+                    Map<String, Object> activity = new HashMap<>();
+                    activity.put("text", (member.getName() != null ? member.getName() : "회원") + "님이 회원가입했습니다.");
+                    activity.put("date", member.getCreatedAt());
+                    activity.put("type", "SIGNUP");
+                    activitiesWithDate.add(activity);
+                }
+            }
+            
+            // 최근 견적문의 조회 (Writer JOIN FETCH 사용, 제한 없이 모두 가져옴)
+            List<com.WG.WithGoods.entity.Inquiry> estimateInquiries = inquiryRepository
+                    .findByTypeWithWriter(InquiryType.ESTIMATE);
+            for (com.WG.WithGoods.entity.Inquiry inquiry : estimateInquiries) {
+                if (inquiry.getCreatedAt() != null) {
+                    Map<String, Object> activity = new HashMap<>();
+                    String writerName = "익명";
+                    if (inquiry.getWriter() != null && inquiry.getWriter().getName() != null) {
+                        writerName = inquiry.getWriter().getName();
+                    }
+                    String title = inquiry.getTitle() != null ? inquiry.getTitle() : "";
+                    activity.put("text", writerName + "님이 견적문의를 등록했습니다. (" + title + ")");
+                    activity.put("date", inquiry.getCreatedAt());
+                    activity.put("type", "QUOTE");
+                    activitiesWithDate.add(activity);
+                }
+            }
+            
+            // 최근 일반문의 조회 (견적문의 제외, Writer JOIN FETCH 사용, 제한 없이 모두 가져옴)
+            List<com.WG.WithGoods.entity.Inquiry> generalInquiries = inquiryRepository
+                    .findByTypeNotWithWriter(InquiryType.ESTIMATE);
+            for (com.WG.WithGoods.entity.Inquiry inquiry : generalInquiries) {
+                if (inquiry.getCreatedAt() != null) {
+                    Map<String, Object> activity = new HashMap<>();
+                    String writerName = "익명";
+                    if (inquiry.getWriter() != null && inquiry.getWriter().getName() != null) {
+                        writerName = inquiry.getWriter().getName();
+                    }
+                    String title = inquiry.getTitle() != null ? inquiry.getTitle() : "";
+                    activity.put("text", writerName + "님이 일반문의를 등록했습니다. (" + title + ")");
+                    activity.put("date", inquiry.getCreatedAt());
+                    activity.put("type", "INQUIRY");
+                    activitiesWithDate.add(activity);
+                }
+            }
+            
+            // 날짜를 LocalDateTime으로 변환하여 저장
+            for (Map<String, Object> activity : activitiesWithDate) {
+                Object dateObj = activity.get("date");
+                if (dateObj != null) {
+                    LocalDateTime dateTime = convertToLocalDateTime(dateObj);
+                    activity.put("date", dateTime);
+                }
+            }
+            
+            // 날짜 기준으로 정렬 (최신순) - 모든 타입이 섞여서 정렬됨
+            activitiesWithDate.sort((a, b) -> {
+                LocalDateTime dateA = (LocalDateTime) a.get("date");
+                LocalDateTime dateB = (LocalDateTime) b.get("date");
+                if (dateA == null && dateB == null) return 0;
+                if (dateA == null) return 1;
+                if (dateB == null) return -1;
+                return dateB.compareTo(dateA);
+            });
+        } catch (Exception e) {
+            System.err.println("최근 활동 조회 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+            // 오류 발생 시 빈 리스트 반환
         }
         
-        // 최근 회원 가입들 조회 (더 많이)
-        List<Member> recentMembers = memberRepository.findTop5ByOrderByCreatedAtDesc();
-        for (Member member : recentMembers) {
-            activities.add(member.getName() + "님이 회원가입했습니다.");
-        }
-        
-        // 시간순으로 정렬 (최신순)
-        return activities.stream()
-                .sorted((a, b) -> b.compareTo(a)) // 간단한 정렬 (실제로는 날짜 기준으로 정렬해야 함)
-                .collect(Collectors.toList());
+        return activitiesWithDate;
     }
 
     // 회원의 찜한 상품 조회
@@ -375,6 +454,19 @@ public class MemberService {
                 .collect(Collectors.toList());
     }
     
+    // 전체 회원 메모 조회 (최신순)
+    public List<String> getAllMemberNotes() {
+        List<MemberMemo> allMemos = memberMemoRepository.findAllByOrderByCreatedAtDesc();
+        
+        return allMemos.stream()
+                .map(memo -> {
+                    String memberName = memo.getMember() != null ? memo.getMember().getName() : "알 수 없음";
+                    String adminName = memo.getAdminName() != null ? memo.getAdminName() : memo.getAdminUsername();
+                    return memberName + "님 - " + memo.getContent() + " (작성자: " + adminName + ")";
+                })
+                .collect(Collectors.toList());
+    }
+    
     // 회원의 메모 추가 (게시판 형태)
     @Transactional
     public Map<String, Object> addMemberMemo(Integer memberId, String content, String adminUsername, String adminName) {
@@ -446,6 +538,28 @@ public class MemberService {
                 .collect(Collectors.toList());
     }
 
+    // 날짜 객체를 LocalDateTime으로 변환하는 헬퍼 메서드
+    private LocalDateTime convertToLocalDateTime(Object dateObj) {
+        if (dateObj == null) {
+            return null;
+        }
+        if (dateObj instanceof LocalDateTime) {
+            return (LocalDateTime) dateObj;
+        }
+        if (dateObj instanceof Timestamp) {
+            return ((Timestamp) dateObj).toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+        }
+        if (dateObj instanceof java.util.Date) {
+            return ((java.util.Date) dateObj).toInstant()
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDateTime();
+        }
+        // 다른 타입인 경우 null 반환
+        return null;
+    }
+    
     // Member 엔티티를 MemberDTO로 변환하는 메서드
     private MemberDTO convertToDTO(Member member) {
         return MemberDTO.builder()

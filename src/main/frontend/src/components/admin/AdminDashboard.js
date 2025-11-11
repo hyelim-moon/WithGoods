@@ -23,15 +23,49 @@ const normalizeActivities = (arr) => {
             else if (text.includes("견적")) type = "QUOTE";
             else if (text.includes("일반문의") || text.includes("문의")) type = "INQUIRY";
             else if (text.includes("주문")) type = "ORDER";
-            return { type, text };
+            return { type, text, date: null };
         }
         if (item && typeof item === "object") {
             const text = item.message || item.text || "";
             const type = (item.type || "OTHER").toUpperCase();
-            return { type, text: text || JSON.stringify(item) };
+            const date = item.date || null;
+            return { type, text: text || JSON.stringify(item), date };
         }
-        return { type: "OTHER", text: String(item) };
+        return { type: "OTHER", text: String(item), date: null };
     });
+};
+
+/* ----- 날짜 포맷팅 함수 ----- */
+const formatDate = (dateString) => {
+    if (!dateString) return "";
+    try {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = now - date;
+        const seconds = Math.floor(diff / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+        const days = Math.floor(hours / 24);
+        
+        if (seconds < 60) return "방금 전";
+        if (minutes < 60) return `${minutes}분 전`;
+        if (hours < 24) return `${hours}시간 전`;
+        if (days < 7) return `${days}일 전`;
+        
+        // 7일 이상이면 날짜 표시
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hour = String(date.getHours()).padStart(2, '0');
+        const minute = String(date.getMinutes()).padStart(2, '0');
+        
+        if (year === now.getFullYear()) {
+            return `${month}-${day} ${hour}:${minute}`;
+        }
+        return `${year}-${month}-${day} ${hour}:${minute}`;
+    } catch (e) {
+        return "";
+    }
 };
 
 const CAT_LABELS = {
@@ -78,7 +112,86 @@ function LineChartCard({ data }) {
     );
 }
 
+// 파이 차트 커스텀 레이블 함수
+const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name, value }) => {
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    
+    // 작은 조각(5% 미만)은 외부에 라인으로 연결하여 표시
+    if (percent < 0.05) {
+        const outerX = cx + (outerRadius + 20) * Math.cos(-midAngle * RADIAN);
+        const outerY = cy + (outerRadius + 20) * Math.sin(-midAngle * RADIAN);
+        
+        return (
+            <g>
+                <line 
+                    x1={x} 
+                    y1={y} 
+                    x2={outerX} 
+                    y2={outerY} 
+                    stroke="#666" 
+                    strokeWidth={1}
+                />
+                <text 
+                    x={outerX + (outerX > cx ? 5 : -5)} 
+                    y={outerY} 
+                    fill="#333" 
+                    textAnchor={outerX > cx ? 'start' : 'end'} 
+                    dominantBaseline="central"
+                    fontSize={12}
+                    fontWeight={500}
+                >
+                    {name}: ₩{value.toLocaleString()}
+                </text>
+            </g>
+        );
+    }
+    
+    // 큰 조각은 내부에 표시
+    return (
+        <text 
+            x={x} 
+            y={y} 
+            fill="white" 
+            textAnchor={x > cx ? 'start' : 'end'} 
+            dominantBaseline="central"
+            fontSize={13}
+            fontWeight={600}
+            style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}
+        >
+            {`₩${value.toLocaleString()}`}
+        </text>
+    );
+};
+
+// 커스텀 툴팁
+const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+        const data = payload[0];
+        return (
+            <div style={{
+                backgroundColor: 'white',
+                padding: '10px',
+                border: '1px solid #ccc',
+                borderRadius: '4px',
+                boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}>
+                <p style={{ margin: 0, fontWeight: 'bold' }}>{data.name}</p>
+                <p style={{ margin: '5px 0 0 0', color: '#666' }}>
+                    매출: ₩{data.value.toLocaleString()}
+                </p>
+            </div>
+        );
+    }
+    return null;
+};
+
 function PieChartCard({ data }) {
+    // 총 매출 계산
+    const totalValue = data.reduce((sum, item) => sum + (item.value || 0), 0);
+    
     return (
         <div className={styles.chartCard}>
             <div className={styles.chartTitle}>상품별 매출</div>
@@ -91,22 +204,31 @@ function PieChartCard({ data }) {
                             nameKey="name"
                             cx="45%"
                             cy="50%"
-                            outerRadius={230}
-                            label
+                            outerRadius={200}
+                            innerRadius={60}
+                            label={renderCustomLabel}
+                            labelLine={false}
                         >
                             {data.map((_, i) => (
                                 <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                             ))}
                         </Pie>
+                        <Tooltip content={<CustomTooltip />} />
                     </PieChart>
                 </ResponsiveContainer>
                 <ul className={styles.legend}>
-                    {data.map((d, i) => (
-                        <li key={d.name}>
-                            <span className={styles.legendDot} style={{ background: PIE_COLORS[i] }} />
-                            {d.name}
-                        </li>
-                    ))}
+                    {data.map((d, i) => {
+                        const percentage = totalValue > 0 ? ((d.value / totalValue) * 100).toFixed(1) : 0;
+                        return (
+                            <li key={d.name}>
+                                <span className={styles.legendDot} style={{ background: PIE_COLORS[i] }} />
+                                <span style={{ fontWeight: 500 }}>{d.name}</span>
+                                <span style={{ marginLeft: '8px', color: '#666', fontSize: '0.9em' }}>
+                                    ₩{d.value.toLocaleString()} ({percentage}%)
+                                </span>
+                            </li>
+                        );
+                    })}
                 </ul>
             </div>
         </div>
@@ -136,7 +258,12 @@ function RecentActivity({ activities, onViewAll }) {
             </div>
             <ul className={styles.activityList}>
                 {recent.length > 0 ? (
-                    recent.map((a, i) => <li key={i}>{a.text}</li>)
+                    recent.map((a, i) => (
+                        <li key={i}>
+                            <span>{a.text}</span>
+                            {a.date && <span className={styles.activityDate}>{formatDate(a.date)}</span>}
+                        </li>
+                    ))
                 ) : (
                     <li>최근 활동이 없습니다.</li>
                 )}
@@ -282,7 +409,7 @@ function AdminDashboard() {
                         onClick={() => navigate("/admin/products")}
                     />
                     <StatCard
-                        title="방문자 수"
+                        title="일일 방문자수"
                         value={dashboardData.visitors.toLocaleString()}
                         icon={<FiTrendingUp />}
                     />
@@ -363,7 +490,10 @@ function AdminDashboard() {
                                     <ul>
                                         {filteredActivities.map((a, i) => (
                                             <li key={i} className={styles.activityRow}>
-                                                <span className={styles.activityText}>{a.text}</span>
+                                                <div className={styles.activityContent}>
+                                                    <span className={styles.activityText}>{a.text}</span>
+                                                    {a.date && <span className={styles.activityDate}>{formatDate(a.date)}</span>}
+                                                </div>
                                                 <span className={styles.activityTag}>{CAT_LABELS[a.type] ?? "기타"}</span>
                                             </li>
                                         ))}

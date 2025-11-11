@@ -19,4 +19,7 @@ public interface MemberRepository extends JpaRepository<Member, Integer> {
     
     // 최근 회원 가입 5명 조회
     List<Member> findTop5ByOrderByCreatedAtDesc();
+    
+    // 최근 회원 가입 50명 조회
+    List<Member> findTop50ByOrderByCreatedAtDesc();
 }

@@ -35,4 +35,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     
     // 최근 주문 10개 조회
     List<Order> findTop10ByOrderByOrderDateDesc();
+    
+    // 최근 주문 50개 조회
+    List<Order> findTop50ByOrderByOrderDateDesc();
 } 

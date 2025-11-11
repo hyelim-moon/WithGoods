@@ -81,11 +81,18 @@ public class AdminController {
         return ResponseEntity.ok(stats);
     }
 
-    // 최근 활동 조회
+    // 최근 활동 조회 (날짜 정보 포함)
     @GetMapping("/admin/dashboard/recent-activity")
-    public ResponseEntity<List<String>> getRecentActivity() {
-        List<String> activities = memberService.getRecentActivity();
+    public ResponseEntity<List<Map<String, Object>>> getRecentActivity() {
+        List<Map<String, Object>> activities = memberService.getRecentActivity();
         return ResponseEntity.ok(activities);
+    }
+
+    // 전체 회원 메모 조회
+    @GetMapping("/admin/dashboard/member-notes")
+    public ResponseEntity<List<String>> getAllMemberNotes() {
+        List<String> notes = memberService.getAllMemberNotes();
+        return ResponseEntity.ok(notes);
     }
 
     // 회원의 찜한 상품 조회
