@@ -20,12 +20,19 @@ import {
     Legend,
 } from "recharts";
 
-import { FiBell, FiRefreshCw, FiX, FiEdit, FiTrash2 } from "react-icons/fi";
+import { FiBell, FiRefreshCw, FiX, FiEdit, FiTrash2, FiArrowUp, FiArrowDown } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 import StockHistoryTab from "./StockHistoryTab"; // 재고 이력 탭 컴포넌트 가져오기
 
 const API_BASE_URL = 'http://localhost:8080';
 const LOW_STOCK_THRESHOLD = 10;
+
+const getDisplayId = (p) => {
+    if (!p) return '';
+    if (!p.category) return String(p.id);
+    const prefix = p.category.split(' ')[0];
+    return `${prefix}-${p.id}`;
+};
 
 function ProductManagement() {
     const navigate = useNavigate();
@@ -39,6 +46,9 @@ function ProductManagement() {
     const [filter, setFilter] = useState("ALL");
     const [searchCondition, setSearchCondition] = useState("productId");
     const [searchTerm, setSearchTerm] = useState("");
+
+    // 정렬
+    const [sortConfig, setSortConfig] = useState({ key: 'createdAt', direction: 'desc' });
 
     const [stats, setStats] = useState({
         total: 0,
@@ -105,7 +115,7 @@ function ProductManagement() {
             setActiveDetailTab(nextTab);
             const params = new URLSearchParams(location.search);
             if (selectedProduct) {
-                params.set("open", selectedProduct.id);
+                params.set("open", getDisplayId(selectedProduct));
                 params.set("tab", nextTab);
             } else {
                 params.delete("open");
@@ -126,7 +136,7 @@ function ProductManagement() {
             setActiveDetailTab(nextTab);
 
             const params = new URLSearchParams(location.search);
-            params.set("open", p.id);
+            params.set("open", getDisplayId(p));
             params.set("tab", nextTab);
             navigate(
                 { pathname: location.pathname, search: params.toString() },
@@ -148,7 +158,7 @@ function ProductManagement() {
         const tab = params.get("tab") || "analytics";
         if (!openId || !products.length) return;
 
-        const target = products.find((p) => String(p.id) === String(openId));
+        const target = products.find((p) => getDisplayId(p) === openId);
         if (target) {
             setSelectedProduct(target);
             setActiveDetailTab(tab);
@@ -183,22 +193,69 @@ function ProductManagement() {
         }
     }, [searchCondition]);
 
-    const filteredProducts = useMemo(() => {
-        const base =
-            filter === "ALL" ? products : products.filter((p) => p.status === filter);
-        const term = searchTerm.trim().toLowerCase();
-        if (!term) return base;
+    const handleSort = (key) => {
+        setSortConfig(prev => ({
+            key,
+            direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+        }));
+    };
 
-        return base.filter((p) => {
-            if (searchCondition === "productId")
-                return String(p.id).toLowerCase().includes(term);
-            if (searchCondition === "productname")
-                return String(p.name).toLowerCase().includes(term);
-            if (searchCondition === "category")
-                return String(p.category).toLowerCase().includes(term);
-            return true;
-        });
-    }, [products, filter, searchTerm, searchCondition]);
+    const sortedAndFilteredProducts = useMemo(() => {
+        let filtered =
+            filter === "ALL" ? products : products.filter((p) => p.status === filter);
+
+        const term = searchTerm.trim().toLowerCase();
+        if (term) {
+            filtered = filtered.filter((p) => {
+                if (searchCondition === "productId")
+                    return getDisplayId(p).toLowerCase().includes(term);
+                if (searchCondition === "productname")
+                    return String(p.name).toLowerCase().includes(term);
+                if (searchCondition === "category")
+                    return String(p.category).toLowerCase().includes(term);
+                return true;
+            });
+        }
+
+        const { key, direction } = sortConfig;
+        if (key) {
+            filtered.sort((a, b) => {
+                let valA, valB;
+
+                switch (key) {
+                    case 'productId':
+                        valA = getDisplayId(a);
+                        valB = getDisplayId(b);
+                        break;
+                    case 'productname':
+                        valA = a.name || '';
+                        valB = b.name || '';
+                        break;
+                    case 'category':
+                        valA = a.category || '';
+                        valB = b.category || '';
+                        break;
+                    case 'price':
+                        valA = a.price || 0;
+                        valB = b.price || 0;
+                        break;
+                    case 'stock':
+                        valA = a.stockQuantity || 0;
+                        valB = b.stockQuantity || 0;
+                        break;
+                    default:
+                        valA = a[key];
+                        valB = b[key];
+                }
+
+                if (valA < valB) return direction === 'asc' ? -1 : 1;
+                if (valA > valB) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+        }
+
+        return filtered;
+    }, [products, filter, searchTerm, searchCondition, sortConfig]);
 
     const getThumbUrl = (p) => {
         let url = p.imageUrl || p.thumbnailUrl || (p.image && (p.image.url || p.image.small || p.image.thumb)) || null;
@@ -289,6 +346,11 @@ function ProductManagement() {
         }
     };
 
+    const renderSortArrow = (key) => {
+        if (sortConfig.key !== key) return null;
+        return sortConfig.direction === 'asc' ? <FiArrowUp /> : <FiArrowDown />;
+    };
+
     const renderDetailPanel = () => {
         if (!selectedProduct) return null;
 
@@ -362,7 +424,7 @@ function ProductManagement() {
                   </span>
                                 </div>
 
-                                <div className={productStyles.skuLine}>SKU: {p.id}</div>
+                                <div className={productStyles.skuLine}>SKU: {getDisplayId(p)}</div>
                             </div>
 
                             <div className={productStyles.detailInfoCard}>
@@ -702,18 +764,28 @@ function ProductManagement() {
                         <thead>
                         <tr>
                             <th>이미지</th>
-                            <th>상품 ID</th>
-                            <th>상품명</th>
-                            <th>카테고리</th>
-                            <th>가격</th>
-                            <th>재고</th>
+                            <th className={productStyles.sortableHeader} onClick={() => handleSort('productId')}>
+                                상품 ID {renderSortArrow('productId')}
+                            </th>
+                            <th className={productStyles.sortableHeader} onClick={() => handleSort('productname')}>
+                                상품명 {renderSortArrow('productname')}
+                            </th>
+                            <th className={productStyles.sortableHeader} onClick={() => handleSort('category')}>
+                                카테고리 {renderSortArrow('category')}
+                            </th>
+                            <th className={productStyles.sortableHeader} onClick={() => handleSort('price')}>
+                                가격 {renderSortArrow('price')}
+                            </th>
+                            <th className={productStyles.sortableHeader} onClick={() => handleSort('stock')}>
+                                재고 {renderSortArrow('stock')}
+                            </th>
                             <th>상태</th>
                             <th>등록일</th>
                         </tr>
                         </thead>
                         <tbody>
-                        {filteredProducts.length > 0 ? (
-                            filteredProducts.map((p) => {
+                        {sortedAndFilteredProducts.length > 0 ? (
+                            sortedAndFilteredProducts.map((p) => {
                                 const thumb = getThumbUrl(p);
                                 const stockNum = Number(p.stockQuantity ?? p.stock ?? 0);
                                 return (
@@ -740,7 +812,7 @@ function ProductManagement() {
                                                 </div>
                                             )}
                                         </td>
-                                        <td>{p.id}</td>
+                                        <td>{getDisplayId(p)}</td>
                                         <td className={productStyles.nameCell}>
                         <span className={productStyles.nameText} title={p.name}>
                           {p.name}
