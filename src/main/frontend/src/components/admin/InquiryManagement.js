@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 import styles from "../../assets/styles/admin/AdminDashboard.module.css";
 import memberStyles from "../../assets/styles/admin/MemberManagement.module.css";
-import { FiBell, FiRefreshCw, FiX, FiSave, FiSlash } from "react-icons/fi";
+import { FiBell, FiRefreshCw, FiX, FiSave, FiSlash, FiTrash2 } from "react-icons/fi"; // FiTrash2 아이콘 추가
 import Sidebar from "./Sidebar";
 import axios from "../../utils/axios";
 
@@ -109,6 +109,22 @@ function InquiryManagement() {
         } catch (err) {
             console.error("답변 등록 실패:", err);
             alert("답변 등록에 실패했습니다.");
+        }
+    };
+
+    // 문의 삭제 핸들러
+    const handleDeleteInquiry = async (inquiryId) => {
+        if (window.confirm("정말로 이 문의를 삭제하시겠습니까?")) {
+            try {
+                await axios.delete(`/inquiries/${inquiryId}`); // 백엔드 삭제 API 호출
+                alert("문의가 성공적으로 삭제되었습니다.");
+                setShowSidePanel(false); // 사이드 패널 닫기
+                setSidePanelInquiry(null); // 선택된 문의 초기화
+                fetchInquiries(); // 목록 새로고침
+            } catch (err) {
+                console.error("문의 삭제 실패:", err);
+                alert("문의 삭제에 실패했습니다.");
+            }
         }
     };
 
@@ -372,7 +388,16 @@ function InquiryManagement() {
                                         <button className={memberStyles.deleteMemberBtn} onClick={() => setIsEditing(false)}><FiSlash /> 취소</button>
                                     </>
                                 ) : (
-                                    <button className={memberStyles.editMemberBtn} onClick={() => setIsEditing(true)}>답변하기</button>
+                                    <>
+                                        <button className={memberStyles.editMemberBtn} onClick={() => setIsEditing(true)}>답변하기</button>
+                                        <button 
+                                            className={memberStyles.deleteMemberBtn} 
+                                            onClick={() => handleDeleteInquiry(sidePanelInquiry.id)}
+                                            style={{ marginLeft: '10px' }} // 버튼 간 간격 추가
+                                        >
+                                            <FiTrash2 /> 삭제
+                                        </button>
+                                    </>
                                 )}
                             </div>
                         </>
