@@ -14,9 +14,54 @@ const isBirthdayToday = (member) => {
     return today.getMonth() === birth.getMonth() && today.getDate() === birth.getDate();
 };
 
+// Generic Pagination Controls for Modals
+const PaginationControls = ({ currentPage, totalPages, onPageChange }) => {
+    if (totalPages <= 1) return null;
+
+    const pageNumbers = [];
+    for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+    }
+
+    return (
+        <div className={memberStyles.pagination} style={{ marginTop: '20px' }}>
+            <button
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className={memberStyles.paginationButton}
+            >
+                이전
+            </button>
+            {pageNumbers.map(number => (
+                <button
+                    key={number}
+                    onClick={() => onPageChange(number)}
+                    className={`${memberStyles.paginationButton} ${currentPage === number ? memberStyles.activePaginationButton : ''}`}
+                >
+                    {number}
+                </button>
+            ))}
+            <button
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className={memberStyles.paginationButton}
+            >
+                다음
+            </button>
+        </div>
+    );
+};
+
+
 // WishlistModal Component
 const WishlistModal = ({ show, onClose, member, wishlist }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6; // 2x3 grid
+
     if (!show) return null;
+
+    const totalPages = Math.ceil(wishlist.length / itemsPerPage);
+    const currentItems = wishlist.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
     return (
         <div className={memberStyles.modalOverlay}>
@@ -26,9 +71,9 @@ const WishlistModal = ({ show, onClose, member, wishlist }) => {
                     <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
                 </div>
                 <div className={memberStyles.modalBody}>
-                    {wishlist && wishlist.length > 0 ? (
+                    {currentItems.length > 0 ? (
                         <ul className={memberStyles.wishlistGrid}>
-                            {wishlist.map(item => (
+                            {currentItems.map(item => (
                                 <li key={item.productId} className={memberStyles.wishlistItem}>
                                     <img src={item.productThumbnail} alt={item.productName} className={memberStyles.wishlistImage} />
                                     <div className={memberStyles.wishlistDetails}>
@@ -42,6 +87,7 @@ const WishlistModal = ({ show, onClose, member, wishlist }) => {
                         <p>{member?.name}님이 찜한 상품이 없습니다.</p>
                     )}
                 </div>
+                <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                 <div className={memberStyles.modalFooter}>
                     <button className={memberStyles.closeButton} onClick={onClose}>닫기</button>
                 </div>
@@ -52,7 +98,14 @@ const WishlistModal = ({ show, onClose, member, wishlist }) => {
 
 // CartModal Component
 const CartModal = ({ show, onClose, member, cartItems }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
     if (!show) return null;
+
+    const totalPages = Math.ceil(cartItems.length / itemsPerPage);
+    const currentItems = cartItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     return (
         <div className={memberStyles.modalOverlay}>
             <div className={memberStyles.modalContent}>
@@ -61,9 +114,9 @@ const CartModal = ({ show, onClose, member, cartItems }) => {
                     <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
                 </div>
                 <div className={memberStyles.modalBody}>
-                    {cartItems && cartItems.length > 0 ? (
+                    {currentItems.length > 0 ? (
                         <ul className={memberStyles.cartList}>
-                            {cartItems.map(item => (
+                            {currentItems.map(item => (
                                 <li key={item.cartId} className={memberStyles.cartItem}>
                                     <div className={memberStyles.cartItemContent}>
                                         <div className={memberStyles.cartItemInfo}>
@@ -88,6 +141,7 @@ const CartModal = ({ show, onClose, member, cartItems }) => {
                         <p>장바구니가 비어있습니다.</p>
                     )}
                 </div>
+                <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                 <div className={memberStyles.modalFooter}>
                     <button className={memberStyles.closeButton} onClick={onClose}>닫기</button>
                 </div>
@@ -98,7 +152,14 @@ const CartModal = ({ show, onClose, member, cartItems }) => {
 
 // OrderHistoryModal Component
 const OrderHistoryModal = ({ show, onClose, memberName, orders }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
     if (!show) return null;
+
+    const totalPages = Math.ceil(orders.length / itemsPerPage);
+    const currentItems = orders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     return (
         <div className={memberStyles.modalOverlay}>
             <div className={memberStyles.modalContent}>
@@ -107,9 +168,9 @@ const OrderHistoryModal = ({ show, onClose, memberName, orders }) => {
                     <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
                 </div>
                 <div className={memberStyles.modalBody}>
-                    {orders && orders.length > 0 ? (
+                    {currentItems.length > 0 ? (
                         <ul className={memberStyles.orderListModal}>
-                            {orders.map(order => (
+                            {currentItems.map(order => (
                                 <li key={order.orderId} className={memberStyles.orderListItemModal}>
                                     <div>
                                         <strong>주문 ID: {order.orderId}</strong>
@@ -139,6 +200,7 @@ const OrderHistoryModal = ({ show, onClose, memberName, orders }) => {
                         <p>주문 내역이 없습니다.</p>
                     )}
                 </div>
+                <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                 <div className={memberStyles.modalFooter}>
                     <button className={memberStyles.closeButton} onClick={onClose}>닫기</button>
                 </div>
@@ -149,7 +211,14 @@ const OrderHistoryModal = ({ show, onClose, memberName, orders }) => {
 
 // InquiryModal Component
 const InquiryModal = ({ show, onClose, memberName, inquiries, navigate }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
     if (!show) return null;
+
+    const totalPages = Math.ceil(inquiries.length / itemsPerPage);
+    const currentItems = inquiries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     return (
         <div className={memberStyles.modalOverlay}>
             <div className={memberStyles.modalContent}>
@@ -158,9 +227,9 @@ const InquiryModal = ({ show, onClose, memberName, inquiries, navigate }) => {
                     <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
                 </div>
                 <div className={memberStyles.modalBody}>
-                    {inquiries && inquiries.length > 0 ? (
+                    {currentItems.length > 0 ? (
                         <ul className={memberStyles.inquiryListModal}>
-                            {inquiries.map(inquiry => (
+                            {currentItems.map(inquiry => (
                                 <li key={inquiry.id} className={memberStyles.inquiryListItemModal} onClick={() => navigate(`/inquiry/${inquiry.id}`)}>
                                     <div>
                                         <strong>문의 ID: {inquiry.id}</strong>
@@ -178,6 +247,7 @@ const InquiryModal = ({ show, onClose, memberName, inquiries, navigate }) => {
                         <p>문의 내역이 없습니다.</p>
                     )}
                 </div>
+                <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                 <div className={memberStyles.modalFooter}>
                     <button className={memberStyles.closeButton} onClick={onClose}>닫기</button>
                 </div>
@@ -188,7 +258,14 @@ const InquiryModal = ({ show, onClose, memberName, inquiries, navigate }) => {
 
 // ReviewModal Component
 const ReviewModal = ({ show, onClose, memberName, reviews }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 4;
+
     if (!show) return null;
+
+    const totalPages = Math.ceil(reviews.length / itemsPerPage);
+    const currentItems = reviews.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     return (
         <div className={memberStyles.modalOverlay}>
             <div className={memberStyles.modalContent}>
@@ -197,9 +274,9 @@ const ReviewModal = ({ show, onClose, memberName, reviews }) => {
                     <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
                 </div>
                 <div className={memberStyles.modalBody}>
-                    {reviews && reviews.length > 0 ? (
-                        <ul className={memberStyles.inquiryListModal}> {/* Reusing inquiryListModal for general list styling */}
-                            {reviews.map(review => (
+                    {currentItems.length > 0 ? (
+                        <ul className={memberStyles.inquiryListModal}>
+                            {currentItems.map(review => (
                                 <li key={review.reviewId} className={memberStyles.inquiryListItemModal}>
                                     <div>
                                         <strong>리뷰 ID: {review.reviewId}</strong>
@@ -225,6 +302,7 @@ const ReviewModal = ({ show, onClose, memberName, reviews }) => {
                         <p>리뷰 내역이 없습니다.</p>
                     )}
                 </div>
+                <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                 <div className={memberStyles.modalFooter}>
                     <button onClick={onClose} className={memberStyles.closeButton}>닫기</button>
                 </div>
@@ -235,7 +313,14 @@ const ReviewModal = ({ show, onClose, memberName, reviews }) => {
 
 // EstimateModal Component
 const EstimateModal = ({ show, onClose, memberName, estimates }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 4;
+
     if (!show) return null;
+
+    const totalPages = Math.ceil(estimates.length / itemsPerPage);
+    const currentItems = estimates.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     return (
         <div className={memberStyles.modalOverlay}>
             <div className={memberStyles.modalContent}>
@@ -244,9 +329,9 @@ const EstimateModal = ({ show, onClose, memberName, estimates }) => {
                     <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
                 </div>
                 <div className={memberStyles.modalBody}>
-                    {estimates && estimates.length > 0 ? (
-                        <ul className={memberStyles.inquiryListModal}> {/* Reusing inquiryListModal for general list styling */}
-                            {estimates.map(estimate => (
+                    {currentItems.length > 0 ? (
+                        <ul className={memberStyles.inquiryListModal}>
+                            {currentItems.map(estimate => (
                                 <li key={estimate.id} className={memberStyles.inquiryListItemModal}>
                                     <div>
                                         <strong>견적 ID: {estimate.id}</strong>
@@ -286,6 +371,7 @@ const EstimateModal = ({ show, onClose, memberName, estimates }) => {
                         <p>견적 내역이 없습니다.</p>
                     )}
                 </div>
+                <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
                 <div className={memberStyles.modalFooter}>
                     <button onClick={onClose} className={memberStyles.closeButton}>닫기</button>
                 </div>
@@ -296,16 +382,22 @@ const EstimateModal = ({ show, onClose, memberName, estimates }) => {
 
 // MemoModal Component
 const MemoModal = ({ show, onClose, member, memos, newMemoContent, isAddingMemo, setIsAddingMemo, setNewMemoContent, handleAddMemo, handleDeleteMemo }) => {
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 3;
+
     if (!show) return null;
+
+    const totalPages = Math.ceil(memos.length / itemsPerPage);
+    const currentItems = memos.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
     return (
         <div className={memberStyles.modalOverlay}>
-            <div className={memberStyles.modalContent} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px', width: '90%' }}>
+            <div className={memberStyles.modalContent} style={{ maxWidth: '800px', width: '90%' }}>
                 <div className={memberStyles.modalHeader}>
                     <h3>{member ? `${member.name}님의 관리자 메모` : '관리자 메모'}</h3>
                     <button onClick={onClose} className={memberStyles.modalCloseButton}><FiX /></button>
                 </div>
 
-                {/* 메모 작성 버튼 */}
                 {!isAddingMemo && (
                     <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'flex-end' }}>
                         <button
@@ -317,7 +409,6 @@ const MemoModal = ({ show, onClose, member, memos, newMemoContent, isAddingMemo,
                     </div>
                 )}
 
-                {/* 메모 작성 폼 */}
                 {isAddingMemo && (
                     <div style={{ width: '100%', marginBottom: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f9f9f9' }}>
                         <textarea
@@ -346,10 +437,9 @@ const MemoModal = ({ show, onClose, member, memos, newMemoContent, isAddingMemo,
                     </div>
                 )}
 
-                {/* 메모 리스트 */}
                 <div style={{ maxHeight: '500px', overflowY: 'auto', border: '1px solid #e0e0e0', borderRadius: '4px', padding: '10px' }}>
-                    {memos && memos.length > 0 ? (
-                        memos.map((memo) => (
+                    {currentItems.length > 0 ? (
+                        currentItems.map((memo) => (
                             <div key={memo.memoId} style={{
                                 marginBottom: '15px',
                                 padding: '15px',
@@ -361,7 +451,7 @@ const MemoModal = ({ show, onClose, member, memos, newMemoContent, isAddingMemo,
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
                                     <div style={{ flex: 1 }}>
                                         <div style={{ fontWeight: '600', color: '#333', marginBottom: '4px', fontSize: '1em' }}>
-                                            {memo.adminName || memo.adminUsername}
+                                            {memo.adminName}
                                         </div>
                                         <div style={{ fontSize: '0.85em', color: '#666' }}>
                                             {new Date(memo.createdAt).toLocaleString('ko-KR')}
@@ -401,6 +491,7 @@ const MemoModal = ({ show, onClose, member, memos, newMemoContent, isAddingMemo,
                         </div>
                     )}
                 </div>
+                <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
             </div>
         </div>
     );
@@ -411,7 +502,7 @@ const AddEditMemberModal = ({ show, onClose, isEditing, newMemberData, handleNew
     if (!show) return null;
     return (
         <div className={memberStyles.modalOverlay}>
-            <div className={memberStyles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={memberStyles.modalContent}>
                 <h3>{isEditing ? '회원 정보 수정' : '새 회원 추가'}</h3>
 
                 {!isEditing && (
@@ -543,7 +634,7 @@ const IndividualCouponModal = ({ show, onClose, member, availableCoupons, select
     if (!show) return null;
     return (
         <div className={memberStyles.modalOverlay}>
-            <div className={memberStyles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={memberStyles.modalContent}>
                 <h3>{member ? `${member.name}님에게 쿠폰 지급` : '쿠폰 지급'}</h3>
                 <select
                     value={selectedCouponForIndividual}
@@ -570,7 +661,7 @@ const CouponDistributionModal = ({ show, onClose, selectedMembersCount, availabl
     if (!show) return null;
     return (
         <div className={memberStyles.modalOverlay}>
-            <div className={memberStyles.modalContent} onClick={(e) => e.stopPropagation()}>
+            <div className={memberStyles.modalContent}>
                 <h3>선택된 회원에게 쿠폰 지급</h3>
                 <p>선택된 회원: {selectedMembersCount}명</p>
                 <select
@@ -666,8 +757,11 @@ function MemberManagement() {
     });
 
     useEffect(() => {
-        fetchMembers();
-        fetchAvailableCoupons();
+        const init = async () => {
+            await fetchMembers();
+            await fetchAvailableCoupons();
+        };
+        init();
     }, []);
 
     useEffect(() => {
@@ -1004,7 +1098,7 @@ function MemberManagement() {
             setMemberMemos([]);
         }
     };
-
+    
     // 메모 모달 열기
     const handleOpenMemoModal = async (member) => {
         if (member) {
@@ -1012,13 +1106,6 @@ function MemberManagement() {
             await fetchMemberMemos(member.id);
         }
         setShowMemoModal(true);
-    };
-
-    // 메모 모달 닫기
-    const handleCloseMemoModal = () => {
-        setShowMemoModal(false);
-        setIsAddingMemo(false);
-        setNewMemoContent('');
     };
 
     // 회원 메모 추가
@@ -1136,7 +1223,7 @@ function MemberManagement() {
             setNewMemberData({
                 id: '', username: '', password: '', nickname: '', name: '', email: '', phoneNumber: '', gender: '', birthDate: '', address: ''
             });
-            fetchMembers();
+            await fetchMembers();
         }
     };
 
@@ -1159,7 +1246,7 @@ function MemberManagement() {
         } finally {
             setShowSidePanel(false);
             setSidePanelMember(null);
-            fetchMembers();
+            await fetchMembers();
         }
     };
 
@@ -1542,7 +1629,11 @@ function MemberManagement() {
 
             <MemoModal
                 show={showMemoModal}
-                onClose={handleCloseMemoModal}
+                onClose={() => {
+                    setShowMemoModal(false);
+                    setIsAddingMemo(false);
+                    setNewMemoContent('');
+                }}
                 member={sidePanelMember}
                 memos={memberMemos}
                 newMemoContent={newMemoContent}
