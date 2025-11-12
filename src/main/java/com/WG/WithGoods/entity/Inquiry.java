@@ -18,6 +18,7 @@ public class Inquiry {
     private String title;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
     private InquiryType type;
 
     private String password;
