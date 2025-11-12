@@ -1,9 +1,9 @@
 .navbar {
     display: flex;
-    justify-content: space-around;
+    justify-content: center;
     background-color: #fff;
     padding: 8px 0;
-    /*border-top: 1px solid #000000;*/
+    gap: 2.5rem;
     border-bottom: 1px solid #ccc;
 }
 
@@ -13,13 +13,16 @@
     font-size: 1.1rem;
     cursor: pointer;
     padding: 5px;
-    transition: background-color 0.3s;
-    color: #003016;
+    transition: color 0.3s; /* Only transition color for better performance */
+    color: #888; /* Default color for inactive tabs (gray) */
     font-weight: bolder;
 }
 
 .navbar button:hover {
-    /*background-color: #b79240;*/
+    color: #000;
+}
+
+.navbar button.active {
     color: #000;
 }
 

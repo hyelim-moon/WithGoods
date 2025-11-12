@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
 import logoImg from '../../assets/images/logo.png';
 import styles from '../../assets/styles/layout/Header.module.css';
+import { FaSearch, FaUser, FaShoppingCart, FaSignOutAlt, FaQuestionCircle } from 'react-icons/fa';
 
 function Header() {
     const { user, setUser } = useAuth();
@@ -166,22 +167,44 @@ function Header() {
                 <div className={styles.rightGroup}>
                     <div className={styles.login}>
                         {user ? (
-                            <div className={styles.userBox}>
-                                <Link to="/mypage" className={styles.nicknameLink}>
-                                    {user.nickname}님
+                            <>
+                                <Link to="/mypage" className={styles.mypageLink}>
+                                    <FaUser size="1.2em" />
+                                    <span>{user.nickname}님</span>
                                 </Link>
-                                
                                 <div className={styles.divider}></div>
                                 <Link to="/cart" className={styles.cartLink}>
-                                    장바구니
+                                    <FaShoppingCart size="1.2em" />
+                                    <span>장바구니</span>
+                                </Link>
+                                <div className={styles.divider}></div>
+                                <Link to="/inquiry" className={styles.inquiryLink}>
+                                    <FaQuestionCircle size="1.2em" />
+                                    <span>문의</span>
                                 </Link>
                                 <div className={styles.divider}></div>
                                 <button onClick={handleLogout} className={styles.logoutButton}>
-                                    로그아웃
+                                    <FaSignOutAlt size="1.2em" />
+                                    <span>로그아웃</span>
                                 </button>
-                            </div>
+                            </>
                         ) : (
-                            <Link to="/login" className={styles.loginLink}>로그인</Link>
+                            <>
+                                <Link to="/login" className={styles.loginLink}>
+                                    <FaUser size="1.2em" />
+                                    <span>로그인</span>
+                                </Link>
+                                <div className={styles.divider}></div>
+                                <Link to="/cart" className={styles.cartLink}>
+                                    <FaShoppingCart size="1.2em" />
+                                    <span>장바구니</span>
+                                </Link>
+                                <div className={styles.divider}></div>
+                                <Link to="/inquiry" className={styles.inquiryLink}>
+                                    <FaQuestionCircle size="1.2em" />
+                                    <span>문의</span>
+                                </Link>
+                            </>
                         )}
                     </div>
 
@@ -193,7 +216,9 @@ function Header() {
                             onChange={handleInputChange}
                             onKeyDown={handleKeyDown}
                         />
-                        <button onClick={handleSearch}>검색</button>
+                        <button onClick={handleSearch} className={styles.searchButton}>
+                            <FaSearch size="1.2em" />
+                        </button>
                     </div>
                 </div>
             </div>
