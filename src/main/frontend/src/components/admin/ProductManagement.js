@@ -424,7 +424,7 @@ function ProductManagement() {
                   </span>
                                 </div>
 
-                                <div className={productStyles.skuLine}>SKU: {getDisplayId(p)}</div>
+                                <div className={productStyles.skuLine}>{getDisplayId(p)}</div>
                             </div>
 
                             <div className={productStyles.detailInfoCard}>
