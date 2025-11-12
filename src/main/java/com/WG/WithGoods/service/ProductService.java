@@ -103,6 +103,10 @@ public class ProductService {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("상품을 찾을 수 없습니다."));
 
+        if (product.getStock() == null) {
+            product.setStock(0); // null일 경우 0으로 초기화
+        }
+
         int oldStock = product.getStock();
 
         if (dto.getName() != null) product.setName(dto.getName());
