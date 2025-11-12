@@ -56,12 +56,29 @@ const PaginationControls = ({ currentPage, totalPages, onPageChange }) => {
 // WishlistModal Component
 const WishlistModal = ({ show, onClose, member, wishlist }) => {
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
     const itemsPerPage = 6; // 2x3 grid
+
+    useEffect(() => {
+        if (show) {
+            setSearchTerm('');
+            setCurrentPage(1);
+        }
+    }, [show]);
 
     if (!show) return null;
 
-    const totalPages = Math.ceil(wishlist.length / itemsPerPage);
-    const currentItems = wishlist.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const filteredItems = wishlist.filter(item =>
+        item.productName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+    const currentItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1);
+    };
 
     return (
         <div className={memberStyles.modalOverlay}>
@@ -69,6 +86,15 @@ const WishlistModal = ({ show, onClose, member, wishlist }) => {
                 <div className={memberStyles.modalHeader}>
                     <h3>{member?.name}님의 찜한 상품</h3>
                     <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
+                </div>
+                <div style={{ marginBottom: '15px' }}>
+                    <input
+                        type="text"
+                        placeholder="상품명으로 검색..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: '4px' }}
+                    />
                 </div>
                 <div className={memberStyles.modalBody}>
                     {currentItems.length > 0 ? (
@@ -84,7 +110,7 @@ const WishlistModal = ({ show, onClose, member, wishlist }) => {
                             ))}
                         </ul>
                     ) : (
-                        <p>{member?.name}님이 찜한 상품이 없습니다.</p>
+                        <p>{searchTerm ? '검색된 상품이 없습니다.' : `${member?.name}님이 찜한 상품이 없습니다.`}</p>
                     )}
                 </div>
                 <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
@@ -99,12 +125,29 @@ const WishlistModal = ({ show, onClose, member, wishlist }) => {
 // CartModal Component
 const CartModal = ({ show, onClose, member, cartItems }) => {
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
     const itemsPerPage = 5;
+
+    useEffect(() => {
+        if (show) {
+            setSearchTerm('');
+            setCurrentPage(1);
+        }
+    }, [show]);
 
     if (!show) return null;
 
-    const totalPages = Math.ceil(cartItems.length / itemsPerPage);
-    const currentItems = cartItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const filteredItems = cartItems.filter(item =>
+        item.productName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+    const currentItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1);
+    };
 
     return (
         <div className={memberStyles.modalOverlay}>
@@ -112,6 +155,15 @@ const CartModal = ({ show, onClose, member, cartItems }) => {
                 <div className={memberStyles.modalHeader}>
                     <h3>{member?.name}님의 장바구니</h3>
                     <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
+                </div>
+                <div style={{ marginBottom: '15px' }}>
+                    <input
+                        type="text"
+                        placeholder="상품명으로 검색..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: '4px' }}
+                    />
                 </div>
                 <div className={memberStyles.modalBody}>
                     {currentItems.length > 0 ? (
@@ -138,7 +190,7 @@ const CartModal = ({ show, onClose, member, cartItems }) => {
                             ))}
                         </ul>
                     ) : (
-                        <p>장바구니가 비어있습니다.</p>
+                        <p>{searchTerm ? '검색된 상품이 없습니다.' : '장바구니가 비어있습니다.'}</p>
                     )}
                 </div>
                 <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
@@ -153,12 +205,30 @@ const CartModal = ({ show, onClose, member, cartItems }) => {
 // OrderHistoryModal Component
 const OrderHistoryModal = ({ show, onClose, memberName, orders }) => {
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
     const itemsPerPage = 5;
+
+    useEffect(() => {
+        if (show) {
+            setSearchTerm('');
+            setCurrentPage(1);
+        }
+    }, [show]);
 
     if (!show) return null;
 
-    const totalPages = Math.ceil(orders.length / itemsPerPage);
-    const currentItems = orders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const filteredItems = orders.filter(order =>
+        order.orderId.toString().includes(searchTerm) ||
+        order.status.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+    const currentItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1);
+    };
 
     return (
         <div className={memberStyles.modalOverlay}>
@@ -166,6 +236,15 @@ const OrderHistoryModal = ({ show, onClose, memberName, orders }) => {
                 <div className={memberStyles.modalHeader}>
                     <h3>{memberName ? `${memberName}님의 주문 내역` : '주문 내역'}</h3>
                     <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
+                </div>
+                <div style={{ marginBottom: '15px' }}>
+                    <input
+                        type="text"
+                        placeholder="주문ID 또는 상태로 검색..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: '4px' }}
+                    />
                 </div>
                 <div className={memberStyles.modalBody}>
                     {currentItems.length > 0 ? (
@@ -197,7 +276,7 @@ const OrderHistoryModal = ({ show, onClose, memberName, orders }) => {
                             ))}
                         </ul>
                     ) : (
-                        <p>주문 내역이 없습니다.</p>
+                        <p>{searchTerm ? '검색된 주문 내역이 없습니다.' : '주문 내역이 없습니다.'}</p>
                     )}
                 </div>
                 <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
@@ -212,12 +291,30 @@ const OrderHistoryModal = ({ show, onClose, memberName, orders }) => {
 // InquiryModal Component
 const InquiryModal = ({ show, onClose, memberName, inquiries, navigate }) => {
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
     const itemsPerPage = 5;
+
+    useEffect(() => {
+        if (show) {
+            setSearchTerm('');
+            setCurrentPage(1);
+        }
+    }, [show]);
 
     if (!show) return null;
 
-    const totalPages = Math.ceil(inquiries.length / itemsPerPage);
-    const currentItems = inquiries.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const filteredItems = inquiries.filter(inquiry =>
+        inquiry.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        inquiry.status.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+    const currentItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1);
+    };
 
     return (
         <div className={memberStyles.modalOverlay}>
@@ -225,6 +322,15 @@ const InquiryModal = ({ show, onClose, memberName, inquiries, navigate }) => {
                 <div className={memberStyles.modalHeader}>
                     <h3>{memberName ? `${memberName}님의 문의 내역` : '문의 내역'}</h3>
                     <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
+                </div>
+                <div style={{ marginBottom: '15px' }}>
+                    <input
+                        type="text"
+                        placeholder="제목 또는 상태로 검색..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: '4px' }}
+                    />
                 </div>
                 <div className={memberStyles.modalBody}>
                     {currentItems.length > 0 ? (
@@ -244,7 +350,7 @@ const InquiryModal = ({ show, onClose, memberName, inquiries, navigate }) => {
                             ))}
                         </ul>
                     ) : (
-                        <p>문의 내역이 없습니다.</p>
+                        <p>{searchTerm ? '검색된 문의 내역이 없습니다.' : '문의 내역이 없습니다.'}</p>
                     )}
                 </div>
                 <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
@@ -259,12 +365,30 @@ const InquiryModal = ({ show, onClose, memberName, inquiries, navigate }) => {
 // ReviewModal Component
 const ReviewModal = ({ show, onClose, memberName, reviews }) => {
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
     const itemsPerPage = 4;
+
+    useEffect(() => {
+        if (show) {
+            setSearchTerm('');
+            setCurrentPage(1);
+        }
+    }, [show]);
 
     if (!show) return null;
 
-    const totalPages = Math.ceil(reviews.length / itemsPerPage);
-    const currentItems = reviews.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const filteredItems = reviews.filter(review =>
+        review.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        review.content.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+    const currentItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1);
+    };
 
     return (
         <div className={memberStyles.modalOverlay}>
@@ -272,6 +396,15 @@ const ReviewModal = ({ show, onClose, memberName, reviews }) => {
                 <div className={memberStyles.modalHeader}>
                     <h3>{memberName ? `${memberName}님의 리뷰` : '리뷰 내역'}</h3>
                     <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
+                </div>
+                <div style={{ marginBottom: '15px' }}>
+                    <input
+                        type="text"
+                        placeholder="상품명 또는 내용으로 검색..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: '4px' }}
+                    />
                 </div>
                 <div className={memberStyles.modalBody}>
                     {currentItems.length > 0 ? (
@@ -299,7 +432,7 @@ const ReviewModal = ({ show, onClose, memberName, reviews }) => {
                             ))}
                         </ul>
                     ) : (
-                        <p>리뷰 내역이 없습니다.</p>
+                        <p>{searchTerm ? '검색된 리뷰가 없습니다.' : '리뷰 내역이 없습니다.'}</p>
                     )}
                 </div>
                 <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
@@ -314,12 +447,31 @@ const ReviewModal = ({ show, onClose, memberName, reviews }) => {
 // EstimateModal Component
 const EstimateModal = ({ show, onClose, memberName, estimates }) => {
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
     const itemsPerPage = 4;
+
+    useEffect(() => {
+        if (show) {
+            setSearchTerm('');
+            setCurrentPage(1);
+        }
+    }, [show]);
 
     if (!show) return null;
 
-    const totalPages = Math.ceil(estimates.length / itemsPerPage);
-    const currentItems = estimates.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const filteredItems = estimates.filter(estimate =>
+        estimate.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        estimate.product.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        estimate.customerName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const totalPages = Math.ceil(filteredItems.length / itemsPerPage);
+    const currentItems = filteredItems.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1);
+    };
 
     return (
         <div className={memberStyles.modalOverlay}>
@@ -327,6 +479,15 @@ const EstimateModal = ({ show, onClose, memberName, estimates }) => {
                 <div className={memberStyles.modalHeader}>
                     <h3>{memberName ? `${memberName}님의 견적` : '견적 내역'}</h3>
                     <button className={memberStyles.modalCloseButton} onClick={onClose}><FiX /></button>
+                </div>
+                <div style={{ marginBottom: '15px' }}>
+                    <input
+                        type="text"
+                        placeholder="제목, 고객명, 상품으로 검색..."
+                        value={searchTerm}
+                        onChange={handleSearchChange}
+                        style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: '4px' }}
+                    />
                 </div>
                 <div className={memberStyles.modalBody}>
                     {currentItems.length > 0 ? (
@@ -368,7 +529,7 @@ const EstimateModal = ({ show, onClose, memberName, estimates }) => {
                             ))}
                         </ul>
                     ) : (
-                        <p>견적 내역이 없습니다.</p>
+                        <p>{searchTerm ? '검색된 견적이 없습니다.' : '견적 내역이 없습니다.'}</p>
                     )}
                 </div>
                 <PaginationControls currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
@@ -383,12 +544,30 @@ const EstimateModal = ({ show, onClose, memberName, estimates }) => {
 // MemoModal Component
 const MemoModal = ({ show, onClose, member, memos, newMemoContent, isAddingMemo, setIsAddingMemo, setNewMemoContent, handleAddMemo, handleDeleteMemo }) => {
     const [currentPage, setCurrentPage] = useState(1);
+    const [searchTerm, setSearchTerm] = useState('');
     const itemsPerPage = 3;
+
+    useEffect(() => {
+        if (show) {
+            setSearchTerm('');
+            setCurrentPage(1);
+        }
+    }, [show]);
 
     if (!show) return null;
 
-    const totalPages = Math.ceil(memos.length / itemsPerPage);
-    const currentItems = memos.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+    const filteredMemos = memos.filter(memo =>
+        memo.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        memo.adminName.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const totalPages = Math.ceil(filteredMemos.length / itemsPerPage);
+    const currentItems = filteredMemos.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const handleSearchChange = (e) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1);
+    };
 
     return (
         <div className={memberStyles.modalOverlay}>
@@ -398,16 +577,25 @@ const MemoModal = ({ show, onClose, member, memos, newMemoContent, isAddingMemo,
                     <button onClick={onClose} className={memberStyles.modalCloseButton}><FiX /></button>
                 </div>
 
-                {!isAddingMemo && (
-                    <div style={{ marginBottom: '20px', display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', gap: '10px' }}>
+                    <div style={{ flexGrow: 1 }}>
+                        <input
+                            type="text"
+                            placeholder="내용 또는 작성자로 검색..."
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                            style={{ width: '100%', padding: '8px 12px', border: '1px solid #ccc', borderRadius: '4px' }}
+                        />
+                    </div>
+                    {!isAddingMemo && (
                         <button
                             onClick={() => setIsAddingMemo(true)}
-                            style={{ padding: '8px 16px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                            style={{ padding: '8px 16px', backgroundColor: '#007bff', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', flexShrink: 0 }}
                         >
                             + 메모 작성
                         </button>
-                    </div>
-                )}
+                    )}
+                </div>
 
                 {isAddingMemo && (
                     <div style={{ width: '100%', marginBottom: '20px', padding: '15px', border: '1px solid #ddd', borderRadius: '4px', backgroundColor: '#f9f9f9' }}>
@@ -487,7 +675,7 @@ const MemoModal = ({ show, onClose, member, memos, newMemoContent, isAddingMemo,
                         ))
                     ) : (
                         <div style={{ padding: '40px', textAlign: 'center', color: '#999' }}>
-                            작성된 메모가 없습니다.
+                            {searchTerm ? '검색된 메모가 없습니다.' : '작성된 메모가 없습니다.'}
                         </div>
                     )}
                 </div>
@@ -1507,9 +1695,9 @@ function MemberManagement() {
                         onMouseOut={(e) => e.target.style.backgroundColor = '#6f42c1'}
                     >
                         메모
-                    </button>
+                    </button>                    
                     <button
-                        className={memberStyles.viewCartBtn} /* Changed from viewWishlistBtn to viewCartBtn */
+                        className={memberStyles.viewCartBtn}
                         onClick={() => handleViewWishlist(sidePanelMember)}
                     >
                         찜한 상품
