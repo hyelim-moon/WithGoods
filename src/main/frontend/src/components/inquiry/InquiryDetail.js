@@ -1,5 +1,5 @@
 // src/components/InquiryDetail.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
@@ -16,6 +16,7 @@ function InquiryDetail() {
     const [showPwdModal, setShowPwdModal] = useState(false);
     const [pwdInput, setPwdInput] = useState('');
     const [pwdError, setPwdError] = useState('');
+    const pwdInputRef = useRef(null); // 비밀번호 입력창 참조
 
     // 관리자 답변 관련 state
     const [answerText, setAnswerText] = useState('');
@@ -47,6 +48,13 @@ function InquiryDetail() {
         fetchDetail();
     }, [id, navigate]);
 
+    // 비밀번호 모달이 나타날 때 입력창에 포커스
+    useEffect(() => {
+        if (showPwdModal) {
+            pwdInputRef.current?.focus();
+        }
+    }, [showPwdModal]);
+
     const handlePwdSubmit = async () => {
         setPwdError('');
         if (!pwdInput.trim()) {
@@ -71,6 +79,25 @@ function InquiryDetail() {
             setLoading(false);
         }
     };
+
+    // Enter, ESC 키 이벤트 처리
+    useEffect(() => {
+        const handleKeyDown = (e) => {
+            if (showPwdModal) {
+                if (e.key === 'Enter') {
+                    handlePwdSubmit();
+                } else if (e.key === 'Escape') {
+                    setShowPwdModal(false);
+                    navigate('/inquiry');
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [showPwdModal, pwdInput]); // pwdInput을 의존성 배열에 추가하여 최신 상태를 참조하도록 함
 
     const handleDelete = async () => {
         if (!window.confirm('정말 이 문의를 삭제하시겠습니까?')) return;
@@ -261,6 +288,7 @@ function InquiryDetail() {
                             비밀번호를 입력하세요
                         </div>
                         <input
+                            ref={pwdInputRef}
                             type="password"
                             className={styles.modalInput}
                             value={pwdInput}
