@@ -37,6 +37,12 @@ const EstimateInquiryForm = () => {
     // handleSubmit 예시 (EstimateInquiryForm.js)
     const handleSubmit = async e => {
         e.preventDefault();
+
+        if (!form.password) {
+            alert('비밀번호를 입력해주세요.');
+            return;
+        }
+
         const formData = new FormData();
         formData.append('title', form.title);
         formData.append('customerName', form.customerName);
