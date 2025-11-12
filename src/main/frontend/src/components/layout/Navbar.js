@@ -13,9 +13,6 @@ function Navbar() {
 
     return (
         <nav className={styles.navbar}>
-            <Link to="/">
-                <button className={getButtonClassName('/customization')}>베스트</button>
-            </Link>
             <Link to="/customization">
                 <button className={getButtonClassName('/customization')}>커스텀</button>
             </Link>
