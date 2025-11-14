@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from '../../assets/styles/product/ProductList.module.css';
+import { FaHeart } from 'react-icons/fa'; // react-icons/fa에서 FaHeart 아이콘 임포트
 
 const API_BASE_URL = 'http://localhost:8080';
 
@@ -16,7 +17,12 @@ function ProductList() {
         return res.json();
       })
       .then((data) => {
-        setProducts(data);
+        // 각 상품에 찜 상태 (isWished) 초기화
+        const productsWithWishStatus = data.map(product => ({
+          ...product,
+          isWished: false, // 실제 백엔드에서 찜 상태를 가져오도록 수정 필요
+        }));
+        setProducts(productsWithWishStatus);
       })
       .catch((err) => {
         console.error('상품 목록 불러오기 실패:', err);
@@ -48,6 +54,20 @@ function ProductList() {
       });
   };
 
+  // 찜 상태 토글
+  const handleWishToggle = (e, productId) => {
+    e.stopPropagation(); // 카드 클릭 이벤트가 발생하지 않도록 전파 중단
+    setProducts(prevProducts =>
+      prevProducts.map(product =>
+        product.productId === productId
+          ? { ...product, isWished: !product.isWished }
+          : product
+      )
+    );
+    // TODO: 백엔드에 찜 상태 업데이트 요청 보내기
+    console.log(`Product ${productId} wish status toggled.`);
+  };
+
   return (
     <div className={styles.container}>
       <h1 className={styles.title}>📦 등록된 상품</h1>
@@ -74,23 +94,31 @@ function ProductList() {
 
               <h3 className={styles.productName}>{product.name}</h3>
 
-              <div className={styles.priceSection}>
-                {product.discountRate > 0 ? (
-                  <>
-                    <span className={styles.originalPrice}>
+              {/* 가격 정보와 찜 아이콘을 담을 새로운 컨테이너 */}
+              <div className={styles.priceAndWish}>
+                <div className={styles.priceSection}>
+                  {product.discountRate > 0 ? (
+                    <>
+                      <span className={styles.originalPrice}>
+                        {product.price.toLocaleString()}원
+                      </span>
+                      <span className={styles.arrow}>→</span>
+                      <span className={styles.discountedPrice}>
+                        {discountedPrice.toLocaleString()}원
+                      </span>
+                    </>
+                  ) : (
+                    <span className={styles.normalPrice}>
                       {product.price.toLocaleString()}원
                     </span>
-                    <span className={styles.arrow}>→</span>
-                    <span className={styles.discountedPrice}>
-                      {discountedPrice.toLocaleString()}원
-                    </span>
-                  </>
-                ) : (
-                  <span className={styles.normalPrice}>
-                    {product.price.toLocaleString()}원
-                  </span>
-                )}
+                  )}
+                </div>
+                <FaHeart
+                  className={`${styles.wishIcon} ${product.isWished ? styles.wished : ''}`}
+                  onClick={(e) => handleWishToggle(e, product.productId)}
+                />
               </div>
+
 
               {product.discountRate > 0 && (
                 <div className={styles.discountRate}>

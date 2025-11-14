@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from '../../assets/styles/pages/Customization.module.css';
+import { FaHeart } from 'react-icons/fa'; // FaHeart 아이콘 임포트
 
 const API_BASE_URL = 'http://localhost:8080';
 
@@ -27,10 +28,15 @@ function Customization() {
                     withCredentials: true,
                 });
                 const productsData = Array.isArray(response.data) ? response.data : [];
+                // 각 상품에 찜 상태 (isWished) 초기화
+                const productsWithWishStatus = productsData.map(product => ({
+                    ...product,
+                    isWished: false, // 실제 백엔드에서 찜 상태를 가져오도록 수정 필요
+                }));
                 // 평점순으로 기본 정렬
-                productsData.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-                console.log('Fetched custom products:', productsData);
-                setProducts(productsData);
+                productsWithWishStatus.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                console.log('Fetched custom products:', productsWithWishStatus);
+                setProducts(productsWithWishStatus);
                 setError(null);
             } catch (err) {
                 console.error('상품 로딩 에러:', err);
@@ -63,7 +69,7 @@ function Customization() {
             selectedCategories.length === 0 || selectedCategories.includes(product.category)
     );
 
-    const parsePrice = (price) => Number(price);
+    const parsePrice = (price) => Number(price); // 이 함수는 현재 사용되지 않으므로 제거하거나 사용처를 찾아야 합니다.
 
     const getSortedGoods = () => {
         const sorted = [...filteredGoods];
@@ -75,7 +81,7 @@ function Customization() {
                 sorted.sort((a, b) => b.price - a.price);
                 break;
             case 'rating':
-                sorted.sort((a, b) => b.rating - a.rating);
+                sorted.sort((a, b) => (b.rating || 0) - (a.rating || 0));
                 break;
             case 'reviewCount':
                 // 리뷰 많은 순
@@ -103,6 +109,20 @@ function Customization() {
         }
 
         return stars;
+    };
+
+    // 찜 상태 토글
+    const handleWishToggle = (e, productId) => {
+        e.stopPropagation(); // 카드 클릭 이벤트가 발생하지 않도록 전파 중단
+        setProducts(prevProducts =>
+            prevProducts.map(product =>
+                product.productId === productId
+                    ? { ...product, isWished: !product.isWished }
+                    : product
+            )
+        );
+        // TODO: 백엔드에 찜 상태 업데이트 요청 보내기
+        console.log(`Product ${productId} wish status toggled.`);
     };
 
     return (
@@ -148,7 +168,7 @@ function Customization() {
                 높은가격순
             </span>
                     {/* <span className={styles.sortOption}>누적판매순</span> */}
-                    <span 
+                    <span
                         className={`${styles.sortOption} ${sortOrder === 'reviewCount' ? styles.active : ''}`}
                         onClick={() => setSortOrder('reviewCount')}
                     >
@@ -198,9 +218,16 @@ function Customization() {
                             </div>
 
                             <h4 className={styles.productName}>{product.name}</h4>
-                            <p className={styles.productPrice}>
-                                ₩{product.price.toLocaleString()}
-                            </p>
+                            {/* 가격 정보와 찜 아이콘을 담을 새로운 컨테이너 */}
+                            <div className={styles.priceAndWish}>
+                                <p className={styles.productPrice}>
+                                    ₩{product.price.toLocaleString()}
+                                </p>
+                                <FaHeart
+                                    className={`${styles.wishIcon} ${product.isWished ? styles.wished : ''}`}
+                                    onClick={(e) => handleWishToggle(e, product.productId)}
+                                />
+                            </div>
                         </div>
                     </div>
                 ))}

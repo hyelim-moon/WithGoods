@@ -20,17 +20,19 @@
     background-color: white;
     border-radius: 12px;
     padding: 1rem;
-    box-shadow: none; /* 그림자 제거 */
+    box-shadow: none !important; /* 그림자 제거 */
+    filter: none !important; /* 모든 필터 효과 (그림자 포함) 제거 */
     display: flex;
     flex-direction: column;
     /* cursor: pointer; */ /* 커서 포인터 제거 (선택 사항) */
-    transition: none; /* 호버 효과 제거 */
+    transition: none !important; /* 호버 효과 제거 */
     height: 100%;
     border: none; /* 테두리 제거 */
 }
 
 .card:hover {
-    box-shadow: none; /* 호버 시 그림자 제거 */
+    box-shadow: none !important; /* 호버 시 그림자 제거 */
+    filter: none !important; /* 호버 시 모든 필터 효과 (그림자 포함) 제거 */
     background-color: white; /* 호버 시 배경색을 흰색으로 고정 */
     cursor: default; /* 호버 시 커서 기본값으로 변경 (선택 사항) */
 }
@@ -81,6 +83,32 @@
     font-size: 0.9rem;
     color: #d32f2f;
     margin-bottom: 1rem;
+}
+
+/* 가격 정보와 찜 아이콘을 담는 컨테이너 */
+.priceAndWish {
+    display: flex;
+    justify-content: space-between; /* 가격과 아이콘을 양 끝으로 정렬 */
+    align-items: center; /* 수직 중앙 정렬 */
+    margin-bottom: 0.4rem; /* 기존 priceSection의 margin-bottom 유지 */
+}
+
+/* 찜 아이콘 기본 스타일 */
+.wishIcon {
+    font-size: 1.5rem !important; /* 아이콘 크기 더 키움 */
+    color: #ccc !important; /* 기본 회색 */
+    cursor: pointer;
+    transition: color 0.2s ease;
+    display: block !important; /* 확실히 보이도록 display 설정 */
+}
+
+/* 찜 상태일 때 아이콘 스타일 */
+.wishIcon.wished {
+    color: #ff4757 !important; /* 찜했을 때 빨간색 */
+}
+
+.wishIcon:hover {
+    color: #ff4757 !important; /* 호버 시 빨간색 */
 }
 
 .actions {
