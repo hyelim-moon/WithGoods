@@ -444,7 +444,6 @@
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 8px;
     padding: 12px 16px 0 16px;
-    border-top: 1px solid #f1f5f9;
     width: 100%;
     box-sizing: border-box;
 }
@@ -507,6 +506,10 @@
 /* ⛳ 재고 이력 래퍼: 탭 패널과 폭 일치 */
 .stockWrap {
     width: 100%;
+    border-radius: 16px;
+    border: 1px solid #eeeeee;
+    background: #ffffff;
+    padding: 16px 18px 14px 18px;
 }
 
 /* 빈 상태 카드 */
@@ -555,11 +558,15 @@
     vertical-align: middle;
 }
 .historyTable th {
-    background-color: #f2f2f2;
+    background-color: #dddddd;
     font-weight: 600;
 }
 .historyTable tr:hover {
     background-color: #f5f5f5;
+}
+.stockTitle {
+    font-size: 16px;
+    font-weight: 800;
 }
 
 /* ── 리뷰 탭 전용 ── */
@@ -608,7 +615,9 @@
     white-space: nowrap;
 }
 .reviewContentCell {
-    white-space: normal;
+    white-space: nowrap;      /* 한 줄만 표시 */
+    overflow: hidden;         /* 넘치는 부분 숨기기 */
+    text-overflow: ellipsis;  /* … 으로 표시 */
     line-height: 1.5;
 }
 .reviewThumb {
@@ -618,6 +627,192 @@
     object-fit: cover;
     border: 1px solid #eee;
 }
+/* --- 리뷰 테이블 행 클릭 가능하게 --- */
+.reviewRow {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.reviewRow:hover {
+    background-color: #f7f8fa;
+}
+
+.reviewContentCell {
+    max-width: 360px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.reviewThumb {
+    width: 48px;
+    height: 48px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.reviewDeleteBtn {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ff4e4e;
+    transition: background-color 0.15s ease;
+}
+
+.reviewDeleteBtn:hover {
+    background-color: rgba(255, 78, 78, 0.08);
+}
+
+.reviewStars {
+    font-size: 13px;
+    color: #ffb400;
+    margin-right: 4px;
+}
+
+.reviewScoreText {
+    font-size: 12px;
+    color: #555;
+}
+
+/* --- 리뷰 상세 모달 --- */
+/* --- 리뷰 상세 모달 --- */
+.reviewModalOverlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45); /* 살짝 더 어둡게 + 딥톤 */
+    backdrop-filter: blur(2px);          /* 뒤 배경 살짝 블러 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+}
+
+.reviewModal {
+    width: 640px;
+    max-width: calc(100% - 80px);
+    max-height: 80vh;
+    background-color: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 22px 48px rgba(15, 23, 42, 0.45);
+    padding: 22px 26px 20px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    border: 1px solid #e5e7eb;
+    animation: reviewModalFadeIn 0.18s ease-out;
+}
+
+@keyframes reviewModalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(4px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.reviewModalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+}
+
+.reviewModalHeader h4 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #111827;
+}
+
+.reviewModalClose {
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    border-radius: 999px;
+    color: #4b5563;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.reviewModalClose:hover {
+    background-color: #f3f4f6;
+    color: #111827;
+}
+
+/* 상단 메타 정보 (날짜 / 작성자 / 평점) */
+.reviewModalMeta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.reviewModalMeta span + span::before {
+    content: "•";
+    margin: 0 4px 0 0;
+    color: #d1d5db;
+}
+
+/* 평점 부분 강조 */
+.reviewModalRating {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #f59e0b;
+}
+
+.reviewModalRatingText {
+    color: #111827;
+    font-weight: 600;
+    font-size: 13px;
+}
+
+/* 본문 텍스트 카드 */
+.reviewModalContent {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #111827;
+    padding: 14px 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    white-space: pre-wrap; /* 줄바꿈 유지 */
+}
+
+/* 이미지 영역 */
+.reviewModalImages {
+    margin-top: 2px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.reviewModalImages img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
+}
+
 
 /* ✅ 리뷰 삭제 버튼/셀 */
 .actionCell {
@@ -643,6 +838,102 @@
 }
 .tableIconDanger {
     color: #b91c1c;
+}
+
+/* ── 주문 내역 탭 ── */
+.ordersWrap {
+    width: 100%;
+    border-radius: 16px;
+    border: 1px solid #eeeeee;
+    background: #ffffff;
+    padding: 16px 18px 14px 18px;
+}
+.ordersHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.ordersTitle {
+    font-size: 16px;
+    font-weight: 800;
+}
+.ordersMeta {
+    font-size: 13px;
+    color: #6b7280;
+}
+.ordersEmpty {
+    padding: 22px 10px;
+    text-align: center;
+    font-size: 14px;
+    color: #9ca3af;
+}
+
+.orderTable {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+.orderTable th,
+.orderTable td {
+    padding: 10px 14px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 14px;
+    vertical-align: middle;
+    text-align: center;
+}
+.orderTable th {
+    background: #dddddd;
+    font-weight: 600;
+    color: #374151;
+}
+.orderTable tbody tr:hover {
+    background-color: #fff7ed;
+}
+
+.orderNoCell,
+.orderNameCell {
+    text-align: left;
+}
+.orderQtyCell {
+    text-align: center;
+}
+.orderAmountCell {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+.orderStatusCell {
+    text-align: center;
+}
+
+.orderStatusBadge {
+    display: inline-block;
+    min-width: 60px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    border: 1px solid transparent;
+}
+.orderStatus_wait {
+    background: #fef9c3;
+    color: #854d0e;
+    border-color: #facc15;
+}
+.orderStatus_shipping {
+    background: #e0f2fe;
+    color: #0369a1;
+    border-color: #bae6fd;
+}
+.orderStatus_done {
+    background: #dcfce7;
+    color: #166534;
+    border-color: #bbf7d0;
+}
+.orderStatus_cancel {
+    background: #fee2e2;
+    color: #b91c1c;
+    border-color: #fecaca;
 }
 
 /* 반응형 */

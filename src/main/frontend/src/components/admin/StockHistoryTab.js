@@ -1,3 +1,5 @@
+// src/components/admin/StockHistoryTab.js (전체 파일)
+
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import productStyles from "../../assets/styles/admin/ProductManagement.module.css";
@@ -61,36 +63,42 @@ function StockHistoryTab({ productId }) {
         return [date, time];
     };
 
-    if (loading) {
-        return (
-            <div className={productStyles.placeholderCard}>
-                재고 이력을 불러오는 중...
-            </div>
-        );
-    }
-    if (error) {
-        return <div className={productStyles.placeholderCard}>{error}</div>;
-    }
-
     return (
-        <div className={productStyles.stockWrap}>
-            {history.length === 0 ? (
-                <div className={productStyles.placeholderCard}>
+        <div className={productStyles.ordersWrap}>
+            {/* 상단 헤더 (주문 내역 탭과 동일 디자인) */}
+            <div className={productStyles.ordersHeader}>
+                <div className={productStyles.ordersTitle}>재고 이력</div>
+                <div className={productStyles.ordersMeta}>
+                    {loading
+                        ? "재고 이력을 불러오는 중…"
+                        : `총 ${history.length}건`}
+                </div>
+            </div>
+
+            {/* 내용 영역: 로딩 / 에러 / 빈값 / 테이블 */}
+            {loading ? (
+                <div className={productStyles.ordersEmpty}>
+                    재고 이력을 불러오는 중입니다.
+                </div>
+            ) : error ? (
+                <div className={productStyles.ordersEmpty}>{error}</div>
+            ) : history.length === 0 ? (
+                <div className={productStyles.ordersEmpty}>
                     재고 변경 이력이 없습니다.
                 </div>
             ) : (
                 <table
-                    className={productStyles.historyTable}
+                    className={productStyles.orderTable}
                     aria-label="재고 이력 테이블"
-                    style={{ tableLayout: "fixed" }} // ✅ 균등 분배 강제
+                    style={{ tableLayout: "fixed" }}
                 >
-                    {/* ✅ 5등분(20%씩) */}
+                    {/* 주문 내역 테이블과 같은 느낌으로 5등분 */}
                     <colgroup>
                         <col style={{ width: "20%" }} />
-                        <col style={{ width: "20%" }} />
-                        <col style={{ width: "20%" }} />
-                        <col style={{ width: "20%" }} />
-                        <col style={{ width: "20%" }} />
+                        <col style={{ width: "16%" }} />
+                        <col style={{ width: "32%" }} />
+                        <col style={{ width: "16%" }} />
+                        <col style={{ width: "16%" }} />
                     </colgroup>
 
                     <thead>
@@ -104,16 +112,27 @@ function StockHistoryTab({ productId }) {
                     </thead>
                     <tbody>
                     {history.map((item, idx) => {
-                        const [dateStr, timeStr] = splitKoreanDateTime(item.changedAt);
+                        const [dateStr, timeStr] = splitKoreanDateTime(
+                            item.changedAt
+                        );
                         return (
                             <tr key={item.id ?? idx}>
-                                <td title={item.changedAt || ""} style={{ lineHeight: 1.25 }}>
+                                {/* 날짜 + 시간 2줄 표기 */}
+                                <td
+                                    title={item.changedAt || ""}
+                                    style={{ lineHeight: 1.25, textAlign: "left" }}
+                                >
                                     <div style={{ fontWeight: 600 }}>{dateStr}</div>
                                     <div style={{ color: "#6b7280" }}>{timeStr}</div>
                                 </td>
                                 <td>{getTypeLabel(item.type)}</td>
-                                {/* ✅ table-layout: fixed 상태에서도 줄바꿈 되도록 */}
-                                <td style={{ whiteSpace: "normal", wordBreak: "break-word" }}>
+                                {/* 사유는 줄바꿈 허용 */}
+                                <td
+                                    style={{
+                                        whiteSpace: "normal",
+                                        wordBreak: "break-word",
+                                    }}
+                                >
                                     {item.reason || "-"}
                                 </td>
                                 <td>

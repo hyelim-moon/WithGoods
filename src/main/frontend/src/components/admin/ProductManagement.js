@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
+import React, {
+    useState,
+    useEffect,
+    useMemo,
+    useCallback,
+    useRef,
+} from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
@@ -35,6 +41,7 @@ import StockHistoryTab from "./StockHistoryTab";
 
 /** ====== DEMO 설정 ====== */
 const REVIEW_DEMO_MODE = true; // 데모 리뷰 강제 활성화
+const ORDER_DEMO_MODE = true; // 데모 주문 내역 강제 활성화
 const API_BASE_URL = "http://localhost:8080";
 const LOW_STOCK_THRESHOLD = 10;
 
@@ -91,6 +98,49 @@ const DEFAULT_DUMMY_REVIEWS = (productName = "상품") => [
     },
 ];
 
+/** 더미 주문 내역 (첫 번째 캡쳐 느낌) */
+const DEFAULT_DUMMY_ORDERS = (
+    productName = "상품",
+    unitPrice = 25000 // 기준 가격
+) => [
+    {
+        orderNo: "ORD-00123",
+        customerName: "김민수",
+        orderDate: "2025-09-20",
+        quantity: 1,
+        amount: unitPrice * 1,
+        status: "PENDING", // 대기
+        productName,
+    },
+    {
+        orderNo: "ORD-00111",
+        customerName: "박철수",
+        orderDate: "2025-07-03",
+        quantity: 27,
+        amount: unitPrice * 27,
+        status: "SHIPPING", // 배송중
+        productName,
+    },
+    {
+        orderNo: "ORD-00109",
+        customerName: "정순희",
+        orderDate: "2025-05-05",
+        quantity: 2,
+        amount: unitPrice * 2,
+        status: "DONE", // 완료
+        productName,
+    },
+    {
+        orderNo: "ORD-00100",
+        customerName: "정미연",
+        orderDate: "2025-03-03",
+        quantity: 10,
+        amount: unitPrice * 10,
+        status: "DONE", // 완료
+        productName,
+    },
+];
+
 /** 표시에 사용할 ID */
 const getDisplayId = (p) => {
     if (!p) return "";
@@ -133,12 +183,20 @@ function ProductManagement() {
     const [reviews, setReviews] = useState([]);
     const [reviewsLoading, setReviewsLoading] = useState(false);
     const [reviewsError, setReviewsError] = useState(null);
-    const [deleteLoadingId, setDeleteLoadingId] = useState(null); // ✅ 삭제 스피너용
+    const [selectedReview, setSelectedReview] = useState(null);
+    const [deleteLoadingId, setDeleteLoadingId] = useState(null); // 삭제 스피너용
 
-    // ✅ 리뷰 캐시 (productId -> reviews[])
+    // 주문 내역 상태 (현재 선택 상품용)
+    const [orders, setOrders] = useState([]);
+    const [ordersLoading, setOrdersLoading] = useState(false);
+    const [ordersError, setOrdersError] = useState(null);
+
+    // 리뷰/주문 캐시
     const reviewsCacheRef = useRef({});
-    // ✅ StrictMode/탭 전환 중 중복 setState 방지
-    const inFlightRef = useRef(null);
+    const reviewInFlightRef = useRef(null);
+    const ordersCacheRef = useRef({});
+    const orderInFlightRef = useRef(null);
+    const closeReviewModal = () => setSelectedReview(null);
 
     /** 상품 불러오기 */
     useEffect(() => {
@@ -260,6 +318,51 @@ function ProductManagement() {
             default:
                 return status;
         }
+    };
+
+    /** 주문 상태 라벨 + 스타일 */
+    const mapOrderStatus = (raw) => {
+        if (!raw) {
+            return {
+                text: "-",
+                className: productStyles.orderStatus_DEFAULT,
+            };
+        }
+
+        const v = String(raw).toUpperCase();
+
+        if (["PENDING", "WAIT", "WAITING", "READY", "NEW"].includes(v)) {
+            return {
+                text: "대기",
+                className: productStyles.orderStatus_WAITING,
+            };
+        }
+        if (
+            ["SHIPPING", "DELIVERING", "IN_DELIVERY", "DISPATCHED"].includes(v)
+        ) {
+            return {
+                text: "배송중",
+                className: productStyles.orderStatus_SHIPPING,
+            };
+        }
+        if (
+            ["COMPLETE", "COMPLETED", "DONE", "DELIVERED", "FINISHED"].includes(v)
+        ) {
+            return {
+                text: "완료",
+                className: productStyles.orderStatus_DONE,
+            };
+        }
+        if (["CANCEL", "CANCELLED", "CANCELED"].includes(v)) {
+            return {
+                text: "취소",
+                className: productStyles.orderStatus_CANCELLED,
+            };
+        }
+        return {
+            text: raw,
+            className: productStyles.orderStatus_DEFAULT,
+        };
     };
 
     const resetSearch = () => setSearchTerm("");
@@ -441,8 +544,12 @@ function ProductManagement() {
     /** ===== 리뷰 불러오기(+캐시/더미) ===== */
     const generateDummyByProduct = (prod) => {
         const specific = DUMMY_REVIEWS_BY_PRODUCT[prod?.id];
-        if (Array.isArray(specific) && specific.length) return specific.map((r) => ({ ...r, __dummy: true }));
-        return DEFAULT_DUMMY_REVIEWS(prod?.name).map((r) => ({ ...r, __dummy: true }));
+        if (Array.isArray(specific) && specific.length)
+            return specific.map((r) => ({ ...r, __dummy: true }));
+        return DEFAULT_DUMMY_REVIEWS(prod?.name).map((r) => ({
+            ...r,
+            __dummy: true,
+        }));
     };
 
     const fetchReviews = useCallback(
@@ -459,8 +566,8 @@ function ProductManagement() {
             }
 
             // 중복 요청 방지
-            if (inFlightRef.current === pid) return;
-            inFlightRef.current = pid;
+            if (reviewInFlightRef.current === pid) return;
+            reviewInFlightRef.current = pid;
 
             let aborted = false;
             try {
@@ -495,7 +602,86 @@ function ProductManagement() {
                 console.error("리뷰 로딩 실패(데모로 대체):", e);
             } finally {
                 if (!aborted) setReviewsLoading(false);
-                inFlightRef.current = null;
+                reviewInFlightRef.current = null;
+            }
+
+            return () => {
+                aborted = true;
+            };
+        },
+        []
+    );
+
+    /** ===== 주문 내역 불러오기(+캐시/더미) ===== */
+    const generateDummyOrders = (productObj) => {
+        const name = productObj?.name || "상품";
+        const unitPrice = Number(productObj?.price || 25000);
+        return DEFAULT_DUMMY_ORDERS(name, unitPrice);
+    };
+
+    const fetchOrders = useCallback(
+        async (productId, productObj) => {
+            if (!productId) return;
+            const pid = String(productId);
+
+            // 캐시 있으면 즉시 사용
+            if (Array.isArray(ordersCacheRef.current[pid])) {
+                setOrders(ordersCacheRef.current[pid]);
+                setOrdersLoading(false);
+                setOrdersError(null);
+                return;
+            }
+
+            // 중복 요청 방지
+            if (orderInFlightRef.current === pid) return;
+            orderInFlightRef.current = pid;
+
+            // 데모 모드면 바로 더미 사용
+            if (ORDER_DEMO_MODE) {
+                const data = generateDummyOrders(productObj || {});
+                ordersCacheRef.current[pid] = data;
+                setOrders(data);
+                setOrdersLoading(false);
+                setOrdersError(null);
+                orderInFlightRef.current = null;
+                return;
+            }
+
+            let aborted = false;
+            try {
+                setOrdersLoading(true);
+                setOrdersError(null);
+
+                // 실제 API (원하면 이 URL만 백엔드에 맞게 수정)
+                const res = await axios.get(
+                    `${API_BASE_URL}/api/orders/product/${Number(productId)}`,
+                    { withCredentials: true }
+                );
+
+                let data = Array.isArray(res.data) ? res.data : [];
+
+                // 비어있으면 더미로 채움
+                if (data.length === 0) {
+                    data = generateDummyOrders(productObj || {});
+                }
+
+                if (!aborted) {
+                    ordersCacheRef.current[pid] = data;
+                    setOrders(data);
+                }
+            } catch (e) {
+                console.error("주문 내역 로딩 실패(데모로 대체):", e);
+                const data = generateDummyOrders(productObj || {});
+                if (!aborted) {
+                    ordersCacheRef.current[pid] = data;
+                    setOrders(data);
+                    setOrdersError(
+                        "주문 내역을 불러오지 못했습니다. (데모 데이터 표시 중)"
+                    );
+                }
+            } finally {
+                if (!aborted) setOrdersLoading(false);
+                orderInFlightRef.current = null;
             }
 
             return () => {
@@ -551,11 +737,17 @@ function ProductManagement() {
         [selectedProduct?.id, reviews]
     );
 
-    /** 리뷰 탭일 때 호출 (selectedProduct 자체는 변경하지 않음) */
+    /** 리뷰 탭일 때 호출 */
     useEffect(() => {
         if (activeDetailTab !== "reviews" || !selectedProduct?.id) return;
         fetchReviews(selectedProduct.id, selectedProduct);
-    }, [activeDetailTab, selectedProduct?.id, fetchReviews]);
+    }, [activeDetailTab, selectedProduct?.id, selectedProduct, fetchReviews]);
+
+    /** 주문 내역 탭일 때 호출 */
+    useEffect(() => {
+        if (activeDetailTab !== "orders" || !selectedProduct?.id) return;
+        fetchOrders(selectedProduct.id, selectedProduct);
+    }, [activeDetailTab, selectedProduct?.id, selectedProduct, fetchOrders]);
 
     /** 상세 패널 */
     const renderDetailPanel = () => {
@@ -591,7 +783,8 @@ function ProductManagement() {
         const computedRating =
             computedCount > 0
                 ? (
-                    reviews.reduce((s, r) => s + Number(r.rating || 0), 0) / computedCount
+                    reviews.reduce((s, r) => s + Number(r.rating || 0), 0) /
+                    computedCount
                 ).toFixed(1)
                 : p?.rating
                     ? Number(p.rating).toFixed(1)
@@ -605,7 +798,11 @@ function ProductManagement() {
         return (
             <>
                 <div className={productStyles.detailOverlay} onClick={closeDetail} />
-                <aside className={productStyles.detailPanel} role="dialog" aria-modal="true">
+                <aside
+                    className={productStyles.detailPanel}
+                    role="dialog"
+                    aria-modal="true"
+                >
                     <header className={productStyles.detailHeader}>
                         <h4>상품 상세</h4>
                         <button
@@ -629,25 +826,32 @@ function ProductManagement() {
                                         loading="lazy"
                                     />
                                 ) : (
-                                    <div className={productStyles.detailThumbPlaceholder}>
+                                    <div
+                                        className={productStyles.detailThumbPlaceholder}
+                                    >
                                         {(p.name || "•").charAt(0).toUpperCase()}
                                     </div>
                                 )}
 
                                 <div className={productStyles.detailStatusRow}>
-                  <span className={productStyles.detailName} title={p.name}>
-                    {p.name}
-                  </span>
+                                    <span
+                                        className={productStyles.detailName}
+                                        title={p.name}
+                                    >
+                                        {p.name}
+                                    </span>
                                     <span
                                         className={`${productStyles.badge} ${
                                             productStyles[`badge_${p.status}`] || ""
                                         }`}
                                     >
-                    {getStatusLabel(p.status)}
-                  </span>
+                                        {getStatusLabel(p.status)}
+                                    </span>
                                 </div>
 
-                                <div className={productStyles.skuLine}>{getDisplayId(p)}</div>
+                                <div className={productStyles.skuLine}>
+                                    {getDisplayId(p)}
+                                </div>
                             </div>
 
                             <div className={productStyles.detailInfoCard}>
@@ -662,23 +866,46 @@ function ProductManagement() {
                                         <dd>
                                             <div className={productStyles.priceBox}>
                                                 {hasDiscount && (
-                                                    <span className={productStyles.discountBadge}>
-                            -{discountRate}%
-                          </span>
+                                                    <span
+                                                        className={
+                                                            productStyles.discountBadge
+                                                        }
+                                                    >
+                                                        -{discountRate}%
+                                                    </span>
                                                 )}
                                                 {hasDiscount ? (
                                                     <>
-                            <span className={productStyles.originalPrice}>
-                              {Number(p.price).toLocaleString()}원
-                            </span>
-                                                        <span className={productStyles.salePrice}>
-                              {finalPrice.toLocaleString()}원
-                            </span>
+                                                        <span
+                                                            className={
+                                                                productStyles.originalPrice
+                                                            }
+                                                        >
+                                                            {Number(
+                                                                p.price
+                                                            ).toLocaleString()}
+                                                            원
+                                                        </span>
+                                                        <span
+                                                            className={
+                                                                productStyles.salePrice
+                                                            }
+                                                        >
+                                                            {finalPrice.toLocaleString()}
+                                                            원
+                                                        </span>
                                                     </>
                                                 ) : (
-                                                    <span className={productStyles.salePrice}>
-                            {Number(p.price).toLocaleString()}원
-                          </span>
+                                                    <span
+                                                        className={
+                                                            productStyles.salePrice
+                                                        }
+                                                    >
+                                                        {Number(
+                                                            p.price
+                                                        ).toLocaleString()}
+                                                        원
+                                                    </span>
                                                 )}
                                             </div>
                                         </dd>
@@ -688,9 +915,15 @@ function ProductManagement() {
                                         <dt>현재재고</dt>
                                         <dd>
                                             {stockNum}개
-                                            {stockNum <= LOW_STOCK_THRESHOLD && stockNum > 0 && (
-                                                <span className={productStyles.stockWarn}> (재고 부족)</span>
-                                            )}
+                                            {stockNum <= LOW_STOCK_THRESHOLD &&
+                                                stockNum > 0 && (
+                                                    <span
+                                                        className={productStyles.stockWarn}
+                                                    >
+                                                        {" "}
+                                                        (재고 부족)
+                                                    </span>
+                                                )}
                                         </dd>
                                     </div>
 
@@ -701,21 +934,29 @@ function ProductManagement() {
 
                                     <div>
                                         <dt>판매기간</dt>
-                                        <dd>{fmtPeriod(p?.startDate, p?.endDate)}</dd>
+                                        <dd>
+                                            {fmtPeriod(p?.startDate, p?.endDate)}
+                                        </dd>
                                     </div>
 
                                     <div>
                                         <dt>상품 유형</dt>
                                         <dd>
-                      <span className={`${productStyles.roleBadge} ${roleClass}`}>
-                        {typeTextUpper}
-                      </span>
+                                            <span
+                                                className={`${productStyles.roleBadge} ${roleClass}`}
+                                            >
+                                                {typeTextUpper}
+                                            </span>
                                         </dd>
                                     </div>
 
                                     <div>
                                         <dt>평점</dt>
-                                        <dd>{computedRating ? `${computedRating}/5` : "-"}</dd>
+                                        <dd>
+                                            {computedRating
+                                                ? `${computedRating}/5`
+                                                : "-"}
+                                        </dd>
                                     </div>
 
                                     <div>
@@ -736,35 +977,68 @@ function ProductManagement() {
 
                                 {/* 옵션 섹션 */}
                                 <div className={productStyles.optionSection}>
-                                    <div className={productStyles.sectionTitle}>옵션</div>
+                                    <div className={productStyles.sectionTitle}>
+                                        옵션
+                                    </div>
                                     {hasOptions ? (
-                                        Object.entries(optionGroups).map(([name, items]) => (
-                                            <div className={productStyles.optionGroup} key={name}>
-                                                <div className={productStyles.optionName}>{name}</div>
-                                                <div className={productStyles.chips}>
-                                                    {items.map((it, idx) => (
-                                                        <span className={productStyles.chip} key={`${name}-${idx}`}>
-                              {it.value}
-                                                            {Number(it.price) > 0 &&
-                                                                ` (+${Number(it.price).toLocaleString()}원)`}
-                            </span>
-                                                    ))}
+                                        Object.entries(optionGroups).map(
+                                            ([name, items]) => (
+                                                <div
+                                                    className={
+                                                        productStyles.optionGroup
+                                                    }
+                                                    key={name}
+                                                >
+                                                    <div
+                                                        className={
+                                                            productStyles.optionName
+                                                        }
+                                                    >
+                                                        {name}
+                                                    </div>
+                                                    <div
+                                                        className={
+                                                            productStyles.chips
+                                                        }
+                                                    >
+                                                        {items.map((it, idx) => (
+                                                            <span
+                                                                className={
+                                                                    productStyles.chip
+                                                                }
+                                                                key={`${name}-${idx}`}
+                                                            >
+                                                                {it.value}
+                                                                {Number(it.price) >
+                                                                    0 &&
+                                                                    ` (+${Number(
+                                                                        it.price
+                                                                    ).toLocaleString()}원)`}
+                                                            </span>
+                                                        ))}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))
+                                            )
+                                        )
                                     ) : (
-                                        <div className={productStyles.muted}>등록된 옵션이 없습니다.</div>
+                                        <div className={productStyles.muted}>
+                                            등록된 옵션이 없습니다.
+                                        </div>
                                     )}
                                 </div>
 
                                 <div className={productStyles.detailActions}>
                                     <button
                                         className={productStyles.secondaryBtn}
-                                        onClick={() => navigate(`/product/edit/${p.id}`)}
+                                        onClick={() =>
+                                            navigate(`/product/edit/${p.id}`)
+                                        }
                                     >
                                         <FiEdit /> 수정
                                     </button>
-                                    <button className={productStyles.dangerGhostBtn}>
+                                    <button
+                                        className={productStyles.dangerGhostBtn}
+                                    >
                                         <FiTrash2 /> 삭제
                                     </button>
                                 </div>
@@ -772,10 +1046,15 @@ function ProductManagement() {
                         </section>
 
                         {/* 탭 */}
-                        <nav className={productStyles.tabBar} aria-label="상세 탭">
+                        <nav
+                            className={productStyles.tabBar}
+                            aria-label="상세 탭"
+                        >
                             <button
                                 className={`${productStyles.tabBtn} ${
-                                    activeDetailTab === "analytics" ? productStyles.activeTab : ""
+                                    activeDetailTab === "analytics"
+                                        ? productStyles.activeTab
+                                        : ""
                                 }`}
                                 onClick={() => handleTabChange("analytics")}
                             >
@@ -783,7 +1062,9 @@ function ProductManagement() {
                             </button>
                             <button
                                 className={`${productStyles.tabBtn} ${
-                                    activeDetailTab === "stock" ? productStyles.activeTab : ""
+                                    activeDetailTab === "stock"
+                                        ? productStyles.activeTab
+                                        : ""
                                 }`}
                                 onClick={() => handleTabChange("stock")}
                             >
@@ -791,7 +1072,9 @@ function ProductManagement() {
                             </button>
                             <button
                                 className={`${productStyles.tabBtn} ${
-                                    activeDetailTab === "reviews" ? productStyles.activeTab : ""
+                                    activeDetailTab === "reviews"
+                                        ? productStyles.activeTab
+                                        : ""
                                 }`}
                                 onClick={() => handleTabChange("reviews")}
                             >
@@ -799,7 +1082,9 @@ function ProductManagement() {
                             </button>
                             <button
                                 className={`${productStyles.tabBtn} ${
-                                    activeDetailTab === "orders" ? productStyles.activeTab : ""
+                                    activeDetailTab === "orders"
+                                        ? productStyles.activeTab
+                                        : ""
                                 }`}
                                 onClick={() => handleTabChange("orders")}
                             >
@@ -809,31 +1094,59 @@ function ProductManagement() {
 
                         {/* 탭 컨텐츠 */}
                         <section className={productStyles.tabPanel}>
+                            {/* 판매 분석 */}
                             {activeDetailTab === "analytics" && (
                                 <>
                                     {/* 요약 카드 */}
                                     <section className={productStyles.summaryGrid}>
                                         <div className={productStyles.summaryCard}>
-                                            <span className={productStyles.summaryTitle}>총 판매량</span>
-                                            <strong className={productStyles.summaryValue}>
+                                            <span
+                                                className={productStyles.summaryTitle}
+                                            >
+                                                총 판매량
+                                            </span>
+                                            <strong
+                                                className={productStyles.summaryValue}
+                                            >
                                                 {metrics.totalQty}
                                             </strong>
                                         </div>
                                         <div className={productStyles.summaryCard}>
-                                            <span className={productStyles.summaryTitle}>매출</span>
-                                            <strong className={productStyles.summaryValue}>
-                                                {Number(metrics.revenue).toLocaleString()}원
+                                            <span
+                                                className={productStyles.summaryTitle}
+                                            >
+                                                매출
+                                            </span>
+                                            <strong
+                                                className={productStyles.summaryValue}
+                                            >
+                                                {Number(
+                                                    metrics.revenue
+                                                ).toLocaleString()}
+                                                원
                                             </strong>
                                         </div>
                                         <div className={productStyles.summaryCard}>
-                                            <span className={productStyles.summaryTitle}>평점</span>
-                                            <strong className={productStyles.summaryValue}>
+                                            <span
+                                                className={productStyles.summaryTitle}
+                                            >
+                                                평점
+                                            </span>
+                                            <strong
+                                                className={productStyles.summaryValue}
+                                            >
                                                 {metrics.rating}/5
                                             </strong>
                                         </div>
                                         <div className={productStyles.summaryCard}>
-                                            <span className={productStyles.summaryTitle}>재주문율</span>
-                                            <strong className={productStyles.summaryValue}>
+                                            <span
+                                                className={productStyles.summaryTitle}
+                                            >
+                                                재주문율
+                                            </span>
+                                            <strong
+                                                className={productStyles.summaryValue}
+                                            >
                                                 {metrics.reorderRate}
                                             </strong>
                                         </div>
@@ -846,13 +1159,27 @@ function ProductManagement() {
                                             role="region"
                                             aria-label="월별 판매량 추이"
                                         >
-                                            <div className={productStyles.chartTitle}>월별 판매량</div>
-                                            <ResponsiveContainer width="100%" height={280}>
+                                            <div
+                                                className={productStyles.chartTitle}
+                                            >
+                                                월별 판매량
+                                            </div>
+                                            <ResponsiveContainer
+                                                width="100%"
+                                                height={280}
+                                            >
                                                 <LineChart
                                                     data={series}
-                                                    margin={{ top: 8, right: 16, bottom: 0, left: 0 }}
+                                                    margin={{
+                                                        top: 8,
+                                                        right: 16,
+                                                        bottom: 0,
+                                                        left: 0,
+                                                    }}
                                                 >
-                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <CartesianGrid
+                                                        strokeDasharray="3 3"
+                                                    />
                                                     <XAxis dataKey="month" />
                                                     <YAxis allowDecimals={false} />
                                                     <Tooltip />
@@ -873,23 +1200,49 @@ function ProductManagement() {
                                             role="region"
                                             aria-label="월별 매출"
                                         >
-                                            <div className={productStyles.chartTitle}>월별 매출</div>
-                                            <ResponsiveContainer width="100%" height={280}>
+                                            <div
+                                                className={productStyles.chartTitle}
+                                            >
+                                                월별 매출
+                                            </div>
+                                            <ResponsiveContainer
+                                                width="100%"
+                                                height={280}
+                                            >
                                                 <BarChart
                                                     data={series}
-                                                    margin={{ top: 8, right: 16, bottom: 0, left: 0 }}
+                                                    margin={{
+                                                        top: 8,
+                                                        right: 16,
+                                                        bottom: 0,
+                                                        left: 0,
+                                                    }}
                                                 >
-                                                    <CartesianGrid strokeDasharray="3 3" />
+                                                    <CartesianGrid
+                                                        strokeDasharray="3 3"
+                                                    />
                                                     <XAxis dataKey="month" />
                                                     <YAxis
                                                         width={70}
-                                                        tickFormatter={(v) => Number(v).toLocaleString()}
+                                                        tickFormatter={(v) =>
+                                                            Number(
+                                                                v
+                                                            ).toLocaleString()
+                                                        }
                                                     />
                                                     <Tooltip
-                                                        formatter={(v) => `${Number(v).toLocaleString()}원`}
+                                                        formatter={(v) =>
+                                                            `${Number(
+                                                                v
+                                                            ).toLocaleString()}원`
+                                                        }
                                                     />
                                                     <Legend />
-                                                    <Bar dataKey="revenue" name="매출" radius={[6, 6, 0, 0]} />
+                                                    <Bar
+                                                        dataKey="revenue"
+                                                        name="매출"
+                                                        radius={[6, 6, 0, 0]}
+                                                    />
                                                 </BarChart>
                                             </ResponsiveContainer>
                                         </div>
@@ -897,99 +1250,385 @@ function ProductManagement() {
                                 </>
                             )}
 
+                            {/* 재고 이력 */}
                             {activeDetailTab === "stock" && (
                                 <StockHistoryTab productId={p.id} />
                             )}
 
+                            {/* 고객 리뷰 */}
                             {activeDetailTab === "reviews" && (
-                                <div className={productStyles.reviewWrap}>
+                                <div className={productStyles.ordersWrap}>
+                                    {/* 상단 헤더 영역 – 주문 탭과 동일 스타일 */}
+                                    <div className={productStyles.ordersHeader}>
+                                        <div className={productStyles.ordersTitle}>고객 리뷰</div>
+                                        <div className={productStyles.ordersMeta}>
+                                            {reviewsLoading
+                                                ? "리뷰를 불러오는 중…"
+                                                : `총 ${reviews.length}건`}
+                                        </div>
+                                    </div>
+
+                                    {/* 상태별 출력 */}
                                     {reviewsLoading ? (
-                                        <div className={productStyles.placeholderCard}>
-                                            리뷰를 불러오는 중…
+                                        <div className={productStyles.ordersEmpty}>
+                                            리뷰를 불러오는 중입니다.
                                         </div>
                                     ) : reviewsError ? (
-                                        <div className={productStyles.placeholderCard}>
-                                            {reviewsError}
-                                        </div>
+                                        <div className={productStyles.ordersEmpty}>{reviewsError}</div>
                                     ) : reviews.length === 0 ? (
-                                        <div className={productStyles.placeholderCard}>
+                                        <div className={productStyles.ordersEmpty}>
                                             등록된 리뷰가 없습니다.
                                         </div>
                                     ) : (
-                                        <table className={productStyles.historyTable}>
+                                        <>
+                                            {/* ✅ 주문 탭과 같은 orderTable 사용 */}
+                                            <table className={productStyles.orderTable}>
+                                                {/* 컬럼 너비 – 내용 칸을 넓게 분배 */}
+                                                <colgroup>
+                                                    <col style={{ width: "18%" }} /> {/* 작성일 */}
+                                                    <col style={{ width: "14%" }} /> {/* 작성자 */}
+                                                    <col style={{ width: "12%" }} /> {/* 평점 */}
+                                                    <col style={{ width: "36%" }} /> {/* 내용 */}
+                                                    <col style={{ width: "12%" }} /> {/* 이미지 */}
+                                                    <col style={{ width: "8%" }} />  {/* 삭제 */}
+                                                </colgroup>
+
+                                                <thead>
+                                                <tr>
+                                                    <th>작성일</th>
+                                                    <th>작성자</th>
+                                                    <th>평점</th>
+                                                    <th>내용</th>
+                                                    <th>이미지</th>
+                                                    <th>삭제</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                {reviews.map((r) => {
+                                                    const full = Math.round(Number(r.rating) || 0);
+                                                    const key = r.reviewId ?? r.id ?? r._id;
+
+                                                    return (
+                                                        <tr
+                                                            key={
+                                                                key ??
+                                                                `${r.memberNickname}-${r.createdAt}`
+                                                            }
+                                                            className={productStyles.reviewRow}
+                                                            style={{ cursor: "pointer" }}
+                                                            onClick={() => setSelectedReview(r)} // ✅ 클릭 시 모달 열기
+                                                        >
+                                                            {/* 작성일 – 왼쪽 정렬(주문번호 셀 스타일 재사용) */}
+                                                            <td className={productStyles.orderNoCell}>
+                                                                {fmtDate(r.createdAt)}
+                                                            </td>
+
+                                                            {/* 작성자 – 왼쪽 정렬 + 말줄임 */}
+                                                            <td
+                                                                className={`${productStyles.orderNameCell} ${productStyles.reviewContentCell}`}
+                                                                title={r.content || "-"}
+                                                            >
+                                                                {r.memberNickname ||
+                                                                    r.nickname ||
+                                                                    r.writer ||
+                                                                    "-"}
+                                                            </td>
+
+                                                            {/* 평점 – 별 아이콘 그대로 유지 */}
+                                                            <td>
+                                        <span className={productStyles.stars}>
+                                            {Array.from({ length: 5 }).map(
+                                                (_, i) => (
+                                                    <span
+                                                        key={i}
+                                                        className={
+                                                            i < full
+                                                                ? productStyles.starFilled
+                                                                : productStyles.starEmpty
+                                                        }
+                                                    >
+                                                        ★
+                                                    </span>
+                                                )
+                                            )}
+                                            <span
+                                                className={
+                                                    productStyles.starText
+                                                }
+                                            >
+                                                {Number(r.rating) || 0}점
+                                            </span>
+                                        </span>
+                                                            </td>
+
+                                                            {/* 내용 – 여러 줄 허용 + 왼쪽 정렬 */}
+                                                            <td
+                                                                className={`${productStyles.orderNameCell} ${productStyles.reviewContentCell}`}
+                                                            >
+                                                                {r.content || "-"}
+                                                            </td>
+
+                                                            {/* 이미지 – 가운데 정렬 */}
+                                                            <td>
+                                                                {r.imageUrl ? (
+                                                                    <img
+                                                                        className={
+                                                                            productStyles.reviewThumb
+                                                                        }
+                                                                        src={reviewImageUrl(r.imageUrl)}
+                                                                        alt="리뷰 이미지"
+                                                                        onError={(e) =>
+                                                                            (e.currentTarget.style.display =
+                                                                                "none")
+                                                                        }
+                                                                    />
+                                                                ) : (
+                                                                    "-"
+                                                                )}
+                                                            </td>
+
+                                                            {/* 삭제 버튼 – 주문 테이블과 동일한 느낌 */}
+                                                            <td className={productStyles.actionCell}>
+                                                                <button
+                                                                    className={`${productStyles.tableIconBtn} ${productStyles.tableIconDanger}`}
+                                                                    title="리뷰 삭제"
+                                                                    aria-label="리뷰 삭제"
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation(); // ✅ 삭제 버튼 클릭 시 모달 안 열리게
+                                                                        handleDeleteReview(r);
+                                                                    }}
+                                                                    disabled={deleteLoadingId === key}
+                                                                >
+                                                                    <FiTrash2 />
+                                                                </button>
+                                                            </td>
+                                                        </tr>
+                                                    );
+                                                })}
+                                                </tbody>
+                                            </table>
+
+                                            {/* ✅ 리뷰 상세 모달 */}
+                                            {selectedReview && (
+                                                <div
+                                                    className={productStyles.reviewModalOverlay}
+                                                    onClick={closeReviewModal}
+                                                >
+                                                    <div
+                                                        className={productStyles.reviewModal}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    >
+                                                        <div className={productStyles.reviewModalHeader}>
+                                                            <h4>리뷰 상세</h4>
+                                                            <button
+                                                                type="button"
+                                                                className={productStyles.reviewModalClose}
+                                                                onClick={closeReviewModal}
+                                                            >
+                                                                <FiX />
+                                                            </button>
+                                                        </div>
+
+                                                        <div className={productStyles.reviewModalMeta}>
+                                <span>
+                                    {fmtDate(selectedReview.createdAt)}
+                                </span>
+                                                            <span>
+                                    {selectedReview.memberNickname ||
+                                        selectedReview.nickname ||
+                                        selectedReview.writer ||
+                                        "-"}
+                                </span>
+                                                            <span
+                                                                className={
+                                                                    productStyles.reviewModalRating
+                                                                }
+                                                            >
+                                    {Array.from({ length: 5 }).map((_, i) => {
+                                        const fullSelected = Math.round(
+                                            Number(
+                                                selectedReview.rating
+                                            ) || 0
+                                        );
+                                        return (
+                                            <span
+                                                key={i}
+                                                className={
+                                                    i < fullSelected
+                                                        ? productStyles.starFilled
+                                                        : productStyles.starEmpty
+                                                }
+                                            >
+                                                ★
+                                            </span>
+                                        );
+                                    })}
+                                                                <span
+                                                                    className={
+                                                                        productStyles.reviewModalRatingText
+                                                                    }
+                                                                >
+                                        {Number(selectedReview.rating) || 0}점
+                                    </span>
+                                </span>
+                                                        </div>
+
+                                                        <p className={productStyles.reviewModalContent}>
+                                                            {selectedReview.content || "-"}
+                                                        </p>
+
+                                                        {selectedReview.imageUrl && (
+                                                            <div
+                                                                className={productStyles.reviewModalImages}
+                                                            >
+                                                                <img
+                                                                    src={reviewImageUrl(
+                                                                        selectedReview.imageUrl
+                                                                    )}
+                                                                    alt="리뷰 이미지"
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* 주문 내역 */}
+                            {activeDetailTab === "orders" && (
+                                <div className={productStyles.ordersWrap}>
+                                    <div className={productStyles.ordersHeader}>
+                                        <div
+                                            className={productStyles.ordersTitle}
+                                        >
+                                            주문 목록
+                                        </div>
+                                        <div className={productStyles.ordersMeta}>
+                                            {ordersLoading
+                                                ? "주문 내역을 불러오는 중…"
+                                                : `총 ${orders.length}건`}
+                                        </div>
+                                    </div>
+
+                                    {ordersLoading ? (
+                                        <div
+                                            className={productStyles.ordersEmpty}
+                                        >
+                                            주문 내역을 불러오는 중입니다.
+                                        </div>
+                                    ) : ordersError ? (
+                                        <div
+                                            className={productStyles.ordersEmpty}
+                                        >
+                                            {ordersError}
+                                        </div>
+                                    ) : orders.length === 0 ? (
+                                        <div
+                                            className={productStyles.ordersEmpty}
+                                        >
+                                            관련 주문 내역이 없습니다.
+                                        </div>
+                                    ) : (
+                                        <table
+                                            className={productStyles.orderTable}
+                                        >
+                                            <colgroup>
+                                                <col style={{ width: "20%" }} />
+                                                <col style={{ width: "16%" }} />
+                                                <col style={{ width: "20%" }} />
+                                                <col style={{ width: "12%" }} />
+                                                <col style={{ width: "20%" }} />
+                                                <col style={{ width: "12%" }} />
+                                            </colgroup>
                                             <thead>
                                             <tr>
-                                                <th>작성일</th>
-                                                <th>작성자</th>
-                                                <th>평점</th>
-                                                <th>내용</th>
-                                                <th>이미지</th>
-                                                <th>삭제</th>
+                                                <th>주문번호</th>
+                                                <th>이름</th>
+                                                <th>주문일</th>
+                                                <th>수량</th>
+                                                <th>금액</th>
+                                                <th>상태</th>
                                             </tr>
                                             </thead>
                                             <tbody>
-                                            {reviews.map((r) => {
-                                                const full = Math.round(Number(r.rating) || 0);
-                                                const key = r.reviewId ?? r.id ?? r._id;
+                                            {orders.map((o) => {
+                                                const key =
+                                                    o.orderNo ||
+                                                    o.orderCode ||
+                                                    o.id ||
+                                                    o.orderId;
+                                                const qty =
+                                                    o.quantity ??
+                                                    o.totalQuantity ??
+                                                    o.qty ??
+                                                    0;
+                                                const amount =
+                                                    o.amount ??
+                                                    o.totalAmount ??
+                                                    o.totalPrice ??
+                                                    0;
+                                                const {
+                                                    text: statusText,
+                                                    className: statusClass,
+                                                } = mapOrderStatus(o.status);
+
                                                 return (
-                                                    <tr key={key ?? `${r.memberNickname}-${r.createdAt}`}>
-                                                        <td>{fmtDate(r.createdAt)}</td>
-                                                        <td className={productStyles.reviewerCell}>
-                                                            {r.memberNickname || r.nickname || r.writer || "-"}
+                                                    <tr key={key}>
+                                                        <td
+                                                            className={
+                                                                productStyles.orderNoCell
+                                                            }
+                                                        >
+                                                            {o.orderNo ||
+                                                                o.orderCode ||
+                                                                key}
+                                                        </td>
+                                                        <td
+                                                            className={
+                                                                productStyles.orderNameCell
+                                                            }
+                                                        >
+                                                            {o.customerName ||
+                                                                o.ordererName ||
+                                                                o.memberName ||
+                                                                "-"}
                                                         </td>
                                                         <td>
-                                <span className={productStyles.stars}>
-                                  {Array.from({ length: 5 }).map((_, i) => (
-                                      <span
-                                          key={i}
-                                          className={
-                                              i < full
-                                                  ? productStyles.starFilled
-                                                  : productStyles.starEmpty
-                                          }
-                                      >
-                                      ★
-                                    </span>
-                                  ))}
-                                    <span className={productStyles.starText}>
-                                    {Number(r.rating) || 0}점
-                                  </span>
-                                </span>
-                                                        </td>
-                                                        <td className={productStyles.reviewContentCell}>
-                                                            {r.content || "-"}
-                                                        </td>
-                                                        <td>
-                                                            {r.imageUrl ? (
-                                                                <img
-                                                                    className={productStyles.reviewThumb}
-                                                                    src={
-                                                                        r.imageUrl.startsWith("http")
-                                                                            ? r.imageUrl
-                                                                            : `${API_BASE_URL}${r.imageUrl}`
-                                                                    }
-                                                                    alt="리뷰 이미지"
-                                                                    onError={(e) =>
-                                                                        (e.currentTarget.style.display = "none")
-                                                                    }
-                                                                />
-                                                            ) : (
-                                                                "-"
+                                                            {fmtDate(
+                                                                o.orderDate ||
+                                                                o.createdAt
                                                             )}
                                                         </td>
-                                                        <td className={productStyles.actionCell}>
-                                                            <button
-                                                                className={`${productStyles.tableIconBtn} ${productStyles.tableIconDanger}`}
-                                                                title="리뷰 삭제"
-                                                                aria-label="리뷰 삭제"
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleDeleteReview(r);
-                                                                }}
-                                                                disabled={deleteLoadingId === key}
-                                                            >
-                                                                <FiTrash2 />
-                                                            </button>
+                                                        <td
+                                                            className={
+                                                                productStyles.orderQtyCell
+                                                            }
+                                                        >
+                                                            {qty}개
+                                                        </td>
+                                                        <td
+                                                            className={
+                                                                productStyles.orderAmountCell
+                                                            }
+                                                        >
+                                                            ₩
+                                                            {Number(
+                                                                amount
+                                                            ).toLocaleString()}
+                                                        </td>
+                                                        <td
+                                                            className={
+                                                                productStyles.orderStatusCell
+                                                            }
+                                                        >
+                                                                <span
+                                                                    className={`${productStyles.orderStatusBadge} ${statusClass}`}
+                                                                >
+                                                                    {statusText}
+                                                                </span>
                                                         </td>
                                                     </tr>
                                                 );
@@ -997,12 +1636,6 @@ function ProductManagement() {
                                             </tbody>
                                         </table>
                                     )}
-                                </div>
-                            )}
-
-                            {activeDetailTab === "orders" && (
-                                <div className={productStyles.placeholderCard}>
-                                    관련 주문 내역 테이블 영역
                                 </div>
                             )}
                         </section>
@@ -1016,7 +1649,9 @@ function ProductManagement() {
     const renderContent = () => {
         if (loading)
             return (
-                <div className={productStyles.loading}>상품 정보를 불러오는 중...</div>
+                <div className={productStyles.loading}>
+                    상품 정보를 불러오는 중...
+                </div>
             );
         if (error) return <div className={productStyles.error}>{error}</div>;
 
@@ -1035,7 +1670,9 @@ function ProductManagement() {
                     </div>
                     <div
                         className={`${memberStyles.statBox} ${
-                            filter === "IN_STOCK" ? memberStyles.activeStatBox : ""
+                            filter === "IN_STOCK"
+                                ? memberStyles.activeStatBox
+                                : ""
                         }`}
                         onClick={() => setFilter("IN_STOCK")}
                     >
@@ -1044,7 +1681,9 @@ function ProductManagement() {
                     </div>
                     <div
                         className={`${memberStyles.statBox} ${
-                            filter === "LOW_STOCK" ? memberStyles.activeStatBox : ""
+                            filter === "LOW_STOCK"
+                                ? memberStyles.activeStatBox
+                                : ""
                         }`}
                         onClick={() => setFilter("LOW_STOCK")}
                     >
@@ -1053,7 +1692,9 @@ function ProductManagement() {
                     </div>
                     <div
                         className={`${memberStyles.statBox} ${
-                            filter === "OUT_OF_STOCK" ? memberStyles.activeStatBox : ""
+                            filter === "OUT_OF_STOCK"
+                                ? memberStyles.activeStatBox
+                                : ""
                         }`}
                         onClick={() => setFilter("OUT_OF_STOCK")}
                     >
@@ -1079,7 +1720,9 @@ function ProductManagement() {
                         <div className={orderStyles.searchBar}>
                             <select
                                 value={searchCondition}
-                                onChange={(e) => setSearchCondition(e.target.value)}
+                                onChange={(e) =>
+                                    setSearchCondition(e.target.value)
+                                }
                                 className={orderStyles.searchCondition}
                                 aria-label="검색 조건"
                                 title="검색 조건"
@@ -1093,7 +1736,9 @@ function ProductManagement() {
                                 type="text"
                                 placeholder={searchPlaceholder}
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e) =>
+                                    setSearchTerm(e.target.value)
+                                }
                                 aria-label="검색어"
                             />
 
@@ -1161,19 +1806,32 @@ function ProductManagement() {
                         {sortedAndFilteredProducts.length > 0 ? (
                             sortedAndFilteredProducts.map((p) => {
                                 const thumb = getThumbUrl(p);
-                                const stockNum = Number(p.stockQuantity ?? p.stock ?? 0);
+                                const stockNum = Number(
+                                    p.stockQuantity ?? p.stock ?? 0
+                                );
                                 return (
                                     <tr
                                         key={p.id}
-                                        className={productStyles.productRow}
+                                        className={
+                                            productStyles.productRow
+                                        }
                                         onClick={() => openDetail(p)}
                                         tabIndex={0}
-                                        onKeyDown={(e) => e.key === "Enter" && openDetail(p)}
+                                        onKeyDown={(e) =>
+                                            e.key === "Enter" &&
+                                            openDetail(p)
+                                        }
                                     >
-                                        <td className={productStyles.imgCell}>
+                                        <td
+                                            className={
+                                                productStyles.imgCell
+                                            }
+                                        >
                                             {thumb ? (
                                                 <img
-                                                    className={productStyles.thumb}
+                                                    className={
+                                                        productStyles.thumb
+                                                    }
                                                     src={thumb}
                                                     alt={`${p.name} 썸네일`}
                                                     width={44}
@@ -1181,19 +1839,39 @@ function ProductManagement() {
                                                     loading="lazy"
                                                 />
                                             ) : (
-                                                <div className={productStyles.thumbPlaceholder}>
-                                                    {(p.name || "•").charAt(0).toUpperCase()}
+                                                <div
+                                                    className={
+                                                        productStyles.thumbPlaceholder
+                                                    }
+                                                >
+                                                    {(p.name || "•")
+                                                        .charAt(0)
+                                                        .toUpperCase()}
                                                 </div>
                                             )}
                                         </td>
                                         <td>{getDisplayId(p)}</td>
-                                        <td className={productStyles.nameCell}>
-                        <span className={productStyles.nameText} title={p.name}>
-                          {p.name}
-                        </span>
+                                        <td
+                                            className={
+                                                productStyles.nameCell
+                                            }
+                                        >
+                                                <span
+                                                    className={
+                                                        productStyles.nameText
+                                                    }
+                                                    title={p.name}
+                                                >
+                                                    {p.name}
+                                                </span>
                                         </td>
                                         <td>{p.category}</td>
-                                        <td>{Number(p.price).toLocaleString()}원</td>
+                                        <td>
+                                            {Number(
+                                                p.price
+                                            ).toLocaleString()}
+                                            원
+                                        </td>
                                         <td>{stockNum}개</td>
                                         <td>{getStatusLabel(p.status)}</td>
                                         <td>{fmtDate(p.createdAt)}</td>
@@ -1202,7 +1880,10 @@ function ProductManagement() {
                             })
                         ) : (
                             <tr>
-                                <td colSpan={8} className={productStyles.noProducts}>
+                                <td
+                                    colSpan={8}
+                                    className={productStyles.noProducts}
+                                >
                                     해당하는 상품이 없습니다.
                                 </td>
                             </tr>
