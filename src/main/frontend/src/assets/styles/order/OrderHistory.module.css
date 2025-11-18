@@ -1,108 +1,227 @@
+/* 페이지 전체 영역 */
+.page {
+    /*background: #f5f5f7;*/
+    /*min-height: calc(100vh - 120px);*/
+    padding: 40px 0 80px;
+}
+
+/* 가운데 정렬 컨테이너 */
 .container {
     max-width: 960px;
     margin: 0 auto;
-    padding: 40px 20px;
+    padding: 0 20px;
 }
 
+/* 로딩 / 에러 공통 */
 .loading,
 .error {
     text-align: center;
-    font-size: 1.1em;
+    font-size: 1.05rem;
     color: #555;
-    padding: 60px 0;
+    padding: 80px 20px;
 }
 
 .error {
     color: #e57373;
 }
 
-h1 {
+/* 페이지 타이틀 영역 */
+.pageHeader {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.pageTitle {
     font-size: 28px;
-    margin-bottom: 30px;
-    color: #000;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    margin: 0 0 8px;
+    color: #111;
+}
+
+.pageSubtitle {
+    font-size: 14px;
+    color: #777;
+}
+
+/* 주문이 하나도 없을 때 */
+.emptyState {
+    background-color: #fff;
+    border-radius: 24px;
+    padding: 60px 24px;
+    border: 1px solid #eee;
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.04);
     text-align: center;
 }
 
+.emptyTitle {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #222;
+}
+
+.emptyDescription {
+    font-size: 14px;
+    color: #777;
+}
+
+/* 주문 리스트 */
 .orderList {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 24px;
 }
 
+/* 개별 주문 카드 */
 .orderItem {
-    background-color: #f9f9f9;
-    border-radius: 20px;
-    padding: 24px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    position: relative;
+    background-color: #ffffff;
+    border-radius: 24px;
+    padding: 22px 26px 20px;
+    border: 1px solid #ececec;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.07);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
     cursor: pointer;
-    border: 2px solid #000;
+}
+
+.orderItem::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 24px;
+    border-top: 4px solid #000000;
+    pointer-events: none;
+    opacity: 0.85;
 }
 
 .orderItem:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.15);
+    transform: translateY(-4px);
+    box-shadow: 0 22px 52px rgba(0, 0, 0, 0.12);
 }
 
+/* 주문 헤더 (번호 + 날짜) */
 .orderHeader {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     padding-bottom: 10px;
-    margin-bottom: 16px;
-    border-bottom: 1px dashed #ccc;
+    margin-bottom: 10px;
+    border-bottom: 1px dashed #e0e0e0;
+    padding-right: 120px; /* 오른쪽에 상태 뱃지 공간 확보 */
 }
 
 .orderId {
     font-size: 16px;
-    color: #000;
+    color: #111;
+    font-weight: 600;
 }
 
 .orderDate {
-    font-size: 14px;
-    color: #555;
+    font-size: 13px;
+    color: #888;
+    margin-top: 4px;
 }
 
+/* 카드 내부 콘텐츠 전체 */
 .orderContent {
-    display: flex;
+    /*display: flex;*/
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
 }
 
+/* 상품 목록 */
 .productInfo {
-    margin-bottom: 12px;
+    margin-bottom: 6px;
 }
 
+/* 상품 한 줄 */
 .productItem {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px solid #eee;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid #f2f2f2;
+    gap: 10px;
 }
 
 .productItem:last-child {
     border-bottom: none;
 }
 
+/* 상품 텍스트 영역 */
 .productDetails {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    align-items: flex-start;
     flex: 1;
-    margin-right: 20px;
+    margin-right: 12px;
+    gap: 10px;
+    min-width: 0;
 }
 
 .productName {
     color: #333;
     font-size: 15px;
+    font-weight: 500;
 }
 
+/* 옵션 뱃지들 */
+.productOptions {
+    margin: 4px 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.optionItem {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    color: #495057;
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 11px;
+    border: 1px solid #dee2e6;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.16s ease;
+}
+
+.optionItem:hover {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.optionKey {
+    color: #6c757d;
+    font-size: 10px;
+}
+
+.optionValue {
+    background: rgba(0, 0, 0, 0.03);
+    color: #111;
+    padding: 2px 7px;
+    border-radius: 12px;
+    font-size: 11px;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+/* 상품 가격 */
 .productPrice {
     color: #333;
     font-size: 15px;
+    font-weight: 500;
 }
 
+.discountBadge {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 12px;
+    color: #e74c3c;
+}
+
+/* 리뷰 영역 */
 .reviewSection {
     display: flex;
     align-items: center;
@@ -110,25 +229,27 @@ h1 {
 
 .reviewButton {
     display: inline-block;
-    padding: 8px 16px;
-    font-size: 13px;
+    padding: 7px 14px;
+    font-size: 12px;
     color: #fff;
     background-color: #000;
     border: none;
     border-radius: 999px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
     white-space: nowrap;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .reviewButton:hover {
     background-color: #333;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
 }
 
 .reviewedBadge {
     display: inline-block;
-    padding: 8px 16px;
-    font-size: 13px;
+    padding: 7px 14px;
+    font-size: 12px;
     color: #28a745;
     background-color: #d4edda;
     border: 1px solid #c3e6cb;
@@ -136,69 +257,108 @@ h1 {
     white-space: nowrap;
 }
 
+/* 총 결제금액 영역 */
 .orderTotal {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: baseline;
     font-size: 16px;
-    margin-top: 12px;
-    border-top: 1px dashed #ccc;
+    margin-top: 8px;
+    border-top: 1px dashed #e0e0e0;
     padding-top: 10px;
 }
 
-.totalAmount {
-    font-size: 18px;
-    color: #d35400;
+.orderTotalLabel {
+    font-size: 14px;
+    color: #000000;
 }
 
+.totalAmount {
+    font-size: 20px;
+    font-weight: 700;
+    color: #e74c3c;
+}
+
+/* 주문 상태 배지 (카드 오른쪽 상단 고정) */
 .orderStatus {
+    position: absolute;
+    top: 20px;
+    right: 26px;
     text-align: right;
-    margin-top: 10px;
+    margin-top: 0;
 }
 
 .orderStatus span {
     display: inline-block;
     padding: 6px 14px;
-    font-size: 13px;
-    border-radius: 20px;
-    background-color: rgba(0, 0, 0, 0.1);
-    color: #333;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
+    font-size: 12px;
+    border-radius: 999px;
+    background-color: rgba(0, 0, 0, 0.25);
+    color: #fff;
+    text-transform: none;
+    letter-spacing: 0.04em;
 }
 
+/* 더 보기 버튼 */
 .loadMoreButton {
-    margin-top: 30px;
-    width: 100%;
-    padding: 14px;
+    margin-top: 32px;
+    display: block;
+    width: 230px;
+    max-width: 100%;
+    padding: 13px 16px;
     background-color: #000;
     color: white;
-    font-size: 16px;
+    font-size: 15px;
     border: none;
     border-radius: 999px;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease, transform 0.1s ease;
+    margin-left: auto;
+    margin-right: auto;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
 }
 
 .loadMoreButton:hover:not(:disabled) {
     background-color: #333;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.24);
+    transform: translateY(-1px);
 }
 
 .loadMoreButton:disabled {
     background-color: #ccc;
     cursor: not-allowed;
     color: #888;
+    box-shadow: none;
 }
 
+/* 반응형 */
 @media (max-width: 768px) {
+    .page {
+        padding: 24px 0 40px;
+    }
+
     .orderItem {
-        padding: 16px;
+        padding: 18px 16px 16px;
+        border-radius: 18px;
+    }
+
+    .orderHeader {
+        padding-right: 0;
+    }
+
+    .orderStatus {
+        position: static;
+        margin-top: 8px;
+    }
+
+    .orderStatus span {
+        font-size: 11px;
     }
 
     .productItem {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 8px;
     }
 
     .productDetails {
@@ -210,47 +370,12 @@ h1 {
         align-self: flex-end;
     }
 
+    .pageTitle {
+        font-size: 24px;
+    }
+
     .loadMoreButton {
         font-size: 14px;
+        width: 100%;
     }
-}
-
-.productOptions {
-    margin: 8px 0;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-}
-
-.optionItem {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    color: #495057;
-    padding: 4px 12px;
-    border-radius: 16px;
-    font-size: 12px;
-    border: 1px solid #dee2e6;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
-}
-
-.optionItem:hover {
-    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
-    box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-}
-
-.optionKey {
-    color: #6c757d;
-    font-size: 11px;
-}
-
-.optionValue {
-    background: rgba(0, 0, 0, 0.05);
-    color: #000;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 11px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
 }

@@ -2,9 +2,9 @@
   max-width: 1200px;
   margin: 2rem auto;
   padding: 2rem;
-  background-color: #fef7e6;
+  background-color: #eeeeee;
   border-radius: 12px;
-  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  /*box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);*/
   font-family: 'Noto Sans KR', sans-serif;
   color: #333;
 }
@@ -61,9 +61,9 @@ legend {
   font-weight: 700;
   font-size: 1.2rem;
   margin-bottom: 1.5rem;
-  color: #9e4b25;
+  color: #000000;
   padding-left: 8px;
-  border-left: 4px solid #9e4b25;
+  border-left: 4px solid #000000;
 }
 
 .checkoutContainer label {
@@ -90,9 +90,9 @@ select {
 
 input:focus,
 select:focus {
-  border-color: #9e4b25;
+  border-color: rgba(136, 136, 143, 0.12);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(158, 75, 37, 0.1);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.2);
 }
 
 .cartItem {
@@ -172,21 +172,21 @@ select:focus {
 .finalAmount {
   margin-top: 1.5rem;
   padding-top: 1.5rem;
-  border-top: 2px solid #9e4b25;
+  border-top: 2px solid #000000;
   font-weight: 700;
   font-size: 1.2rem;
   color: #333;
 }
 
 .finalAmount span:last-child {
-  color: #9e4b25;
+  color: #e74c3c;
   font-size: 1.3rem;
 }
 
 .submitButton {
   width: 100%;
   margin-top: 2rem;
-  background-color: #9e4b25;
+  background-color: #888888;
   color: white;
   border: none;
   padding: 1.2rem;
@@ -202,9 +202,9 @@ select:focus {
 }
 
 .submitButton:hover {
-  background-color: #7c3b1d;
+  background-color: #000000;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(158, 75, 37, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .submitButton:disabled {
@@ -373,7 +373,7 @@ input:disabled {
 
 .zipCodeInput button {
   padding: 0.7rem 1rem;
-  background-color: #9e4b25;
+  background-color: #888888;
   color: white;
   border: none;
   border-radius: 6px;
@@ -382,7 +382,7 @@ input:disabled {
 }
 
 .zipCodeInput button:hover {
-  background-color: #7c3b1d;
+  background-color: #000000;
 }
 
 .zipCodeInput button:disabled {
@@ -440,12 +440,12 @@ input:disabled {
 
 .optionValue {
   font-weight: 500;
-  background: rgba(158, 75, 37, 0.1);
-  color: #9e4b25;
+  background: rgba(136, 136, 143, 0.12);
+  color: #495057;
   padding: 2px 8px;
   border-radius: 12px;
   font-size: 11px;
-  border: 1px solid rgba(158, 75, 37, 0.2);
+  border: 1px solid rgba(55, 55, 57, 0.12);
 }
 
 /* 쿠폰 관련 스타일 */
