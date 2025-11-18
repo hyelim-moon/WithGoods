@@ -329,7 +329,6 @@ function ProductDetail() {
     };
 
     const openReportModal = (review) => {
-        // ✅ reviewId / content 필드에 맞게 수정
         setReportTarget({ id: review.reviewId, content: review.content });
         setReportReasons([]);
         setReportDetail('');
@@ -359,7 +358,7 @@ function ProductDetail() {
         const main = normalize(product.imageUrl || product.mainImage);
         if (main) urls.push(main);
 
-        // 2) 추가 이미지 (배열/JSON/쉼표문자열 모두 허용)
+        // 2) 추가 이미지 처리
         const rawAdditional =
             product.additionalImages ??
             product.additionalImagesJson ??
@@ -392,18 +391,15 @@ function ProductDetail() {
             }
         }
 
-        // 중복 제거(같은 URL이 여러 번 올 경우)
         return Array.from(new Set(urls));
     }, [product]);
 
-    // 이미지 목록 변화 시 인덱스 안전화
     useEffect(() => {
         if (selectedImage >= productImages.length) {
             setSelectedImage(0);
         }
     }, [productImages.length, selectedImage]);
 
-    // 상품 변경 시 첫 이미지로 초기화
     useEffect(() => {
         setSelectedImage(0);
     }, [product?.productId]);
@@ -432,14 +428,14 @@ function ProductDetail() {
                         src={mainImageUrl}
                         alt={`${product.name} 메인 이미지`}
                         className={styles.productImage}
-                        // ✅ 대표 이미지 크기 고정: 썸네일을 바꿔도 외곽 박스 크기는 유지
+                        /* 왼쪽 정렬 고정 */
                         style={{
                             width: '100%',
                             maxWidth: '480px',
-                            aspectRatio: '1 / 1', // 1:1 박스
+                            aspectRatio: '1 / 1',
                             objectFit: 'contain',
                             display: 'block',
-                            margin: '0 auto',
+                            margin: 0,          // ← 가운데 정렬 제거
                         }}
                         onError={(e) => {
                             e.currentTarget.src = 'https://via.placeholder.com/400';
@@ -497,7 +493,7 @@ function ProductDetail() {
                         ₩{product.price?.toLocaleString()}
                     </p>
 
-                    {/* 뱃지 (한정/기념일 등) */}
+                    {/* 뱃지 */}
                     <ProductBadge product={product} />
 
                     {/* 옵션 선택 */}
@@ -685,10 +681,7 @@ function ProductDetail() {
                         </div>
                     ) : (
                         <div className={styles.reviewsList}>
-                            {(showAllReviews
-                                    ? reviews
-                                    : reviews.slice(0, 3)
-                            ).map((review) => (
+                            {(showAllReviews ? reviews : reviews.slice(0, 3)).map((review) => (
                                 <div
                                     key={review.reviewId}
                                     className={styles.reviewItem}
@@ -703,8 +696,7 @@ function ProductDetail() {
                                                     <span
                                                         key={star}
                                                         className={`${styles.star} ${
-                                                            star <=
-                                                            (review.rating || 0)
+                                                            star <= (review.rating || 0)
                                                                 ? styles.filled
                                                                 : ''
                                                         }`}
@@ -713,9 +705,7 @@ function ProductDetail() {
                                                     </span>
                                                 ))}
                                                 <span
-                                                    className={
-                                                        styles.reviewRatingText
-                                                    }
+                                                    className={styles.reviewRatingText}
                                                 >
                                                     {review.rating || 0}점
                                                 </span>
@@ -733,8 +723,7 @@ function ProductDetail() {
                                                 alt="리뷰 이미지"
                                                 className={styles.reviewImage}
                                                 onError={(e) => {
-                                                    e.currentTarget.style.display =
-                                                        'none';
+                                                    e.currentTarget.style.display = 'none';
                                                 }}
                                             />
                                         )}
@@ -752,9 +741,7 @@ function ProductDetail() {
                                     >
                                         {showAllReviews
                                             ? '리뷰 접기'
-                                            : `리뷰 더보기 (${
-                                                reviews.length - 3
-                                            }개 더)`}
+                                            : `리뷰 더보기 (${reviews.length - 3}개 더)`}
                                     </button>
                                 </div>
                             )}
@@ -929,7 +916,6 @@ function ProductDetail() {
                                 </li>
                                 <li>
                                     <strong>교환:</strong> 동일 상품으로만 교환
-                                    가능
                                 </li>
                             </ul>
                         </div>

@@ -14,13 +14,20 @@
 /* 상품 이미지 섹션 */
 .imageSection {
     width: 50%;
+    display: flex;            /* 왼쪽 정렬 강제 */
+    flex-direction: column;
+    align-items: flex-start;  /* ← 내부 요소 왼쪽 정렬 */
 }
 
 /* 상품 이미지 */
 .productImage {
     width: 100%;
-    object-fit: cover;
+    max-width: 480px;         /* 대표 이미지 최대 가로 */
+    aspect-ratio: 1 / 1;      /* 정사각형 박스 */
+    object-fit: contain;      /* 이미지 비율 유지 */
     border-radius: 8px;
+    display: block;
+    margin: 0;                /* 가운데 정렬 제거 */
 }
 
 /* 썸네일 이미지 섹션 */
@@ -28,6 +35,8 @@
     display: flex;
     gap: 10px;
     margin-top: 10px;
+    flex-wrap: wrap;
+    /* 별도 좌측 여백 없이 productImage와 같은 왼쪽선에서 시작 */
 }
 
 .thumbnailImage {
@@ -515,7 +524,7 @@
     transition: all 0.3s ease;
 }
 
-/* 한정판 상품 스타일 */
+/* 한정판/기념일 박스 */
 .limitedEditionInfo,
 .anniversaryInfo {
     border: 2px solid #000;
@@ -664,12 +673,11 @@
     cursor: not-allowed;
 }
 
-/* Q&A 항목 전체에 클릭 커서 */
+/* Q&A */
 .qnaItem .qnaTitleRow {
     cursor: pointer;
 }
 
-/* 열렸을 때 배경 강조 (선택사항) */
 .qnaItem.open {
     background-color: #faf9f5;
 }
@@ -702,14 +710,14 @@
     background-color: #333;
 }
 
-/* ─── Q&A 리스트 전체 ─── */
+/* Q&A 리스트 전체 */
 .qnaList {
     list-style: none;
     margin: 0;
     padding: 0;
 }
 
-/* ─── 개별 질문 아이템 ─── */
+/* 개별 질문 아이템 */
 .qnaItem {
     padding: 16px 0;
     border-bottom: 1px solid #e0e0e0;
@@ -719,7 +727,7 @@
     background-color: #fafafa;
 }
 
-/* ─── 제목 / 메타 영역 ─── */
+/* 제목 / 메타 영역 */
 .qnaTitleRow {
     display: flex;
     align-items: center;
@@ -741,7 +749,7 @@
     white-space: nowrap;
 }
 
-/* ─── 비밀글 입력 폼 ─── */
+/* 비밀글 입력 폼 */
 .secretPrompt {
     margin-top: 8px;
     padding: 12px;
@@ -764,7 +772,7 @@
     font-size: 14px;
 }
 
-/* ─── Q&A 본문 (열렸을 때) ─── */
+/* Q&A 본문 (열렸을 때) */
 .qnaContent {
     margin-top: 8px;
     font-size: 14px;
