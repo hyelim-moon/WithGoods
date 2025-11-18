@@ -20,10 +20,15 @@ public class ProductController {
 
     private final ProductService productService;
 
-    @PostMapping
-    public ResponseEntity<ProductDto> create(@RequestPart("productDto") ProductRequestDto dto,
-                                           @RequestPart(value = "image", required = false) MultipartFile image) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(productService.createProduct(dto, image));
+    @PostMapping(consumes = {"multipart/form-data"})
+    public ResponseEntity<ProductDto> create(
+            @RequestPart("productDto") ProductRequestDto dto,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @RequestPart(value = "subImages", required = false) List<MultipartFile> subImages
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(productService.createProduct(dto, image, subImages));
     }
 
     @GetMapping
@@ -66,11 +71,15 @@ public class ProductController {
         return ResponseEntity.ok(productService.getProductById(id));
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ProductDto> update(@PathVariable("id") Integer id,
-                                           @RequestPart("productDto") ProductRequestDto dto,
-                                           @RequestPart(value = "image", required = false) MultipartFile image) {
-        return ResponseEntity.ok(productService.updateProduct(id, dto, image));
+    /** ✅ 상품 수정: 대표/서브 이미지 갱신(서브 이미지는 추가 병합 방식) */
+    @PutMapping(value = "/{id}", consumes = {"multipart/form-data"})
+    public ResponseEntity<ProductDto> update(
+            @PathVariable("id") Integer id,
+            @RequestPart("productDto") ProductRequestDto dto,
+            @RequestPart(value = "image", required = false) MultipartFile image,
+            @RequestPart(value = "subImages", required = false) List<MultipartFile> subImages
+    ) {
+        return ResponseEntity.ok(productService.updateProduct(id, dto, image, subImages));
     }
 
     @DeleteMapping("/{id}")

@@ -26,9 +26,23 @@ function GeneralProductForm() {
         singleOptions: [{ optionName: "기본", optionValue: "", price: 0 }],
         options: [],
     });
+
+    // 대표 이미지
     const [imageFile, setImageFile] = useState(null);
     const [imagePreview, setImagePreview] = useState("");
     const [isImageRemoved, setIsImageRemoved] = useState(false);
+
+    // ✅ 추가(서브) 이미지 — 서버에 이미 등록된 URL / 이번에 새로 고른 파일들
+    const [existingSubImageUrls, setExistingSubImageUrls] = useState([]); // 편집 모드: 서버에 있던 것들
+    const [newSubImageFiles, setNewSubImageFiles] = useState([]);        // 이번 폼에서 새로 고른 파일들
+    const [newSubImagePreviews, setNewSubImagePreviews] = useState([]);
+
+    // 절대 URL 변환 헬퍼
+    const toAbsolute = (url) => {
+        if (!url) return url;
+        const isAbsolute = /^https?:\/\//i.test(url);
+        return isAbsolute ? url : `http://localhost:8080${url}`;
+    };
 
     useEffect(() => {
         if (!isEditMode) return;
@@ -88,11 +102,12 @@ function GeneralProductForm() {
                     options: comboOptions,
                 });
 
-                if (data.imageUrl) {
-                    const isAbsolute = /^https?:\/\//i.test(data.imageUrl);
-                    setImagePreview(
-                        isAbsolute ? data.imageUrl : `http://localhost:8080${data.imageUrl}`
-                    );
+                // 대표 이미지 미리보기
+                if (data.imageUrl) setImagePreview(toAbsolute(data.imageUrl));
+
+                // ✅ 서버에 저장된 추가 이미지들 미리보기
+                if (Array.isArray(data.additionalImages) && data.additionalImages.length > 0) {
+                    setExistingSubImageUrls(data.additionalImages.map(toAbsolute));
                 }
             })
             .catch((err) => {
@@ -102,24 +117,37 @@ function GeneralProductForm() {
             .finally(() => setLoading(false));
     }, [id, isEditMode]);
 
-    const handleChange = (e) => {
-        const { name, value, type, checked, files } = e.target;
-        if (type === "checkbox") {
-            setFormData((prev) => ({ ...prev, [name]: checked }));
-        } else if (type === "file") {
-            const file = files[0];
-            setImageFile(file);
-            setIsImageRemoved(false);
-            if (file) setImagePreview(URL.createObjectURL(file));
-        } else {
-            setFormData((prev) => ({ ...prev, [name]: value }));
-        }
+    // 대표 이미지 선택/제거
+    const handleMainImageChange = (e) => {
+        const file = e.target.files?.[0];
+        setImageFile(file || null);
+        setIsImageRemoved(false);
+        if (file) setImagePreview(URL.createObjectURL(file));
     };
-
     const handleRemoveImage = () => {
         setImageFile(null);
         setImagePreview("");
         setIsImageRemoved(true);
+    };
+
+    // ✅ 추가 이미지 선택/제거
+    const handleSubImagesChange = (e) => {
+        const files = Array.from(e.target.files || []);
+        setNewSubImageFiles(files);
+        setNewSubImagePreviews(files.map((f) => URL.createObjectURL(f)));
+    };
+    const removeNewSubImageAt = (idx) => {
+        setNewSubImageFiles((prev) => prev.filter((_, i) => i !== idx));
+        setNewSubImagePreviews((prev) => prev.filter((_, i) => i !== idx));
+    };
+
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        if (type === "checkbox") {
+            setFormData((prev) => ({ ...prev, [name]: checked }));
+        } else {
+            setFormData((prev) => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSingleOptionChange = (index, key, value) => {
@@ -129,7 +157,6 @@ function GeneralProductForm() {
             return { ...prev, singleOptions: newOptions };
         });
     };
-
     const addSingleOption = () => {
         setFormData((prev) => ({
             ...prev,
@@ -139,7 +166,6 @@ function GeneralProductForm() {
             ],
         }));
     };
-
     const removeSingleOption = (index) => {
         setFormData((prev) => {
             const newOptions = [...prev.singleOptions];
@@ -155,7 +181,6 @@ function GeneralProductForm() {
             return { ...prev, options: newGroups };
         });
     };
-
     const handleOptionValueChange = (groupIndex, valueIndex, key, value) => {
         setFormData((prev) => {
             const newGroups = [...prev.options];
@@ -163,14 +188,12 @@ function GeneralProductForm() {
             return { ...prev, options: newGroups };
         });
     };
-
     const addOptionGroup = () => {
         setFormData((prev) => ({
             ...prev,
             options: [...prev.options, { group: "", values: [{ name: "", price: "" }] }],
         }));
     };
-
     const removeOptionGroup = (groupIndex) => {
         setFormData((prev) => {
             const newGroups = [...prev.options];
@@ -178,7 +201,6 @@ function GeneralProductForm() {
             return { ...prev, options: newGroups };
         });
     };
-
     const addOptionValue = (groupIndex) => {
         setFormData((prev) => {
             const newGroups = prev.options.map((group, idx) =>
@@ -189,7 +211,6 @@ function GeneralProductForm() {
             return { ...prev, options: newGroups };
         });
     };
-
     const removeOptionValue = (groupIndex, valueIndex) => {
         setFormData((prev) => {
             const newGroups = [...prev.options];
@@ -197,7 +218,6 @@ function GeneralProductForm() {
             return { ...prev, options: newGroups };
         });
     };
-
     const handleOptionTypeChange = (e) => {
         const optionType = e.target.value;
         setFormData((prev) => ({
@@ -260,7 +280,12 @@ function GeneralProductForm() {
             "productDto",
             new Blob([JSON.stringify(productDto)], { type: "application/json" })
         );
+
+        // 대표 이미지
         if (imageFile) submission.append("image", imageFile);
+
+        // ✅ 추가(서브) 이미지들
+        newSubImageFiles.forEach((file) => submission.append("subImages", file));
 
         try {
             const url = isEditMode
@@ -291,20 +316,19 @@ function GeneralProductForm() {
 
     return (
         <form className={styles.registerForm} onSubmit={handleSubmit}>
-            {/* ✅ 상단 “상품 목록으로” 버튼 제거됨 */}
-
             <h2 className={styles.title}>
                 {isEditMode ? "상품 수정" : "상품 등록"}
             </h2>
 
+            {/* 대표 이미지 */}
             <label className={styles.label}>
                 대표 이미지
                 <input
                     type="file"
                     name="image"
-                    onChange={handleChange}
+                    onChange={handleMainImageChange}
                     accept="image/*"
-                    className={styles.fileInput} // ✅ 다른 인풋과 맞춘 스타일
+                    className={styles.fileInput}
                 />
             </label>
 
@@ -322,6 +346,84 @@ function GeneralProductForm() {
                     >
                         이미지 삭제
                     </button>
+                </div>
+            )}
+
+            {/* ✅ 추가(서브) 이미지 여러 장 */}
+            <label className={styles.label}>
+                추가 이미지(여러 장 가능)
+                <input
+                    type="file"
+                    name="subImages"
+                    accept="image/*"
+                    multiple
+                    onChange={handleSubImagesChange}
+                    className={styles.fileInput}
+                />
+            </label>
+
+            {/* 기존에 저장돼 있던 추가 이미지(편집 모드) 프리뷰 */}
+            {isEditMode && existingSubImageUrls.length > 0 && (
+                <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 6 }}>
+                        등록된 추가 이미지
+                    </div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {existingSubImageUrls.map((src, i) => (
+                            <img
+                                key={`exist-${i}`}
+                                src={src}
+                                alt={`exist-${i}`}
+                                style={{
+                                    width: 56,
+                                    height: 56,
+                                    objectFit: "cover",
+                                    borderRadius: 8,
+                                    border: "1px solid #eee",
+                                }}
+                            />
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* 이번에 새로 선택한 추가 이미지 프리뷰 */}
+            {newSubImagePreviews.length > 0 && (
+                <div style={{ marginBottom: 12 }}>
+                    <div style={{ fontSize: 12, opacity: 0.8, marginBottom: 6 }}>
+                        업로드 예정 추가 이미지
+                    </div>
+                    <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        {newSubImagePreviews.map((src, i) => (
+                            <div key={`new-${i}`} style={{ position: "relative" }}>
+                                <img
+                                    src={src}
+                                    alt={`new-${i}`}
+                                    style={{
+                                        width: 56,
+                                        height: 56,
+                                        objectFit: "cover",
+                                        borderRadius: 8,
+                                        border: "1px solid #eee",
+                                    }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => removeNewSubImageAt(i)}
+                                    className={styles.removeButton}
+                                    style={{
+                                        position: "absolute",
+                                        top: -6,
+                                        right: -6,
+                                        padding: "2px 6px",
+                                        fontSize: 11,
+                                    }}
+                                >
+                                    ×
+                                </button>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
 

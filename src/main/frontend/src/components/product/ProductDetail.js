@@ -1,5 +1,5 @@
 import { useNavigate, useParams } from 'react-router-dom';
-import { FaHeart, FaCartPlus, FaShoppingCart, FaLock } from 'react-icons/fa'; // 아이콘 가져오기
+import { FaHeart, FaCartPlus, FaShoppingCart, FaLock } from 'react-icons/fa';
 import React, { useEffect, useState, useMemo } from 'react';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
@@ -7,18 +7,17 @@ import ProductBadge from '../ui/ProductBadge';
 import styles from '../../assets/styles/product/ProductDetail.module.css';
 
 function ProductDetail() {
-    const { id } = useParams(); // URL에서 id 파라미터 가져오기
+    const { id } = useParams();
     const navigate = useNavigate();
     const { user, loading: authLoading } = useAuth();
 
-    // 상태 변수들 정의
-    const [selectedOptions, setSelectedOptions] = useState({}); // 선택된 옵션들을 저장
+    const [selectedOptions, setSelectedOptions] = useState({});
     const [quantity, setQuantity] = useState(1);
-    const [selectedImage, setSelectedImage] = useState(0); // 선택된 이미지 인덱스
-    const [showMoreInfo, setShowMoreInfo] = useState(false); // 상세 설명 더보기 여부
-    const [isFavorited, setIsFavorited] = useState(false); // 즐겨찾기 여부
-    const [showAllReviews, setShowAllReviews] = useState(false); // 전체 리뷰 보기 여부
-    const [activeTab, setActiveTab] = useState('detail'); // 현재 활성화된 탭
+    const [selectedImage, setSelectedImage] = useState(0);
+    const [showMoreInfo, setShowMoreInfo] = useState(false);
+    const [isFavorited, setIsFavorited] = useState(false);
+    const [showAllReviews, setShowAllReviews] = useState(false);
+    const [activeTab, setActiveTab] = useState('detail');
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -97,9 +96,7 @@ function ProductDetail() {
                 setLoading(true);
                 const productResponse = await axios.get(
                     `http://localhost:8080/products/${id}`,
-                    {
-                        withCredentials: true,
-                    }
+                    { withCredentials: true }
                 );
 
                 if (productResponse.data) {
@@ -108,9 +105,7 @@ function ProductDetail() {
                     if (user) {
                         const wishlistResponse = await axios.get(
                             `http://localhost:8080/api/wishlist/check/${id}`,
-                            {
-                                withCredentials: true,
-                            }
+                            { withCredentials: true }
                         );
                         setIsFavorited(wishlistResponse.data);
                     } else {
@@ -135,34 +130,28 @@ function ProductDetail() {
             }
         };
 
-        if (id) {
-            fetchProductAndWishlist();
-        }
+        if (id) fetchProductAndWishlist();
     }, [id, user]);
 
-    // 리뷰 데이터 불러오기
+    // 리뷰 불러오기
     useEffect(() => {
         const fetchReviews = async () => {
             if (!product?.productId) return;
-
             try {
                 setReviewsLoading(true);
                 const response = await axios.get(
                     `http://localhost:8080/api/reviews/product/${parseInt(
                         product.productId
                     )}`,
-                    {
-                        withCredentials: true,
-                    }
+                    { withCredentials: true }
                 );
                 setReviews(response.data);
-            } catch (err) {
-                // 리뷰 로딩 실패 시 무시
+            } catch {
+                // ignore
             } finally {
                 setReviewsLoading(false);
             }
         };
-
         fetchReviews();
     }, [product?.productId]);
 
@@ -174,17 +163,10 @@ function ProductDetail() {
         const now = new Date();
         const end = new Date(endDate);
         const diff = end - now;
-
-        if (diff <= 0) {
-            return '판매 종료';
-        }
-
+        if (diff <= 0) return '판매 종료';
         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-        const hours = Math.floor(
-            (diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
-        );
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
         const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-
         return `${days}일 ${hours}시간 ${minutes}분`;
     };
 
@@ -193,17 +175,13 @@ function ProductDetail() {
             const timer = setInterval(() => {
                 setTimeLeft(calculateTimeLeft(product.endDate));
             }, 60000);
-
             setTimeLeft(calculateTimeLeft(product.endDate));
-
             return () => clearInterval(timer);
         }
     }, [product]);
 
     const getStockClassName = (stock) => {
-        return stock <= 5
-            ? `${styles.stockValue} ${styles.urgentStock}`
-            : styles.stockValue;
+        return stock <= 5 ? `${styles.stockValue} ${styles.urgentStock}` : styles.stockValue;
     };
 
     const handleOptionSelect = (groupName, option) => {
@@ -236,31 +214,24 @@ function ProductDetail() {
 
     const areAllOptionsSelected = () => {
         if (!product?.options || product.options.length === 0) return true;
-        return Object.keys(groupedOptions).every(
-            (group) => selectedOptions[group]
-        );
+        return Object.keys(groupedOptions).every((group) => selectedOptions[group]);
     };
 
     const totalPrice = useMemo(() => {
         if (!product) return 0;
         const basePrice = product.price || 0;
         const optionPrice = Object.values(selectedOptions).reduce(
-            (sum, option) => {
-                return sum + (option.price || 0);
-            },
+            (sum, option) => sum + (option.price || 0),
             0
         );
         return (basePrice + optionPrice) * quantity;
     }, [product, selectedOptions, quantity]);
 
     const getOptionsForSubmission = () => {
-        return Object.entries(selectedOptions).reduce(
-            (acc, [group, option]) => {
-                acc[group] = option.value;
-                return acc;
-            },
-            {}
-        );
+        return Object.entries(selectedOptions).reduce((acc, [group, option]) => {
+            acc[group] = option.value;
+            return acc;
+        }, {});
     };
 
     const handleAddToCart = async () => {
@@ -268,7 +239,6 @@ function ProductDetail() {
             alert('모든 옵션을 선택해주세요.');
             return;
         }
-
         try {
             const optionsToSubmit = getOptionsForSubmission();
             const cartItem = {
@@ -277,11 +247,9 @@ function ProductDetail() {
                 option: JSON.stringify(optionsToSubmit),
                 options: optionsToSubmit,
             };
-
             await axios.post('http://localhost:8080/api/cart', cartItem, {
                 withCredentials: true,
             });
-
             alert('장바구니에 추가되었습니다.');
         } catch (error) {
             if (error.response?.status === 401) {
@@ -301,12 +269,10 @@ function ProductDetail() {
             navigate('/login');
             return;
         }
-
         if (product.options && !areAllOptionsSelected()) {
             alert('모든 옵션을 선택해주세요.');
             return;
         }
-
         const optionsToSubmit = getOptionsForSubmission();
         const orderItem = {
             productId: product.productId,
@@ -317,7 +283,6 @@ function ProductDetail() {
             selectedOptions: optionsToSubmit,
             totalPrice: totalPrice,
         };
-
         navigate('/checkout', {
             state: {
                 products: [orderItem],
@@ -339,22 +304,17 @@ function ProductDetail() {
                 navigate('/login');
                 return;
             }
-
             if (isFavorited) {
                 await axios.delete(
                     `http://localhost:8080/api/wishlist/remove?productId=${id}`,
-                    {
-                        withCredentials: true,
-                    }
+                    { withCredentials: true }
                 );
                 setIsFavorited(false);
             } else {
                 await axios.post(
                     `http://localhost:8080/api/wishlist/add?productId=${id}`,
                     null,
-                    {
-                        withCredentials: true,
-                    }
+                    { withCredentials: true }
                 );
                 setIsFavorited(true);
             }
@@ -363,122 +323,105 @@ function ProductDetail() {
                 alert('로그인이 필요한 서비스입니다.');
                 navigate('/login');
             } else {
-                alert(
-                    isFavorited
-                        ? '찜 해제에 실패했습니다.'
-                        : '찜하기에 실패했습니다.'
-                );
+                alert(isFavorited ? '찜 해제에 실패했습니다.' : '찜하기에 실패했습니다.');
             }
         }
     };
 
     const openReportModal = (review) => {
-        setReportTarget({ id: review.id, content: review.text });
+        // ✅ reviewId / content 필드에 맞게 수정
+        setReportTarget({ id: review.reviewId, content: review.content });
         setReportReasons([]);
         setReportDetail('');
         setIsReportModalOpen(true);
     };
-
-    const closeReportModal = () => {
-        setIsReportModalOpen(false);
-    };
-
+    const closeReportModal = () => setIsReportModalOpen(false);
     const toggleReason = (reason) => {
         setReportReasons((prev) =>
-            prev.includes(reason)
-                ? prev.filter((r) => r !== reason)
-                : [...prev, reason]
+            prev.includes(reason) ? prev.filter((r) => r !== reason) : [...prev, reason]
         );
     };
+    const submitReport = () => setIsReportModalOpen(false);
 
-    const submitReport = () => {
-        setIsReportModalOpen(false);
-    };
-
-    // 🔽🔽 이미지 배열 만들기 + 썸네일 클릭 시 큰 이미지 변경 🔽🔽
+    /** ===========================
+     *  이미지 목록 + 썸네일 전환
+     *  =========================== */
     const productImages = useMemo(() => {
         if (!product) return [];
 
         const urls = [];
-
         const normalize = (u) => {
             if (!u) return null;
-            // 절대 경로가 아니면 백엔드 도메인 붙이기
-            return u.startsWith("http") ? u : `http://localhost:8080${u}`;
+            return /^https?:\/\//i.test(u) ? u : `http://localhost:8080${u}`;
         };
 
-        // 1) 메인 이미지 (항상 맨 앞에)
+        // 1) 메인
         const main = normalize(product.imageUrl || product.mainImage);
         if (main) urls.push(main);
 
-        // 2) 추가 이미지 원본 데이터
-        //    - 백엔드 DTO: additionalImages (List<String>)
-        //    - 혹시나 엔티티 그대로 온 경우를 대비해서 additionalImagesJson / additional_images 도 체크
+        // 2) 추가 이미지 (배열/JSON/쉼표문자열 모두 허용)
         const rawAdditional =
             product.additionalImages ??
             product.additionalImagesJson ??
             product.additional_images;
 
-        const pushNormalized = (u) => {
+        const pushNorm = (u) => {
             const nu = normalize(u);
             if (nu) urls.push(nu);
         };
 
         if (Array.isArray(rawAdditional)) {
-            rawAdditional.forEach(pushNormalized);
-        } else if (typeof rawAdditional === "string") {
+            rawAdditional.forEach(pushNorm);
+        } else if (typeof rawAdditional === 'string') {
             const trimmed = rawAdditional.trim();
-
-            // JSON 배열 문자열인 경우: '["a","b"]'
-            if (trimmed.startsWith("[") && trimmed.endsWith("]")) {
+            if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
                 try {
-                    JSON.parse(trimmed).forEach(pushNormalized);
-                } catch (e) {
-                    // 파싱 실패하면 콤마 기준으로 자름
+                    JSON.parse(trimmed).forEach(pushNorm);
+                } catch {
                     trimmed
                         .slice(1, -1)
-                        .split(",")
-                        .map((s) => s.trim())
-                        .forEach(pushNormalized);
+                        .split(',')
+                        .map((s) => s.trim().replace(/^"|"$/g, ''))
+                        .forEach(pushNorm);
                 }
             } else {
-                // 단순 콤마 구분 문자열: 'a,b,c'
                 trimmed
-                    .split(",")
+                    .split(',')
                     .map((s) => s.trim())
-                    .forEach(pushNormalized);
+                    .forEach(pushNorm);
             }
         }
 
-        // 혹시 모를 중복 제거
-        // return [...new Set(urls)];
-        return urls;
+        // 중복 제거(같은 URL이 여러 번 올 경우)
+        return Array.from(new Set(urls));
     }, [product]);
 
-    // 상품이 바뀔 때마다 첫 번째 이미지로 초기화
+    // 이미지 목록 변화 시 인덱스 안전화
+    useEffect(() => {
+        if (selectedImage >= productImages.length) {
+            setSelectedImage(0);
+        }
+    }, [productImages.length, selectedImage]);
+
+    // 상품 변경 시 첫 이미지로 초기화
     useEffect(() => {
         setSelectedImage(0);
     }, [product?.productId]);
 
     const mainImageUrl =
-        productImages[selectedImage] || "https://via.placeholder.com/400";
-    // 🔼🔼 여기까지가 썸네일 → 큰 이미지 변경 로직 🔼🔼
+        productImages[selectedImage] || 'https://via.placeholder.com/400';
 
     if (loading) {
         return <div className={styles.loading}>상품 정보를 불러오는 중...</div>;
     }
-
     if (error) {
         return <div className={styles.error}>{error}</div>;
     }
-
     if (!product) {
         return <div className={styles.error}>상품을 찾을 수 없습니다.</div>;
     }
 
-    const displayedReviews = showAllReviews
-        ? reviews
-        : reviews.slice(0, 3);
+    const displayedReviews = showAllReviews ? reviews : reviews.slice(0, 3);
 
     return (
         <div className={styles.detailContainer}>
@@ -487,19 +430,34 @@ function ProductDetail() {
                 <div className={styles.imageSection}>
                     <img
                         src={mainImageUrl}
-                        alt="상품 이미지"
+                        alt={`${product.name} 메인 이미지`}
                         className={styles.productImage}
+                        // ✅ 대표 이미지 크기 고정: 썸네일을 바꿔도 외곽 박스 크기는 유지
+                        style={{
+                            width: '100%',
+                            maxWidth: '480px',
+                            aspectRatio: '1 / 1', // 1:1 박스
+                            objectFit: 'contain',
+                            display: 'block',
+                            margin: '0 auto',
+                        }}
+                        onError={(e) => {
+                            e.currentTarget.src = 'https://via.placeholder.com/400';
+                        }}
                     />
                     <div className={styles.thumbnailSection}>
                         {productImages.map((img, i) => (
                             <img
                                 key={i}
                                 src={img}
-                                alt={`썸네일 ${i}`}
+                                alt={`썸네일 ${i + 1}`}
                                 className={`${styles.thumbnailImage} ${
-                                    selectedImage === i ? styles.activeThumbnail : ""
+                                    selectedImage === i ? styles.activeThumbnail : ''
                                 }`}
                                 onClick={() => setSelectedImage(i)}
+                                onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                }}
                             />
                         ))}
                     </div>
@@ -539,7 +497,7 @@ function ProductDetail() {
                         ₩{product.price?.toLocaleString()}
                     </p>
 
-                    {/* 한정판/기념일 상품 정보 */}
+                    {/* 뱃지 (한정/기념일 등) */}
                     <ProductBadge product={product} />
 
                     {/* 옵션 선택 */}
@@ -559,10 +517,8 @@ function ProductDetail() {
                                                 <button
                                                     key={option.value}
                                                     className={`${styles.optionButton} ${
-                                                        selectedOptions[
-                                                            groupName
-                                                            ]?.value ===
-                                                        option.value
+                                                        selectedOptions[groupName]
+                                                            ?.value === option.value
                                                             ? styles.selected
                                                             : ''
                                                     }`}
@@ -636,9 +592,7 @@ function ProductDetail() {
                             className={styles.favoriteBtn}
                             onClick={toggleFavorite}
                         >
-                            <FaHeart
-                                color={isFavorited ? 'red' : 'gray'}
-                            />
+                            <FaHeart color={isFavorited ? 'red' : 'gray'} />
                         </button>
                         <button
                             className={styles.addToCartBtn}
@@ -703,7 +657,7 @@ function ProductDetail() {
                         dangerouslySetInnerHTML={{
                             __html: showMoreInfo
                                 ? product.description
-                                : product.description?.slice(0, 99) + '...',
+                                : (product.description || '').slice(0, 99) + '...',
                         }}
                     />
                     <button
@@ -723,9 +677,7 @@ function ProductDetail() {
                     </div>
 
                     {reviewsLoading ? (
-                        <div className={styles.loading}>
-                            리뷰를 불러오는 중...
-                        </div>
+                        <div className={styles.loading}>리뷰를 불러오는 중...</div>
                     ) : reviews.length === 0 ? (
                         <div className={styles.noReviews}>
                             <p>아직 작성된 리뷰가 없습니다.</p>
@@ -733,92 +685,56 @@ function ProductDetail() {
                         </div>
                     ) : (
                         <div className={styles.reviewsList}>
-                            {displayedReviews.map((review) => (
+                            {(showAllReviews
+                                    ? reviews
+                                    : reviews.slice(0, 3)
+                            ).map((review) => (
                                 <div
                                     key={review.reviewId}
                                     className={styles.reviewItem}
                                 >
-                                    <div
-                                        className={styles.reviewHeader}
-                                    >
-                                        <div
-                                            className={
-                                                styles.reviewerInfo
-                                            }
-                                        >
-                                            <span
-                                                className={
-                                                    styles.reviewerName
-                                                }
-                                            >
-                                                {
-                                                    review.memberNickname
-                                                }
+                                    <div className={styles.reviewHeader}>
+                                        <div className={styles.reviewerInfo}>
+                                            <span className={styles.reviewerName}>
+                                                {review.memberNickname}
                                             </span>
-                                            <div
-                                                className={
-                                                    styles.reviewRating
-                                                }
-                                            >
-                                                {[1, 2, 3, 4, 5].map(
-                                                    (star) => (
-                                                        <span
-                                                            key={
-                                                                star
-                                                            }
-                                                            className={`${styles.star} ${
-                                                                star <=
-                                                                (review.rating ||
-                                                                    0)
-                                                                    ? styles.filled
-                                                                    : ''
-                                                            }`}
-                                                        >
-                                                            ★
-                                                        </span>
-                                                    )
-                                                )}
+                                            <div className={styles.reviewRating}>
+                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                    <span
+                                                        key={star}
+                                                        className={`${styles.star} ${
+                                                            star <=
+                                                            (review.rating || 0)
+                                                                ? styles.filled
+                                                                : ''
+                                                        }`}
+                                                    >
+                                                        ★
+                                                    </span>
+                                                ))}
                                                 <span
                                                     className={
                                                         styles.reviewRatingText
                                                     }
                                                 >
-                                                    {review.rating ||
-                                                        0}
-                                                    점
+                                                    {review.rating || 0}점
                                                 </span>
                                             </div>
                                         </div>
-                                        <span
-                                            className={
-                                                styles.reviewDate
-                                            }
-                                        >
-                                            {formatDate(
-                                                review.createdAt
-                                            )}
+                                        <span className={styles.reviewDate}>
+                                            {formatDate(review.createdAt)}
                                         </span>
                                     </div>
-                                    <div
-                                        className={
-                                            styles.reviewContent
-                                        }
-                                    >
+                                    <div className={styles.reviewContent}>
                                         <p>{review.content}</p>
                                         {review.imageUrl && (
                                             <img
                                                 src={`http://localhost:8080${review.imageUrl}`}
                                                 alt="리뷰 이미지"
-                                                className={
-                                                    styles.reviewImage
-                                                }
+                                                className={styles.reviewImage}
                                                 onError={(e) => {
-                                                    e.target.style.display =
+                                                    e.currentTarget.style.display =
                                                         'none';
-                                                    console.error(
-                                                        '리뷰 이미지 로딩 실패:',
-                                                        review.imageUrl
-                                                    );
                                                 }}
                                             />
                                         )}
@@ -827,26 +743,17 @@ function ProductDetail() {
                             ))}
 
                             {reviews.length > 3 && (
-                                <div
-                                    className={
-                                        styles.reviewToggle
-                                    }
-                                >
+                                <div className={styles.reviewToggle}>
                                     <button
-                                        className={
-                                            styles.showMoreReviewsBtn
-                                        }
+                                        className={styles.showMoreReviewsBtn}
                                         onClick={() =>
-                                            setShowAllReviews(
-                                                !showAllReviews
-                                            )
+                                            setShowAllReviews(!showAllReviews)
                                         }
                                     >
                                         {showAllReviews
                                             ? '리뷰 접기'
                                             : `리뷰 더보기 (${
-                                                reviews.length -
-                                                3
+                                                reviews.length - 3
                                             }개 더)`}
                                     </button>
                                 </div>
@@ -873,18 +780,14 @@ function ProductDetail() {
                         )}
                     </div>
 
-                    {qnaList.length === 0 && (
-                        <p>등록된 문의가 없습니다.</p>
-                    )}
+                    {qnaList.length === 0 && <p>등록된 문의가 없습니다.</p>}
 
                     <ul className={styles.qnaList}>
                         {qnaList.map((q) => (
                             <li
                                 key={q.id}
                                 className={`${styles.qnaItem} ${
-                                    expandedSecret === q.id
-                                        ? styles.open
-                                        : ''
+                                    expandedSecret === q.id ? styles.open : ''
                                 }`}
                             >
                                 <div
@@ -892,35 +795,20 @@ function ProductDetail() {
                                     style={{ cursor: 'pointer' }}
                                     onClick={() => {
                                         if (!q.secret) {
-                                            navigate(
-                                                `/inquiry/${q.id}`
-                                            );
+                                            navigate(`/inquiry/${q.id}`);
                                         } else {
-                                            handleSecretToggle(
-                                                q.id
-                                            );
+                                            handleSecretToggle(q.id);
                                         }
                                     }}
                                 >
                                     {q.secret && (
-                                        <FaLock
-                                            className={
-                                                styles.lockIcon
-                                            }
-                                        />
+                                        <FaLock className={styles.lockIcon} />
                                     )}
-                                    <span
-                                        className={styles.qnaTitle}
-                                    >
+                                    <span className={styles.qnaTitle}>
                                         {q.title}
                                     </span>
-                                    <span
-                                        className={styles.meta}
-                                    >
-                                        {maskName(
-                                            q.writerUsername
-                                        )}{' '}
-                                        ·{' '}
+                                    <span className={styles.meta}>
+                                        {maskName(q.writerUsername)} ·{' '}
                                         {formatDate(q.createdAt)}
                                     </span>
                                 </div>
@@ -929,61 +817,33 @@ function ProductDetail() {
                                 {q.secret &&
                                 expandedSecret === q.id &&
                                 !unlocked[q.id] ? (
-                                    <div
-                                        className={
-                                            styles.secretPrompt
-                                        }
-                                    >
+                                    <div className={styles.secretPrompt}>
                                         <p>
-                                            이 글은
-                                            비밀글입니다.
-                                            비밀번호를
+                                            이 글은 비밀글입니다. 비밀번호를
                                             입력해주세요.
                                         </p>
                                         <input
                                             type="password"
-                                            value={
-                                                pwInputs[q.id] ||
-                                                ''
-                                            }
+                                            value={pwInputs[q.id] || ''}
                                             onChange={(e) =>
-                                                setPwInputs(
-                                                    (p) => ({
-                                                        ...p,
-                                                        [q.id]:
-                                                        e.target
-                                                            .value,
-                                                    })
-                                                )
+                                                setPwInputs((p) => ({
+                                                    ...p,
+                                                    [q.id]: e.target.value,
+                                                }))
                                             }
-                                            className={
-                                                styles.pwInput
-                                            }
+                                            className={styles.pwInput}
                                         />
                                         <button
-                                            onClick={() =>
-                                                checkPassword(
-                                                    q.id
-                                                )
-                                            }
-                                            className={
-                                                styles.pwCheckBtn
-                                            }
+                                            onClick={() => checkPassword(q.id)}
+                                            className={styles.pwCheckBtn}
                                         >
                                             확인
                                         </button>
                                     </div>
                                 ) : (
-                                    <div
-                                        className={
-                                            styles.qnaContent
-                                        }
-                                    >
+                                    <div className={styles.qnaContent}>
                                         <p>
-                                            <strong>
-                                                Q:
-                                            </strong>{' '}
-                                            {q.content}
+                                            <strong>Q:</strong> {q.content}
                                         </p>
                                     </div>
                                 )}
@@ -1001,21 +861,11 @@ function ProductDetail() {
                         <div className={styles.policySection}>
                             <h5>📦 배송 안내</h5>
                             <ul>
+                                <li>배송 기간: 결제 완료 후 1-3일 내 배송</li>
+                                <li>배송 방법: 택배 배송 (CJ대한통운)</li>
+                                <li>배송비: 3,000원 (5만원 이상 구매 시 무료배송)</li>
                                 <li>
-                                    배송 기간: 결제 완료 후
-                                    1-3일 내 배송
-                                </li>
-                                <li>
-                                    배송 방법: 택배 배송
-                                    (CJ대한통운)
-                                </li>
-                                <li>
-                                    배송비: 3,000원 (5만원 이상
-                                    구매 시 무료배송)
-                                </li>
-                                <li>
-                                    제주도 및 도서산간 지역:
-                                    추가 배송비 3,000원
+                                    제주도 및 도서산간 지역: 추가 배송비 3,000원
                                 </li>
                             </ul>
                         </div>
@@ -1024,55 +874,38 @@ function ProductDetail() {
                             <h5>🔄 반품/교환 안내</h5>
                             <ul>
                                 <li>
-                                    <strong>
-                                        반품/교환 기간:
-                                    </strong>{' '}
-                                    상품 수령 후 7일 이내
+                                    <strong>반품/교환 기간:</strong> 상품 수령 후
+                                    7일 이내
                                 </li>
                                 <li>
-                                    <strong>
-                                        반품/교환 가능 사유:
-                                    </strong>
+                                    <strong>반품/교환 가능 사유:</strong>
                                     <ul>
+                                        <li>상품의 하자, 오배송, 불량</li>
+                                        <li>상품과 다르게 배송된 경우</li>
                                         <li>
-                                            상품의 하자, 오배송,
-                                            불량
-                                        </li>
-                                        <li>
-                                            상품과 다르게 배송된
-                                            경우
-                                        </li>
-                                        <li>
-                                            단순 변심 (단, 상품
-                                            상태가 새것과 같은
+                                            단순 변심 (단, 상품 상태가 새것과 같은
                                             경우에만)
                                         </li>
                                     </ul>
                                 </li>
                                 <li>
-                                    <strong>
-                                        반품/교환 불가 사유:
-                                    </strong>
+                                    <strong>반품/교환 불가 사유:</strong>
                                     <ul>
                                         <li>
-                                            고객의 책임으로
-                                            상품이 멸실 또는
-                                            훼손된 경우
-                                        </li>
-                                        <li>
-                                            고객의 사용 또는 일부
-                                            소비로 상품 가치가
-                                            현저히 감소한 경우
-                                        </li>
-                                        <li>
-                                            시간 경과로 재판매가
-                                            곤란할 정도로 상품
-                                            가치가 현저히 감소한
+                                            고객의 책임으로 상품이 멸실 또는 훼손된
                                             경우
                                         </li>
                                         <li>
-                                            복제가 가능한 상품의
-                                            포장을 훼손한 경우
+                                            고객의 사용 또는 일부 소비로 상품 가치가
+                                            현저히 감소한 경우
+                                        </li>
+                                        <li>
+                                            시간 경과로 재판매가 곤란할 정도로
+                                            상품 가치가 현저히 감소한 경우
+                                        </li>
+                                        <li>
+                                            복제가 가능한 상품의 포장을 훼손한
+                                            경우
                                         </li>
                                     </ul>
                                 </li>
@@ -1083,23 +916,20 @@ function ProductDetail() {
                             <h5>💰 환불 안내</h5>
                             <ul>
                                 <li>
-                                    <strong>환불 방법:</strong>{' '}
-                                    결제 수단과 동일한 방법으로
-                                    환불
+                                    <strong>환불 방법:</strong> 결제 수단과 동일한
+                                    방법으로 환불
                                 </li>
                                 <li>
-                                    <strong>환불 기간:</strong>{' '}
-                                    반품 상품 확인 후 3-5일 내
-                                    처리
+                                    <strong>환불 기간:</strong> 반품 상품 확인 후
+                                    3-5일 내 처리
                                 </li>
                                 <li>
-                                    <strong>환불 금액:</strong>{' '}
-                                    상품 금액 + 배송비 (단, 단순
-                                    변심의 경우 배송비 차감)
+                                    <strong>환불 금액:</strong> 상품 금액 + 배송비
+                                    (단, 단순 변심의 경우 배송비 차감)
                                 </li>
                                 <li>
-                                    <strong>교환:</strong> 동일
-                                    상품으로만 교환 가능
+                                    <strong>교환:</strong> 동일 상품으로만 교환
+                                    가능
                                 </li>
                             </ul>
                         </div>
@@ -1108,24 +938,17 @@ function ProductDetail() {
                             <h5>📞 반품/교환 신청 방법</h5>
                             <ol>
                                 <li>
-                                    마이페이지 → 주문내역에서
-                                    반품/교환 신청
+                                    마이페이지 → 주문내역에서 반품/교환 신청
+                                </li>
+                                <li>반품 사유 선택 및 상세 내용 작성</li>
+                                <li>
+                                    반품 상품을 새것과 같은 상태로 포장
                                 </li>
                                 <li>
-                                    반품 사유 선택 및 상세 내용
-                                    작성
+                                    반품 택배 발송 (반품 배송비는 고객 부담)
                                 </li>
                                 <li>
-                                    반품 상품을 새것과 같은
-                                    상태로 포장
-                                </li>
-                                <li>
-                                    반품 택배 발송 (반품
-                                    배송비는 고객 부담)
-                                </li>
-                                <li>
-                                    상품 확인 후 환불 또는
-                                    교환 처리
+                                    상품 확인 후 환불 또는 교환 처리
                                 </li>
                             </ol>
                         </div>
@@ -1134,22 +957,19 @@ function ProductDetail() {
                             <h5>⚠️ 주의사항</h5>
                             <ul>
                                 <li>
-                                    반품 시 상품의 라벨, 태그,
-                                    포장재 등이 모두 포함되어야
-                                    합니다.
+                                    반품 시 상품의 라벨, 태그, 포장재 등이 모두
+                                    포함되어야 합니다.
                                 </li>
                                 <li>
-                                    세탁이나 사용 흔적이 있는
-                                    경우 반품이 불가능합니다.
+                                    세탁이나 사용 흔적이 있는 경우 반품이
+                                    불가능합니다.
                                 </li>
                                 <li>
-                                    주문 시 사용한 쿠폰이나
-                                    포인트는 반품 시 복원되지
-                                    않을 수 있습니다.
+                                    주문 시 사용한 쿠폰이나 포인트는 반품 시
+                                    복원되지 않을 수 있습니다.
                                 </li>
                                 <li>
-                                    교환 시 재고 상황에 따라
-                                    지연될 수 있습니다.
+                                    교환 시 재고 상황에 따라 지연될 수 있습니다.
                                 </li>
                             </ul>
                         </div>
@@ -1157,18 +977,12 @@ function ProductDetail() {
                         <div className={styles.policySection}>
                             <h5>📞 고객센터</h5>
                             <p>
-                                반품/교환 관련 문의사항이
-                                있으시면 고객센터로 연락해
-                                주세요.
+                                반품/교환 관련 문의사항이 있으시면 고객센터로
+                                연락해 주세요.
                             </p>
                             <ul>
-                                <li>
-                                    전화: 1588-1234 (평일
-                                    09:00-18:00)
-                                </li>
-                                <li>
-                                    이메일: cs@withgoods.com
-                                </li>
+                                <li>전화: 1588-1234 (평일 09:00-18:00)</li>
+                                <li>이메일: cs@withgoods.com</li>
                                 <li>카카오톡: @withgoods</li>
                             </ul>
                         </div>
@@ -1177,7 +991,7 @@ function ProductDetail() {
             )}
 
             {/* 신고하기 모달 */}
-            {isReportModalOpen && (
+            {isReportModalOpen && reportTarget && (
                 <div
                     className={styles.modalOverlay}
                     style={{
@@ -1262,12 +1076,8 @@ function ProductDetail() {
                                 >
                                     <input
                                         type="checkbox"
-                                        checked={reportReasons.includes(
-                                            reason
-                                        )}
-                                        onChange={() =>
-                                            toggleReason(reason)
-                                        }
+                                        checked={reportReasons.includes(reason)}
+                                        onChange={() => toggleReason(reason)}
                                         style={{ marginRight: '6px' }}
                                     />
                                     {reason}
@@ -1303,8 +1113,8 @@ function ProductDetail() {
                                 marginBottom: '15px',
                             }}
                         >
-                            신고해주신 내용은 관리자 검토 후
-                            내부정책에 의거 조치가 진행됩니다.
+                            신고해주신 내용은 관리자 검토 후 내부정책에 의거
+                            조치가 진행됩니다.
                         </small>
 
                         <div
