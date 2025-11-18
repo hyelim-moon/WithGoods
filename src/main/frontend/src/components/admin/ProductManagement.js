@@ -196,6 +196,13 @@ function ProductManagement() {
     const [ordersLoading, setOrdersLoading] = useState(false);
     const [ordersError, setOrdersError] = useState(null);
 
+    // 판매 분석 상태 (현재 선택 상품용)
+    const [salesStats, setSalesStats] = useState(null);
+    const [salesStatsLoading, setSalesStatsLoading] = useState(false);
+    const [salesStatsError, setSalesStatsError] = useState(null);
+    const salesStatsCacheRef = useRef({});
+    const salesStatsInFlightRef = useRef(null);
+
     // 리뷰/주문 캐시
     const reviewsCacheRef = useRef({});
     const reviewInFlightRef = useRef(null);
@@ -742,6 +749,69 @@ function ProductManagement() {
         [selectedProduct?.id, reviews]
     );
 
+    /** 판매 분석 데이터 불러오기 */
+    const fetchSalesStats = useCallback(
+        async (productId) => {
+            if (!productId) return;
+            const pid = String(productId);
+
+            // 캐시 있으면 즉시 사용
+            if (salesStatsCacheRef.current[pid]) {
+                setSalesStats(salesStatsCacheRef.current[pid]);
+                setSalesStatsLoading(false);
+                setSalesStatsError(null);
+                return;
+            }
+
+            // 중복 요청 방지
+            if (salesStatsInFlightRef.current === pid) return;
+            salesStatsInFlightRef.current = pid;
+
+            let aborted = false;
+            try {
+                setSalesStatsLoading(true);
+                setSalesStatsError(null);
+
+                const res = await axios.get(
+                    `${API_BASE_URL}/api/admin/products/${Number(productId)}/sales-stats`,
+                    { withCredentials: true }
+                );
+
+                if (!aborted) {
+                    salesStatsCacheRef.current[pid] = res.data;
+                    setSalesStats(res.data);
+                }
+            } catch (e) {
+                console.error("판매 분석 데이터 로딩 실패:", e);
+                if (!aborted) {
+                    setSalesStatsError("판매 분석 데이터를 불러오는데 실패했습니다.");
+                    // 에러 시 기본값 설정
+                    setSalesStats({
+                        totalQty: 0,
+                        revenue: 0,
+                        rating: 0,
+                        reorderRate: "0%",
+                        monthlySeries: []
+                    });
+                }
+            } finally {
+                if (!aborted) setSalesStatsLoading(false);
+                salesStatsInFlightRef.current = null;
+            }
+
+            return () => {
+                aborted = true;
+            };
+        },
+        []
+    );
+
+    /** 판매 분석 탭일 때 호출 */
+    useEffect(() => {
+        if (activeDetailTab !== "analytics" || !selectedProduct?.id) return;
+        fetchSalesStats(selectedProduct.id);
+    }, [activeDetailTab, selectedProduct?.id, fetchSalesStats]);
+
     /** 리뷰 탭일 때 호출 */
     useEffect(() => {
         if (activeDetailTab !== "reviews" || !selectedProduct?.id) return;
@@ -760,8 +830,27 @@ function ProductManagement() {
 
         const p = selectedProduct;
         const thumb = getThumbUrl(p);
-        const metrics = makeDemoMetrics(p);
-        const series = makeMonthlySeries(p);
+        
+        // 실제 판매 분석 데이터 사용 (로딩 중이거나 없으면 기본값)
+        const metrics = salesStatsLoading || !salesStats ? {
+            totalQty: 0,
+            revenue: 0,
+            rating: "0",
+            reorderRate: "0%"
+        } : {
+            totalQty: salesStats.totalQty || 0,
+            revenue: salesStats.revenue || 0,
+            rating: salesStats.rating ? String(salesStats.rating) : "0",
+            reorderRate: salesStats.reorderRate || "0%"
+        };
+        
+        const series = salesStatsLoading || !salesStats || !salesStats.monthlySeries 
+            ? makeMonthlySeries(p) // 기본값
+            : salesStats.monthlySeries.map(item => ({
+                month: item.month,
+                qty: item.qty || 0,
+                revenue: item.revenue || 0
+            }));
 
         const stockNum = Number(p.stockQuantity ?? p.stock ?? 0);
 
@@ -1102,6 +1191,16 @@ function ProductManagement() {
                             {/* 판매 분석 */}
                             {activeDetailTab === "analytics" && (
                                 <>
+                                    {salesStatsLoading ? (
+                                        <div className={productStyles.ordersEmpty}>
+                                            판매 분석 데이터를 불러오는 중입니다...
+                                        </div>
+                                    ) : salesStatsError ? (
+                                        <div className={productStyles.ordersEmpty}>
+                                            {salesStatsError}
+                                        </div>
+                                    ) : (
+                                        <>
                                     {/* 요약 카드 */}
                                     <section className={productStyles.summaryGrid}>
                                         <div className={productStyles.summaryCard}>
@@ -1252,6 +1351,8 @@ function ProductManagement() {
                                             </ResponsiveContainer>
                                         </div>
                                     </div>
+                                        </>
+                                    )}
                                 </>
                             )}
 

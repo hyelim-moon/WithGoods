@@ -14,6 +14,7 @@ import com.WG.WithGoods.repository.WishlistRepository;
 import com.WG.WithGoods.repository.CartRepository;
 import com.WG.WithGoods.repository.ReviewRepository;
 import com.WG.WithGoods.repository.InquiryRepository;
+import com.WG.WithGoods.entity.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -185,8 +186,8 @@ public class MemberService {
         long totalProducts = productRepository.count();
         stats.put("totalProducts", totalProducts);
         
-        // 이번 달 매출
-        List<com.WG.WithGoods.entity.Order> monthlyOrderList = orderRepository.findByOrderDateAfter(startOfMonth);
+        // 이번 달 매출 (배송 완료된 주문만)
+        List<com.WG.WithGoods.entity.Order> monthlyOrderList = orderRepository.findByOrderDateAfterAndStatus(startOfMonth, OrderStatus.DELIVERED);
         int monthlyRevenue = monthlyOrderList.stream()
                 .mapToInt(order -> order.getPaymentAmount() != null ? order.getPaymentAmount() : 0)
                 .sum();
@@ -206,11 +207,11 @@ public class MemberService {
         }
         stats.put("monthlyOrderStats", monthlyOrderStats);
         
-        // 상품별 매출 (실제 데이터)
-        List<com.WG.WithGoods.entity.OrderDetail> allOrderDetails = orderDetailRepository.findAll();
+        // 상품별 매출 (배송 완료된 주문만)
+        List<com.WG.WithGoods.entity.OrderDetail> deliveredOrderDetails = orderDetailRepository.findByOrderStatusWithOrderAndProduct(OrderStatus.DELIVERED);
         Map<String, Integer> categoryRevenue = new HashMap<>();
         
-        for (com.WG.WithGoods.entity.OrderDetail detail : allOrderDetails) {
+        for (com.WG.WithGoods.entity.OrderDetail detail : deliveredOrderDetails) {
             if (detail.getProduct() != null && detail.getProduct().getCategory() != null) {
                 String category = detail.getProduct().getCategory();
                 int revenue = detail.getFinalAmount() != null ? detail.getFinalAmount() : 0;
@@ -536,6 +537,82 @@ public class MemberService {
                     return item;
                 })
                 .collect(Collectors.toList());
+    }
+
+    // 상품별 판매 통계 조회
+    public Map<String, Object> getProductSalesStats(Integer productId) {
+        Map<String, Object> stats = new HashMap<>();
+        
+        // 배송 완료된 주문의 OrderDetail 조회
+        List<com.WG.WithGoods.entity.OrderDetail> deliveredDetails = 
+            orderDetailRepository.findByProductIdAndOrderStatus(productId, OrderStatus.DELIVERED);
+        
+        // 총 판매량
+        int totalQty = deliveredDetails.stream()
+                .mapToInt(detail -> detail.getQuantity() != null ? detail.getQuantity() : 0)
+                .sum();
+        stats.put("totalQty", totalQty);
+        
+        // 총 매출
+        int revenue = deliveredDetails.stream()
+                .mapToInt(detail -> detail.getFinalAmount() != null ? detail.getFinalAmount() : 0)
+                .sum();
+        stats.put("revenue", revenue);
+        
+        // 평점 계산 (리뷰 평균)
+        List<com.WG.WithGoods.entity.Review> reviews = reviewRepository.findByProductProductId(productId);
+        double rating = 0.0;
+        if (!reviews.isEmpty()) {
+            rating = reviews.stream()
+                    .mapToDouble(r -> r.getRating() != null ? r.getRating() : 0.0)
+                    .average()
+                    .orElse(0.0);
+        }
+        stats.put("rating", Math.round(rating * 10.0) / 10.0);
+        
+        // 재주문율 계산 (같은 상품을 2회 이상 주문한 회원 비율)
+        Map<Integer, Integer> memberOrderCount = new HashMap<>();
+        for (com.WG.WithGoods.entity.OrderDetail detail : deliveredDetails) {
+            if (detail.getOrder() != null && detail.getOrder().getMemberId() != null) {
+                Integer memberId = detail.getOrder().getMemberId();
+                memberOrderCount.put(memberId, memberOrderCount.getOrDefault(memberId, 0) + 1);
+            }
+        }
+        long reorderMembers = memberOrderCount.values().stream()
+                .filter(count -> count > 1)
+                .count();
+        long totalMembers = memberOrderCount.size();
+        double reorderRate = totalMembers > 0 ? (double) reorderMembers / totalMembers * 100 : 0.0;
+        stats.put("reorderRate", Math.round(reorderRate * 10.0) / 10.0 + "%");
+        
+        // 월별 판매량/매출 (최근 6개월)
+        List<Map<String, Object>> monthlySeries = new ArrayList<>();
+        for (int i = 5; i >= 0; i--) {
+            LocalDateTime monthStart = LocalDateTime.now().minusMonths(i).withDayOfMonth(1).withHour(0).withMinute(0).withSecond(0).withNano(0);
+            LocalDateTime monthEnd = monthStart.plusMonths(1).minusSeconds(1);
+            
+            int monthQty = 0;
+            int monthRevenue = 0;
+            
+            for (com.WG.WithGoods.entity.OrderDetail detail : deliveredDetails) {
+                if (detail.getOrder() != null && detail.getOrder().getOrderDate() != null) {
+                    LocalDateTime orderDate = detail.getOrder().getOrderDate();
+                    if (!orderDate.isBefore(monthStart) && !orderDate.isAfter(monthEnd)) {
+                        monthQty += detail.getQuantity() != null ? detail.getQuantity() : 0;
+                        monthRevenue += detail.getFinalAmount() != null ? detail.getFinalAmount() : 0;
+                    }
+                }
+            }
+            
+            Map<String, Object> monthData = new HashMap<>();
+            monthData.put("month", monthStart.getMonthValue() + "월");
+            monthData.put("qty", monthQty);
+            monthData.put("revenue", monthRevenue);
+            monthlySeries.add(monthData);
+        }
+        stats.put("monthlySeries", monthlySeries);
+        
+        return stats;
     }
 
     // 날짜 객체를 LocalDateTime으로 변환하는 헬퍼 메서드

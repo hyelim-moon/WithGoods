@@ -190,4 +190,11 @@ public class AdminController {
         List<Map<String, Object>> inquiries = memberService.getMemberInquiries(id);
         return ResponseEntity.ok(inquiries);
     }
+    
+    // 상품별 판매 통계 조회
+    @GetMapping("/admin/products/{id}/sales-stats")
+    public ResponseEntity<Map<String, Object>> getProductSalesStats(@PathVariable Integer id) {
+        Map<String, Object> stats = memberService.getProductSalesStats(id);
+        return ResponseEntity.ok(stats);
+    }
 }

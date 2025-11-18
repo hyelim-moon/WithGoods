@@ -17,3 +17,5 @@ public interface VisitorLogRepository extends JpaRepository<VisitorLog, Long> {
     boolean existsByIpAddressAndSessionIdAndVisitDate(String ipAddress, String sessionId, LocalDate date);
 }
 
+
+

@@ -30,6 +30,9 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     // 특정 날짜 이후 주문 목록 조회
     List<Order> findByOrderDateAfter(LocalDateTime date);
     
+    // 특정 날짜 이후 배송 완료된 주문 목록 조회
+    List<Order> findByOrderDateAfterAndStatus(LocalDateTime date, OrderStatus status);
+    
     // 최근 주문 5개 조회
     List<Order> findTop5ByOrderByOrderDateDesc();
     
