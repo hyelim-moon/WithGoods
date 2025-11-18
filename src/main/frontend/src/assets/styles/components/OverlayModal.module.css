@@ -1,0 +1,45 @@
+/* src/assets/styles/components/OverlayModal.module.css */
+
+.modalOverlay {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 40px 20px;
+    z-index: 2000;
+}
+
+.modal {
+    position: relative;
+    width: min(1200px, 100%);
+    max-height: 100%;
+    background-color: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* X 버튼 */
+.closeButton {
+    position: absolute;
+    top: 14px;
+    right: 18px;
+    border: none;
+    background: transparent;
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.body {
+    padding: 24px 28px 32px;
+    overflow-y: auto;
+}
+
+/* 등록 폼이 꽉 차게 보이도록 */
+.body form {
+    width: 100%;
+}

@@ -12,6 +12,8 @@ import styles from "../../assets/styles/admin/AdminDashboard.module.css";
 import productStyles from "../../assets/styles/admin/ProductManagement.module.css";
 import memberStyles from "../../assets/styles/admin/MemberManagement.module.css";
 import orderStyles from "../../assets/styles/admin/AdminOrderManagement.module.css";
+import OverlayModal from "../ui/OverlayModal";
+import GeneralProductForm from "../ProductRegister/GeneralProductForm";
 
 import {
     ResponsiveContainer,
@@ -156,6 +158,9 @@ function ProductManagement() {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+
+    // ✅ 상품 등록 모달 open 상태
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
     // 필터/검색
     const [filter, setFilter] = useState("ALL");
@@ -1709,15 +1714,15 @@ function ProductManagement() {
                         <h3>상품 목록</h3>
                         <button
                             className={productStyles.addProductBtn}
-                            onClick={() => navigate("/product/register")}
+                            onClick={() => setIsCreateModalOpen(true)}
                         >
-                            <FiPlus /> 상품 생성
+                            <FiPlus/> 상품 생성
                         </button>
                     </div>
 
                     {/* 검색 툴바 */}
                     <div className={productStyles.toolbar}>
-                        <div className={orderStyles.searchBar}>
+                    <div className={orderStyles.searchBar}>
                             <select
                                 value={searchCondition}
                                 onChange={(e) =>
@@ -1909,9 +1914,16 @@ function ProductManagement() {
                         </button>
                     </div>
                 </header>
-
                 {renderContent()}
             </main>
+            {/* ✅ 일반 상품 등록 모달 */}
+            <OverlayModal
+                isOpen={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+            >
+                {/* 기존 일반 상품 등록 페이지 그대로 재사용 */}
+                <GeneralProductForm />
+            </OverlayModal>
         </div>
     );
 }

@@ -49,7 +49,7 @@
   background-color: var(--input-bg);
   box-sizing: border-box;
   width: 100%;
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
   color: var(--main-color);
 }
 
@@ -81,6 +81,63 @@
   cursor: pointer;
 }
 
+/* ✅ 파일 인풋: 다른 인풋과 동일한 느낌 + hover 통일 */
+.fileInput {
+  margin-top: 8px;
+  padding: 10px 14px;
+  border: 2px solid var(--input-border);
+  border-radius: var(--border-radius);
+  font-size: 15px;
+  background-color: var(--input-bg);
+  box-sizing: border-box;
+  width: 100%;
+  color: var(--main-color);
+  cursor: pointer;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+
+/* 파일 인풋 전체 박스 hover 시 다른 input이랑 느낌 맞추기 */
+.fileInput:hover {
+  border-color: var(--main-color);
+  background-color: #fff;
+}
+
+/* WebKit 계열(Chrome, Edge 등) 버튼 스타일 */
+.fileInput::-webkit-file-upload-button {
+  padding: 8px 14px;
+  margin-right: 12px;
+  border: none;
+  border-radius: 999px;
+  background-color: var(--button-bg);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+/* WebKit 버튼 hover – 다른 버튼이랑 동일 */
+.fileInput::-webkit-file-upload-button:hover {
+  background-color: var(--button-hover-bg);
+}
+
+/* 표준 셀렉터(Firefox 등) – 있어도 문제 없음 */
+.fileInput::file-selector-button {
+  padding: 8px 14px;
+  margin-right: 12px;
+  border: none;
+  border-radius: 999px;
+  background-color: var(--button-bg);
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.fileInput::file-selector-button:hover {
+  background-color: var(--button-hover-bg);
+}
+
+/* 이미지 미리보기 */
 .imagePreview {
   margin-top: 10px;
   position: relative;
@@ -97,6 +154,7 @@
   border-radius: 12px;
 }
 
+/* 미리보기 안의 삭제 버튼 위치/기본 스타일 */
 .imagePreview button {
   position: absolute;
   top: 6px;
@@ -115,14 +173,7 @@
   background-color: #e0e0e0;
 }
 
-.additionalImagesGrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 18px;
-  width: 100%;
-}
-
+/* 옵션 행 */
 .optionRow {
   display: flex;
   gap: 14px;
@@ -140,7 +191,7 @@
   font-size: 15px;
   color: var(--main-color);
   background-color: var(--input-bg);
-  transition: border-color 0.3s ease;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
   box-sizing: border-box;
 }
 
@@ -149,6 +200,7 @@
   background-color: #fff;
 }
 
+/* 삭제 버튼 공통 */
 .removeButton {
   background-color: #e0e0e0;
   border: none;
@@ -157,7 +209,7 @@
   font-size: 13px;
   cursor: pointer;
   color: #333;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, color 0.3s ease;
   flex-shrink: 0;
 }
 
@@ -166,6 +218,7 @@
   color: #000;
 }
 
+/* 옵션 그룹 박스 */
 .optionGroup {
   display: flex;
   flex-direction: column;
@@ -180,6 +233,7 @@
   overflow-x: auto;
 }
 
+/* 버튼들 */
 .addButton,
 .submitButton {
   background-color: var(--button-bg);
@@ -203,6 +257,7 @@
   background-color: var(--button-hover-bg);
 }
 
+/* 판매 기간 input 래퍼 */
 .salePeriodInputs {
   display: flex;
   gap: 20px;
@@ -210,11 +265,13 @@
   max-width: 500px; /* 원하는 최대 너비로 조절 */
 }
 
+/* salePeriod 내부 라벨 */
 .salePeriodInputs .label {
   flex: 1;
   max-width: 240px; /* 개별 input 크기 제한 */
 }
 
+/* 제출 버튼 전체 너비 */
 .submitButton {
   width: 100%;
   margin-top: 36px;
