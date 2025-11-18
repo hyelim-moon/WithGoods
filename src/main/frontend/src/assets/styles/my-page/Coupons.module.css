@@ -1,7 +1,6 @@
 .couponsContainer {
     max-width: 600px;
     margin: 40px auto;
-    padding: 0 20px;
     font-family: 'Noto Sans KR', sans-serif;
 }
 
@@ -10,7 +9,7 @@
     font-weight: 700;
     margin-bottom: 24px;
     text-align: center;
-    color: #7c3b1d; /* 갈색 포인트 */
+    color: #000000;
 }
 
 .noCoupons {
@@ -25,69 +24,88 @@
     font-size: 1.1rem;
 }
 
+/* 기본: 1개일 때는 세로로 하나만, 가운데 정렬 느낌 유지 */
 .couponList {
     list-style: none;
     padding: 0;
     margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+/* 2개 이상일 때: 컨테이너 넓히고, 한 줄에 2개씩 그리드 */
+.multiContainer {
+    max-width: 1000px;
+}
+
+.multiContainer .couponList {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 40px;
+    row-gap: 20px;
 }
 
 .couponItem {
     position: relative;
-    background: #fff7eb;
-    border: 2px solid #d9b99b;
+    background: #efefef;
+    border: 2px solid #000000;
     border-radius: 10px;
     padding: 20px 25px;
-    margin-bottom: 16px;
-    box-shadow: 2px 2px 6px rgba(124, 59, 29, 0.15);
+    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.2);
     transition: transform 0.15s ease, box-shadow 0.15s ease;
     cursor: pointer;
 }
 
 .couponItem:hover {
     transform: translateY(-3px);
-    box-shadow: 4px 4px 10px rgba(124, 59, 29, 0.3);
+    box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* 제목 + 뱃지를 한 줄로 정렬 */
+.couponHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
 }
 
 .couponTitle {
     font-size: 1.3rem;
     font-weight: 700;
-    margin-bottom: 6px;
-    color: #7c3b1d;
+    margin: 0;
+    color: #000000;
 }
 
 .couponDesc {
     font-size: 1rem;
     margin-bottom: 6px;
-    color: #5a3e23;
+    color: #555555;
 }
 
 .couponExpiry {
     font-size: 0.9rem;
-    color: #925e3d;
+    color: #000000;
 }
 
+/* 공통 뱃지 스타일 */
+.badge {
+    font-weight: 700;
+    font-size: 0.85rem;
+    padding: 3px 8px;
+    border-radius: 8px;
+}
+
+/* 사용됨 뱃지 */
 .usedBadge {
-    position: absolute;
-    top: 12px;
-    right: 15px;
     background: #c2a488;
     color: white;
-    font-weight: 700;
-    font-size: 0.85rem;
-    padding: 3px 8px;
-    border-radius: 8px;
 }
 
+/* 사용 가능 뱃지 */
 .availableBadge {
-    position: absolute;
-    top: 12px;
-    right: 15px;
     background: #27ae60;
     color: white;
-    font-weight: 700;
-    font-size: 0.85rem;
-    padding: 3px 8px;
-    border-radius: 8px;
 }
 
 .used {
@@ -115,4 +133,4 @@
 
 .deleteButton:active {
     transform: translateY(1px);
-} 
+}

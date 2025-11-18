@@ -52,7 +52,7 @@
 .productName {
     font-size: 1rem;
     font-weight: 600;
-    color: #9e4b25;
+    color: #000000;
     margin: 0 0 0.5rem 0;
     line-height: 1.4;
     white-space: nowrap;
@@ -83,7 +83,7 @@
 }
 
 .normalPrice {
-    color: #000;
+    color: #555555;
     font-weight: bold;
 }
 

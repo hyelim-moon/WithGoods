@@ -67,15 +67,15 @@
 .zipcodeButton {
     padding: 13px 18px;
     font-size: 14px;
-    border: 1px solid #9e4b25;
-    background-color: #9e4b25;
+    border: 1px solid #888888;
+    background-color: #888888;
     color: #fff;
     border-radius: 8px;
     cursor: pointer;
 }
 
 .zipcodeButton:hover {
-    background-color: #8c421f;
+    background-color: #000000;
 }
 
 .buttonGroup {
@@ -85,7 +85,7 @@
 }
 
 .saveButton {
-    background-color: #9e4b25;
+    background-color: #888888;
     color: white;
     padding: 15px 0;
     border: none;
@@ -96,7 +96,7 @@
 }
 
 .saveButton:hover {
-    background-color: #8c421f;
+    background-color: #000000;
 }
 
 /* 전화번호 입력 그룹 스타일 */

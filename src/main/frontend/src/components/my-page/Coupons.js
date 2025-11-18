@@ -15,7 +15,7 @@ function Coupons() {
         try {
             setLoading(true);
             const response = await axios.get('http://localhost:8080/api/coupons/my', {
-                withCredentials: true
+                withCredentials: true,
             });
             setCoupons(response.data);
             setError(null);
@@ -35,9 +35,9 @@ function Coupons() {
 
         try {
             await axios.delete(`http://localhost:8080/api/coupons/my/${memberCouponId}`, {
-                withCredentials: true
+                withCredentials: true,
             });
-            
+
             // 삭제 후 쿠폰 목록 새로고침
             fetchCoupons();
             alert('쿠폰이 삭제되었습니다.');
@@ -96,27 +96,50 @@ function Coupons() {
         );
     }
 
+    const hasMultipleCoupons = coupons.length > 1;
+
     return (
-        <div className={styles.couponsContainer}>
+        <div
+            className={`${styles.couponsContainer} ${
+                hasMultipleCoupons ? styles.multiContainer : ''
+            }`}
+        >
             <h1 className={styles.title}>보유 쿠폰</h1>
             {coupons.length === 0 ? (
                 <p className={styles.noCoupons}>사용 가능한 쿠폰이 없습니다.</p>
             ) : (
                 <ul className={styles.couponList}>
-                    {coupons.map(coupon => (
+                    {coupons.map((coupon) => (
                         <li
                             key={coupon.memberCouponId}
-                            className={`${styles.couponItem} ${coupon.isUsed ? styles.used : ''}`}
+                            className={`${styles.couponItem} ${
+                                coupon.isUsed ? styles.used : ''
+                            }`}
                         >
-                            <h3 className={styles.couponTitle}>{coupon.couponName}</h3>
-                            <p className={styles.couponDesc}>{getCouponDescription(coupon)}</p>
+                            {/* 제목 + 뱃지를 한 줄로 정렬하는 헤더 */}
+                            <div className={styles.couponHeader}>
+                                <h3 className={styles.couponTitle}>{coupon.couponName}</h3>
+                                {coupon.isUsed && (
+                                    <span className={`${styles.badge} ${styles.usedBadge}`}>
+                                        사용됨
+                                    </span>
+                                )}
+                                {!coupon.isUsed && coupon.isAvailable && (
+                                    <span
+                                        className={`${styles.badge} ${styles.availableBadge}`}
+                                    >
+                                        사용 가능
+                                    </span>
+                                )}
+                            </div>
+
+                            <p className={styles.couponDesc}>
+                                {getCouponDescription(coupon)}
+                            </p>
                             <p className={styles.couponExpiry}>
                                 사용기한: {formatDate(coupon.expiresAt)}
                             </p>
-                            {coupon.isUsed && <span className={styles.usedBadge}>사용됨</span>}
-                            {!coupon.isUsed && coupon.isAvailable && (
-                                <span className={styles.availableBadge}>사용 가능</span>
-                            )}
+
                             {coupon.isUsed && (
                                 <button
                                     className={styles.deleteButton}
