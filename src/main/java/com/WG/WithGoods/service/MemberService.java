@@ -269,75 +269,137 @@ public class MemberService {
     }
 
     // 최근 활동 조회 (날짜 정보 포함)
+    // 최근 활동 조회 (날짜 정보 포함)
     @Transactional(readOnly = true)
     public List<Map<String, Object>> getRecentActivity() {
         List<Map<String, Object>> activitiesWithDate = new ArrayList<>();
-        
+
         try {
             // 모든 활동을 먼저 수집 (타입별 제한 없이 충분히 많이 가져옴)
-            
-            // 최근 주문들 조회 (더 많이 가져옴)
-            List<com.WG.WithGoods.entity.Order> recentOrders = orderRepository.findTop50ByOrderByOrderDateDesc();
+
+            // ✅ 최근 주문들 조회 (더 많이 가져옴)
+            List<com.WG.WithGoods.entity.Order> recentOrders =
+                    orderRepository.findTop50ByOrderByOrderDateDesc();
+
             for (com.WG.WithGoods.entity.Order order : recentOrders) {
-                if (order.getOrderDate() != null) {
-                    Map<String, Object> activity = new HashMap<>();
-                    activity.put("text", (order.getOrdererName() != null ? order.getOrdererName() : "고객") + "님이 " + 
-                            (order.getPaymentAmount() != null ? order.getPaymentAmount() : 0) + "원 주문을 완료했습니다.");
-                    activity.put("date", order.getOrderDate());
-                    activity.put("type", "ORDER");
-                    activitiesWithDate.add(activity);
+                if (order.getOrderDate() == null) {
+                    continue;
                 }
+
+                // ✅ 주문 상품명 요약 생성 (기존: 금액 사용)
+                String productSummary = "상품";
+                List<com.WG.WithGoods.entity.OrderDetail> orderDetails = order.getOrderDetails();
+
+                if (orderDetails != null && !orderDetails.isEmpty()) {
+                    com.WG.WithGoods.entity.OrderDetail firstDetail = orderDetails.get(0);
+
+                    // OrderDetail 에 저장된 상품명 우선 사용
+                    String productName = firstDetail.getProductName();
+                    // 비어 있으면 연관된 Product 엔티티에서 이름 가져오기
+                    if ((productName == null || productName.isBlank())
+                            && firstDetail.getProduct() != null
+                            && firstDetail.getProduct().getName() != null) {
+                        productName = firstDetail.getProduct().getName();
+                    }
+                    if (productName == null || productName.isBlank()) {
+                        productName = "상품";
+                    }
+
+                    int extraCount = orderDetails.size() - 1;
+                    if (extraCount > 0) {
+                        // 예) "병아리 인형 외 2개 상품"
+                        productSummary = productName + " 외 " + extraCount + "개 상품";
+                    } else {
+                        // 예) "병아리 인형"
+                        productSummary = productName;
+                    }
+                }
+
+                Map<String, Object> activity = new HashMap<>();
+                // 🔥 기존: 18000원 기준 문장
+                // (order.getPaymentAmount() ... ) + "원 주문을 완료했습니다."
+                // 🔥 변경: 상품명 기준 문장
+                activity.put(
+                        "text",
+                        (order.getOrdererName() != null ? order.getOrdererName() : "고객")
+                                + "님이 " + productSummary + " 주문을 완료했습니다."
+                );
+                activity.put("date", order.getOrderDate());
+                activity.put("type", "ORDER");
+                activitiesWithDate.add(activity);
             }
-            
-            // 최근 회원 가입들 조회 (더 많이 가져옴)
+
+            // ✅ 최근 회원 가입들 조회
             List<Member> recentMembers = memberRepository.findTop50ByOrderByCreatedAtDesc();
             for (Member member : recentMembers) {
-                if (member.getCreatedAt() != null) {
-                    Map<String, Object> activity = new HashMap<>();
-                    activity.put("text", (member.getName() != null ? member.getName() : "회원") + "님이 회원가입했습니다.");
-                    activity.put("date", member.getCreatedAt());
-                    activity.put("type", "SIGNUP");
-                    activitiesWithDate.add(activity);
+                if (member.getCreatedAt() == null) {
+                    continue;
                 }
+
+                Map<String, Object> activity = new HashMap<>();
+                activity.put(
+                        "text",
+                        (member.getName() != null ? member.getName() : "회원")
+                                + "님이 회원가입했습니다."
+                );
+                activity.put("date", member.getCreatedAt());
+                activity.put("type", "SIGNUP");
+                activitiesWithDate.add(activity);
             }
-            
-            // 최근 견적문의 조회 (Writer JOIN FETCH 사용, 제한 없이 모두 가져옴)
-            List<com.WG.WithGoods.entity.Inquiry> estimateInquiries = inquiryRepository
-                    .findByTypeWithWriter(InquiryType.ESTIMATE);
+
+            // ✅ 최근 견적 문의 조회 (ESTIMATE 타입)
+            List<com.WG.WithGoods.entity.Inquiry> estimateInquiries =
+                    inquiryRepository.findByTypeWithWriter(InquiryType.ESTIMATE);
+
             for (com.WG.WithGoods.entity.Inquiry inquiry : estimateInquiries) {
-                if (inquiry.getCreatedAt() != null) {
-                    Map<String, Object> activity = new HashMap<>();
-                    String writerName = "익명";
-                    if (inquiry.getWriter() != null && inquiry.getWriter().getName() != null) {
-                        writerName = inquiry.getWriter().getName();
-                    }
-                    String title = inquiry.getTitle() != null ? inquiry.getTitle() : "";
-                    activity.put("text", writerName + "님이 견적문의를 등록했습니다. (" + title + ")");
-                    activity.put("date", inquiry.getCreatedAt());
-                    activity.put("type", "QUOTE");
-                    activitiesWithDate.add(activity);
+                if (inquiry.getCreatedAt() == null) {
+                    continue;
                 }
+
+                Map<String, Object> activity = new HashMap<>();
+                String writerName = "익명";
+
+                if (inquiry.getWriter() != null && inquiry.getWriter().getName() != null) {
+                    writerName = inquiry.getWriter().getName();
+                }
+
+                String title = inquiry.getTitle() != null ? inquiry.getTitle() : "";
+                activity.put(
+                        "text",
+                        writerName + "님이 견적문의를 등록했습니다. (" + title + ")"
+                );
+                activity.put("date", inquiry.getCreatedAt());
+                activity.put("type", "QUOTE");
+                activitiesWithDate.add(activity);
             }
-            
-            // 최근 일반문의 조회 (견적문의 제외, Writer JOIN FETCH 사용, 제한 없이 모두 가져옴)
-            List<com.WG.WithGoods.entity.Inquiry> generalInquiries = inquiryRepository
-                    .findByTypeNotWithWriter(InquiryType.ESTIMATE);
+
+            // ✅ 최근 일반 문의 조회 (견적 제외)
+            List<com.WG.WithGoods.entity.Inquiry> generalInquiries =
+                    inquiryRepository.findByTypeNotWithWriter(InquiryType.ESTIMATE);
+
             for (com.WG.WithGoods.entity.Inquiry inquiry : generalInquiries) {
-                if (inquiry.getCreatedAt() != null) {
-                    Map<String, Object> activity = new HashMap<>();
-                    String writerName = "익명";
-                    if (inquiry.getWriter() != null && inquiry.getWriter().getName() != null) {
-                        writerName = inquiry.getWriter().getName();
-                    }
-                    String title = inquiry.getTitle() != null ? inquiry.getTitle() : "";
-                    activity.put("text", writerName + "님이 일반문의를 등록했습니다. (" + title + ")");
-                    activity.put("date", inquiry.getCreatedAt());
-                    activity.put("type", "INQUIRY");
-                    activitiesWithDate.add(activity);
+                if (inquiry.getCreatedAt() == null) {
+                    continue;
                 }
+
+                Map<String, Object> activity = new HashMap<>();
+                String writerName = "익명";
+
+                if (inquiry.getWriter() != null && inquiry.getWriter().getName() != null) {
+                    writerName = inquiry.getWriter().getName();
+                }
+
+                String title = inquiry.getTitle() != null ? inquiry.getTitle() : "";
+                activity.put(
+                        "text",
+                        writerName + "님이 일반문의를 등록했습니다. (" + title + ")"
+                );
+                activity.put("date", inquiry.getCreatedAt());
+                activity.put("type", "INQUIRY");
+                activitiesWithDate.add(activity);
             }
-            
-            // 날짜를 LocalDateTime으로 변환하여 저장
+
+            // ✅ 날짜를 LocalDateTime 으로 통일
             for (Map<String, Object> activity : activitiesWithDate) {
                 Object dateObj = activity.get("date");
                 if (dateObj != null) {
@@ -345,22 +407,25 @@ public class MemberService {
                     activity.put("date", dateTime);
                 }
             }
-            
-            // 날짜 기준으로 정렬 (최신순) - 모든 타입이 섞여서 정렬됨
+
+            // ✅ 날짜 기준으로 최신순 정렬
             activitiesWithDate.sort((a, b) -> {
                 LocalDateTime dateA = (LocalDateTime) a.get("date");
                 LocalDateTime dateB = (LocalDateTime) b.get("date");
+
                 if (dateA == null && dateB == null) return 0;
                 if (dateA == null) return 1;
                 if (dateB == null) return -1;
+
                 return dateB.compareTo(dateA);
             });
+
         } catch (Exception e) {
             System.err.println("최근 활동 조회 중 오류 발생: " + e.getMessage());
             e.printStackTrace();
             // 오류 발생 시 빈 리스트 반환
         }
-        
+
         return activitiesWithDate;
     }
 
