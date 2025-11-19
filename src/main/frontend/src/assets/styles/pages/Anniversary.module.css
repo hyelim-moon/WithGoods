@@ -231,7 +231,13 @@
 
 .sortOption {
     cursor: pointer;
+    font-weight: normal;
     transition: color 0.3s ease;
+}
+
+.sortOption.active {
+    font-weight: bold;
+    color: #000;
 }
 
 .sortOption:hover {
