@@ -181,10 +181,6 @@ function ProductDetail() {
         }
     }, [product]);
 
-    const getStockClassName = (stock) => {
-        return stock <= 5 ? `${styles.stockValue} ${styles.urgentStock}` : styles.stockValue;
-    };
-
     const handleOptionSelect = (groupName, option) => {
         setSelectedOptions((prev) => ({
             ...prev,
@@ -343,56 +339,31 @@ function ProductDetail() {
     };
     const submitReport = () => setIsReportModalOpen(false);
 
-    /** ===========================
-     *  이미지 목록 + 썸네일 전환
-     *  =========================== */
     const productImages = useMemo(() => {
         if (!product) return [];
-
         const urls = [];
-        const normalize = (u) => {
-            if (!u) return null;
-            return /^https?:\/\//i.test(u) ? u : `http://localhost:8080${u}`;
-        };
-
-        // 1) 메인
+        const normalize = (u) => u ? (u.startsWith('http') ? u : `http://localhost:8080${u}`) : null;
+        
         const main = normalize(product.imageUrl || product.mainImage);
         if (main) urls.push(main);
 
-        // 2) 추가 이미지 처리
-        const rawAdditional =
-            product.additionalImages ??
-            product.additionalImagesJson ??
-            product.additional_images;
-
-        const pushNorm = (u) => {
-            const nu = normalize(u);
-            if (nu) urls.push(nu);
-        };
-
-        if (Array.isArray(rawAdditional)) {
-            rawAdditional.forEach(pushNorm);
-        } else if (typeof rawAdditional === 'string') {
-            const trimmed = rawAdditional.trim();
-            if (trimmed.startsWith('[') && trimmed.endsWith(']')) {
-                try {
-                    JSON.parse(trimmed).forEach(pushNorm);
-                } catch {
-                    trimmed
-                        .slice(1, -1)
-                        .split(',')
-                        .map((s) => s.trim().replace(/^"|"$/g, ''))
-                        .forEach(pushNorm);
+        const rawAdditional = product.additionalImages ?? product.additionalImagesJson ?? product.additional_images;
+        if (rawAdditional) {
+            try {
+                const images = typeof rawAdditional === 'string' ? JSON.parse(rawAdditional) : rawAdditional;
+                if (Array.isArray(images)) {
+                    images.forEach(img => {
+                        const normalizedImg = normalize(img);
+                        if (normalizedImg && !urls.includes(normalizedImg)) {
+                            urls.push(normalizedImg);
+                        }
+                    });
                 }
-            } else {
-                trimmed
-                    .split(',')
-                    .map((s) => s.trim())
-                    .forEach(pushNorm);
+            } catch (e) {
+                console.error("Error parsing additional images:", e);
             }
         }
-
-        return Array.from(new Set(urls));
+        return urls;
     }, [product]);
 
     useEffect(() => {
@@ -405,8 +376,7 @@ function ProductDetail() {
         setSelectedImage(0);
     }, [product?.productId]);
 
-    const mainImageUrl =
-        productImages[selectedImage] || 'https://via.placeholder.com/400';
+    const mainImageUrl = productImages[selectedImage] || 'https://via.placeholder.com/480';
 
     if (loading) {
         return <div className={styles.loading}>상품 정보를 불러오는 중...</div>;
@@ -429,17 +399,8 @@ function ProductDetail() {
                         src={mainImageUrl}
                         alt={`${product.name} 메인 이미지`}
                         className={styles.productImage}
-                        /* 왼쪽 정렬 고정 */
-                        style={{
-                            width: '100%',
-                            maxWidth: '480px',
-                            aspectRatio: '1 / 1',
-                            objectFit: 'contain',
-                            display: 'block',
-                            margin: 0,          // ← 가운데 정렬 제거
-                        }}
                         onError={(e) => {
-                            e.currentTarget.src = 'https://via.placeholder.com/400';
+                            e.currentTarget.src = 'https://via.placeholder.com/480';
                         }}
                     />
                     <div className={styles.thumbnailSection}>
@@ -464,112 +425,62 @@ function ProductDetail() {
                 <div className={styles.infoSection}>
                     <h2 className={styles.productName}>{product.name}</h2>
 
-                    {/* 상품 평점 표시 */}
                     <div className={styles.productRating}>
                         <div className={styles.starRating}>
                             {[1, 2, 3, 4, 5].map((star) => (
                                 <span
                                     key={star}
-                                    className={`${styles.star} ${
-                                        star <= (product.rating || 0)
-                                            ? styles.filled
-                                            : ''
-                                    }`}
+                                    className={`${styles.star} ${star <= (product.rating || 0) ? styles.filled : ''}`}
                                 >
                                     ★
                                 </span>
                             ))}
                         </div>
                         <span className={styles.ratingText}>
-                            {product.rating
-                                ? `${product.rating.toFixed(1)}점`
-                                : '평점 없음'}
+                            {product.rating ? `${product.rating.toFixed(1)}` : '평점 없음'}
                         </span>
                         <span className={styles.reviewCount}>
-                            ({reviews.length}개의 리뷰)
+                            ({reviews.length} 리뷰)
                         </span>
                     </div>
 
                     <p className={styles.productPrice}>
-                        ₩{product.price?.toLocaleString()}
+                        {product.price?.toLocaleString()}원
                     </p>
 
-                    {/* 뱃지 */}
                     <ProductBadge product={product} />
 
-                    {/* 옵션 선택 */}
-                    {product.options && product.options.length > 0 && (
+                    {Object.keys(groupedOptions).length > 0 && (
                         <div className={styles.optionSection}>
-                            {Object.entries(groupedOptions).map(
-                                ([groupName, options]) => (
-                                    <div
-                                        key={groupName}
-                                        className={styles.optionGroup}
-                                    >
-                                        <div className={styles.optionTitle}>
-                                            {groupName}
-                                        </div>
-                                        <div className={styles.optionButtons}>
-                                            {options.map((option) => (
-                                                <button
-                                                    key={option.value}
-                                                    className={`${styles.optionButton} ${
-                                                        selectedOptions[groupName]
-                                                            ?.value === option.value
-                                                            ? styles.selected
-                                                            : ''
-                                                    }`}
-                                                    onClick={() =>
-                                                        handleOptionSelect(
-                                                            groupName,
-                                                            option
-                                                        )
-                                                    }
-                                                >
-                                                    {option.value}{' '}
-                                                    {option.price > 0
-                                                        ? `(+${option.price.toLocaleString()}원)`
-                                                        : ''}
-                                                </button>
-                                            ))}
-                                        </div>
+                            {Object.entries(groupedOptions).map(([groupName, options]) => (
+                                <div key={groupName} className={styles.optionGroup}>
+                                    <div className={styles.optionTitle}>{groupName}</div>
+                                    <div className={styles.optionButtons}>
+                                        {options.map((option) => (
+                                            <button
+                                                key={option.value}
+                                                className={`${styles.optionButton} ${selectedOptions[groupName]?.value === option.value ? styles.selected : ''}`}
+                                                onClick={() => handleOptionSelect(groupName, option)}
+                                            >
+                                                {option.value}
+                                                {option.price > 0 ? ` (+${option.price.toLocaleString()}원)` : ''}
+                                            </button>
+                                        ))}
                                     </div>
-                                )
-                            )}
+                                </div>
+                            ))}
                         </div>
                     )}
 
-                    {/* 수량 조절 */}
                     <div className={styles.quantityRow}>
-                        <label>수량:</label>
+                        <label>수량</label>
                         <div className={styles.quantityControls}>
-                            <button
-                                onClick={() =>
-                                    setQuantity(Math.max(1, quantity - 1))
-                                }
-                            >
-                                -
-                            </button>
+                            <button onClick={() => setQuantity(Math.max(1, quantity - 1))}>-</button>
                             <span>{quantity}</span>
                             <button
-                                onClick={() =>
-                                    setQuantity(
-                                        product.stock === null
-                                            ? quantity + 1
-                                            : Math.min(
-                                                product.stock,
-                                                quantity + 1
-                                            )
-                                    )
-                                }
-                                disabled={
-                                    product.stock === 0 ||
-                                    (product.stock !== null &&
-                                        quantity >= product.stock)
-                                }
-                            >
-                                +
-                            </button>
+                                onClick={() => setQuantity(product.stock === null ? quantity + 1 : Math.min(product.stock, quantity + 1))}
+                                disabled={product.stock === 0 || (product.stock !== null && quantity >= product.stock)}
+                            >+</button>
                         </div>
                         {product.stock !== null && product.stock > 0 && (
                             <span className={styles.stockInfo}>
@@ -578,32 +489,27 @@ function ProductDetail() {
                         )}
                     </div>
 
-                    {/* 총 상품 금액 */}
                     <p className={styles.totalPrice}>
-                        총 상품 금액: ₩{totalPrice.toLocaleString()}
+                        총 상품 금액: {totalPrice.toLocaleString()}원
                     </p>
 
-                    {/* 버튼 영역 */}
                     <div className={styles.buttonRow}>
-                        <button
-                            className={styles.favoriteBtn}
-                            onClick={toggleFavorite}
-                        >
-                            <FaHeart color={isFavorited ? 'red' : 'gray'} />
+                        <button className={styles.favoriteBtn} onClick={toggleFavorite}>
+                            <FaHeart color={isFavorited ? '#ff4d4f' : 'currentColor'} />
                         </button>
                         <button
                             className={styles.addToCartBtn}
                             onClick={handleAddToCart}
                             disabled={product.stock === 0}
                         >
-                            <FaCartPlus /> 장바구니에 담기
+                            <FaCartPlus /> 장바구니
                         </button>
                         <button
                             className={styles.purchaseBtn}
                             onClick={handlePurchase}
                             disabled={product.stock === 0}
                         >
-                            <FaShoppingCart /> 바로 구매하기
+                            <FaShoppingCart /> 바로 구매
                         </button>
                     </div>
                 </div>
@@ -611,224 +517,138 @@ function ProductDetail() {
 
             {/* 탭 네비게이션 */}
             <div className={styles.tabsContainer}>
-                <div
-                    className={`${styles.tab} ${
-                        activeTab === 'detail' ? styles.activeTab : ''
-                    }`}
-                    onClick={() => setActiveTab('detail')}
-                >
-                    상세정보
-                </div>
-                <div
-                    className={`${styles.tab} ${
-                        activeTab === 'reviews' ? styles.activeTab : ''
-                    }`}
-                    onClick={() => setActiveTab('reviews')}
-                >
-                    리뷰 ({reviews.length})
-                </div>
-                <div
-                    className={`${styles.tab} ${
-                        activeTab === 'qa' ? styles.activeTab : ''
-                    }`}
-                    onClick={() => setActiveTab('qa')}
-                >
-                    Q&A
-                </div>
-                <div
-                    className={`${styles.tab} ${
-                        activeTab === 'return' ? styles.activeTab : ''
-                    }`}
-                    onClick={() => setActiveTab('return')}
-                >
-                    반품/교환정보
-                </div>
+                <div className={`${styles.tab} ${activeTab === 'detail' ? styles.activeTab : ''}`} onClick={() => setActiveTab('detail')}>상세정보</div>
+                <div className={`${styles.tab} ${activeTab === 'reviews' ? styles.activeTab : ''}`} onClick={() => setActiveTab('reviews')}>리뷰 ({reviews.length})</div>
+                <div className={`${styles.tab} ${activeTab === 'qa' ? styles.activeTab : ''}`} onClick={() => setActiveTab('qa')}>Q&A ({qnaList.length})</div>
+                <div className={`${styles.tab} ${activeTab === 'return' ? styles.activeTab : ''}`} onClick={() => setActiveTab('return')}>반품/교환정보</div>
             </div>
 
-            {/* 상세정보 탭 */}
-            {activeTab === 'detail' && (
-                <div className={styles.productDetailInfo}>
-                    <h4>상품 설명</h4>
-                    <div
-                        className={styles.productDescription}
-                        dangerouslySetInnerHTML={{
-                            __html: showMoreInfo
-                                ? product.description
-                                : (product.description || '').slice(0, 99) + '...',
-                        }}
-                    />
-                    <button
-                        className={styles.showMoreBtn}
-                        onClick={() => setShowMoreInfo(!showMoreInfo)}
-                    >
-                        {showMoreInfo ? '간략히 보기' : '상품 더보기'}
-                    </button>
-                </div>
-            )}
-
-            {/* 리뷰 탭 */}
-            {activeTab === 'reviews' && (
-                <div className={styles.reviewsSection}>
-                    <div className={styles.reviewsHeader}>
-                        <h3>상품 리뷰 ({reviews.length})</h3>
-                    </div>
-
-                    {reviewsLoading ? (
-                        <div className={styles.loading}>리뷰를 불러오는 중...</div>
-                    ) : reviews.length === 0 ? (
-                        <div className={styles.noReviews}>
-                            <p>아직 작성된 리뷰가 없습니다.</p>
-                            <p>첫 번째 리뷰를 작성해보세요!</p>
-                        </div>
-                    ) : (
-                        <div className={styles.reviewsList}>
-                            {(showAllReviews ? reviews : reviews.slice(0, 3)).map((review) => (
-                                <div
-                                    key={review.reviewId}
-                                    className={styles.reviewItem}
-                                >
-                                    <div className={styles.reviewHeader}>
-                                        <div className={styles.reviewerInfo}>
-                                            <span className={styles.reviewerName}>
-                                                {review.memberNickname}
-                                            </span>
-                                            <div className={styles.reviewRating}>
-                                                {[1, 2, 3, 4, 5].map((star) => (
-                                                    <span
-                                                        key={star}
-                                                        className={`${styles.star} ${
-                                                            star <= (review.rating || 0)
-                                                                ? styles.filled
-                                                                : ''
-                                                        }`}
-                                                    >
-                                                        ★
-                                                    </span>
-                                                ))}
-                                                <span
-                                                    className={styles.reviewRatingText}
-                                                >
-                                                    {review.rating || 0}점
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className={styles.reviewActions}>
-                                            <span className={styles.reviewDate}>
-                                                {formatDate(review.createdAt)}
-                                            </span>
-                                            <span
-                                                className={styles.reportLabel}
-                                                onClick={() => openReportModal(review)}
-                                            >
-                                                신고
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div className={styles.reviewContent}>
-                                        <p>{review.content}</p>
-                                        {review.imageUrl && (
-                                            <img
-                                                src={`http://localhost:8080${review.imageUrl}`}
-                                                alt="리뷰 이미지"
-                                                className={styles.reviewImage}
-                                                onError={(e) => {
-                                                    e.currentTarget.style.display = 'none';
-                                                }}
-                                            />
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-
-                            {reviews.length > 3 && (
-                                <div className={styles.reviewToggle}>
-                                    <button
-                                        className={styles.showMoreReviewsBtn}
-                                        onClick={() =>
-                                            setShowAllReviews(!showAllReviews)
-                                        }
-                                    >
-                                        {showAllReviews
-                                            ? '리뷰 접기'
-                                            : `리뷰 더보기 (${reviews.length - 3}개 더)`}
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
-            )}
-
-            {/* Q&A 탭 */}
-            {activeTab === 'qa' && (
-                <div className={styles.reviewsSection}>
-                    <div className={styles.qnaHeader}>
-                        <h3>Q&A ({qnaList.length})</h3>
-                        <button
-                            className={styles.inquiryBtn}
-                            onClick={() => {
-                                if (!user) {
-                                    alert('로그인이 필요한 서비스입니다.');
-                                    navigate('/login');
-                                } else {
-                                    navigate(`/inquiry/write/${id}`);
-                                }
+            {/* 탭 콘텐츠 */}
+            <div className={styles.tabContent}>
+                {activeTab === 'detail' && (
+                    <div className={styles.productDetailInfo}>
+                        <h4>상품 설명</h4>
+                        <div
+                            className={styles.productDescription}
+                            dangerouslySetInnerHTML={{
+                                __html: showMoreInfo ? product.description : (product.description || '').slice(0, 500) + '...',
                             }}
-                        >
-                            문의하기
-                        </button>
+                        />
+                        {(product.description || '').length > 500 && (
+                            <button className={styles.showMoreBtn} onClick={() => setShowMoreInfo(!showMoreInfo)}>
+                                {showMoreInfo ? '간략히 보기' : '상품 정보 더보기'}
+                            </button>
+                        )}
                     </div>
+                )}
 
-                    {qnaList.length === 0 && <p>등록된 문의가 없습니다.</p>}
-
-                    <ul className={styles.qnaList}>
-                        {qnaList.map((q) => (
-                            <li
-                                key={q.id}
-                                className={`${styles.qnaItem} ${
-                                    expandedQna === q.id ? styles.open : ''
-                                }`}
-                            >
-                                <div
-                                    className={styles.qnaTitleRow}
-                                    style={{ cursor: 'pointer' }}
-                                    onClick={() => handleQnaToggle(q.id)}
-                                >
-                                    {q.secret && (
-                                        <FaLock className={styles.lockIcon} />
-                                    )}
-                                    <span className={styles.qnaTitle}>
-                                        {q.title}
-                                    </span>
-                                    <span className={styles.meta}>
-                                        {maskName(q.writerUsername)} ·{' '}
-                                        {formatDate(q.createdAt)}
-                                    </span>
-                                </div>
-
-                                {/* 답변 영역 */}
-                                {expandedQna === q.id && (
-                                    <div className={styles.qnaContentWrapper}>
-                                        <div className={styles.qnaContent}>
-                                            <p><strong>Q:</strong> {q.content}</p>
-                                        </div>
-                                        {q.answer && (
-                                            <div className={styles.qnaAnswer}>
-                                                <p><strong>A:</strong> {q.answer}</p>
+                {activeTab === 'reviews' && (
+                    <div className={styles.reviewsSection}>
+                        <div className={styles.reviewsHeader}>
+                            <h3>상품 리뷰 ({reviews.length})</h3>
+                        </div>
+                        {reviewsLoading ? (
+                            <div className={styles.loading}>리뷰를 불러오는 중...</div>
+                        ) : reviews.length === 0 ? (
+                            <div className={styles.noReviews}>
+                                <p>아직 작성된 리뷰가 없습니다.</p>
+                                <p>첫 번째 리뷰를 작성해보세요!</p>
+                            </div>
+                        ) : (
+                            <>
+                                <div className={styles.reviewsList}>
+                                    {displayedReviews.map((review) => (
+                                        <div key={review.reviewId} className={styles.reviewItem}>
+                                            <div className={styles.reviewHeader}>
+                                                <div className={styles.reviewerInfo}>
+                                                    <span className={styles.reviewerName}>{review.memberNickname}</span>
+                                                    <div className={styles.reviewRating}>
+                                                        {[1, 2, 3, 4, 5].map((star) => (
+                                                            <span key={star} className={`${styles.star} ${star <= (review.rating || 0) ? styles.filled : ''}`}>★</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                <div className={styles.reviewActions}>
+                                                    <span className={styles.reviewDate}>{formatDate(review.createdAt)}</span>
+                                                    <span className={styles.reportLabel} onClick={() => openReportModal(review)}>신고</span>
+                                                </div>
                                             </div>
-                                        )}
+                                            <div className={styles.reviewContent}>
+                                                <p>{review.content}</p>
+                                                {review.imageUrl && (
+                                                    <img
+                                                        src={`http://localhost:8080${review.imageUrl}`}
+                                                        alt="리뷰 이미지"
+                                                        className={styles.reviewImage}
+                                                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                                {reviews.length > 3 && (
+                                    <div className={styles.reviewToggle}>
+                                        <button className={styles.showMoreReviewsBtn} onClick={() => setShowAllReviews(!showAllReviews)}>
+                                            {showAllReviews ? '리뷰 접기' : `리뷰 더보기 (${reviews.length - 3}개)`}
+                                        </button>
                                     </div>
                                 )}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
-            )}
+                            </>
+                        )}
+                    </div>
+                )}
 
-            {/* 반품/교환 안내 탭 */}
-            {activeTab === 'return' && (
-                <div className={styles.productDetailInfo}>
-                    <h4>반품/교환 안내</h4>
+                {activeTab === 'qa' && (
+                    <div className={styles.qnaSection}>
+                        <div className={styles.qnaHeader}>
+                            <h3>Q&A ({qnaList.length})</h3>
+                            <button
+                                className={styles.inquiryBtn}
+                                onClick={() => {
+                                    if (!user) {
+                                        alert('로그인이 필요한 서비스입니다.');
+                                        navigate('/login');
+                                    } else {
+                                        navigate(`/inquiry/write/${id}`);
+                                    }
+                                }}
+                            >
+                                문의하기
+                            </button>
+                        </div>
+
+                        {qnaList.length === 0 ? (
+                            <div className={styles.noInquiry}><p>등록된 문의가 없습니다.</p></div>
+                        ) : (
+                            <ul className={styles.qnaList}>
+                                {qnaList.map((q) => (
+                                    <li key={q.id} className={`${styles.qnaItem} ${expandedQna === q.id ? styles.open : ''}`}>
+                                        <div className={styles.qnaTitleRow} onClick={() => handleQnaToggle(q.id)}>
+                                            {q.secret && <FaLock className={styles.lockIcon} />}
+                                            <span className={styles.qnaTitle}>{q.title}</span>
+                                            <span className={styles.meta}>{maskName(q.writerUsername)} · {formatDate(q.createdAt)}</span>
+                                        </div>
+                                        {expandedQna === q.id && (
+                                            <div className={styles.qnaContentWrapper}>
+                                                <div className={styles.qnaContent}>
+                                                    <p><strong>Q</strong> {q.content}</p>
+                                                </div>
+                                                {q.answer && (
+                                                    <div className={styles.qnaAnswer}>
+                                                        <p><strong>A</strong> {q.answer}</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                )}
+
+                {activeTab === 'return' && (
                     <div className={styles.returnPolicy}>
                         <div className={styles.policySection}>
                             <h5>📦 배송 안내</h5>
@@ -836,290 +656,61 @@ function ProductDetail() {
                                 <li>배송 기간: 결제 완료 후 1-3일 내 배송</li>
                                 <li>배송 방법: 택배 배송 (CJ대한통운)</li>
                                 <li>배송비: 3,000원 (5만원 이상 구매 시 무료배송)</li>
-                                <li>
-                                    제주도 및 도서산간 지역: 추가 배송비 3,000원
-                                </li>
+                                <li>제주도 및 도서산간 지역: 추가 배송비 3,000원</li>
                             </ul>
                         </div>
-
                         <div className={styles.policySection}>
                             <h5>🔄 반품/교환 안내</h5>
                             <ul>
-                                <li>
-                                    <strong>반품/교환 기간:</strong> 상품 수령 후
-                                    7일 이내
-                                </li>
-                                <li>
-                                    <strong>반품/교환 가능 사유:</strong>
+                                <li><strong>반품/교환 기간:</strong> 상품 수령 후 7일 이내</li>
+                                <li><strong>반품/교환 가능 사유:</strong>
                                     <ul>
                                         <li>상품의 하자, 오배송, 불량</li>
-                                        <li>상품과 다르게 배송된 경우</li>
-                                        <li>
-                                            단순 변심 (단, 상품 상태가 새것과 같은
-                                            경우에만)
-                                        </li>
+                                        <li>단순 변심 (단, 상품 상태가 새것과 같은 경우에만)</li>
                                     </ul>
                                 </li>
-                                <li>
-                                    <strong>반품/교환 불가 사유:</strong>
+                                <li><strong>반품/교환 불가 사유:</strong>
                                     <ul>
-                                        <li>
-                                            고객의 책임으로 상품이 멸실 또는 훼손된
-                                            경우
-                                        </li>
-                                        <li>
-                                            고객의 사용 또는 일부 소비로 상품 가치가
-                                            현저히 감소한 경우
-                                        </li>
-                                        <li>
-                                            시간 경과로 재판매가 곤란할 정도로
-                                            상품 가치가 현저히 감소한 경우
-                                        </li>
-                                        <li>
-                                            복제가 가능한 상품의 포장을 훼손한
-                                            경우
-                                        </li>
+                                        <li>고객의 책임으로 상품이 멸실 또는 훼손된 경우</li>
+                                        <li>고객의 사용 또는 일부 소비로 상품 가치가 현저히 감소한 경우</li>
                                     </ul>
                                 </li>
                             </ul>
                         </div>
-
-                        <div className={styles.policySection}>
-                            <h5>💰 환불 안내</h5>
-                            <ul>
-                                <li>
-                                    <strong>환불 방법:</strong> 결제 수단과 동일한
-                                    방법으로 환불
-                                </li>
-                                <li>
-                                    <strong>환불 기간:</strong> 반품 상품 확인 후
-                                    3-5일 내 처리
-                                </li>
-                                <li>
-                                    <strong>환불 금액:</strong> 상품 금액 + 배송비
-                                    (단, 단순 변심의 경우 배송비 차감)
-                                </li>
-                                <li>
-                                    <strong>교환:</strong> 동일 상품으로만 교환
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div className={styles.policySection}>
-                            <h5>📞 반품/교환 신청 방법</h5>
-                            <ol>
-                                <li>
-                                    마이페이지 → 주문내역에서 반품/교환 신청
-                                </li>
-                                <li>반품 사유 선택 및 상세 내용 작성</li>
-                                <li>
-                                    반품 상품을 새것과 같은 상태로 포장
-                                </li>
-                                <li>
-                                    반품 택배 발송 (반품 배송비는 고객 부담)
-                                </li>
-                                <li>
-                                    상품 확인 후 환불 또는 교환 처리
-                                </li>
-                            </ol>
-                        </div>
-
-                        <div className={styles.policySection}>
-                            <h5>⚠️ 주의사항</h5>
-                            <ul>
-                                <li>
-                                    반품 시 상품의 라벨, 태그, 포장재 등이 모두
-                                    포함되어야 합니다.
-                                </li>
-                                <li>
-                                    세탁이나 사용 흔적이 있는 경우 반품이
-                                    불가능합니다.
-                                </li>
-                                <li>
-                                    주문 시 사용한 쿠폰이나 포인트는 반품 시
-                                    복원되지 않을 수 있습니다.
-                                </li>
-                                <li>
-                                    교환 시 재고 상황에 따라 지연될 수 있습니다.
-                                </li>
-                            </ul>
-                        </div>
-
                         <div className={styles.policySection}>
                             <h5>📞 고객센터</h5>
-                            <p>
-                                반품/교환 관련 문의사항이 있으시면 고객센터로
-                                연락해 주세요.
-                            </p>
+                            <p>반품/교환 관련 문의사항이 있으시면 고객센터로 연락해 주세요.</p>
                             <ul>
                                 <li>전화: 1588-1234 (평일 09:00-18:00)</li>
                                 <li>이메일: cs@withgoods.com</li>
-                                <li>카카오톡: @withgoods</li>
                             </ul>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
 
-            {/* 신고하기 모달 */}
             {isReportModalOpen && reportTarget && (
-                <div
-                    className={styles.modalOverlay}
-                    style={{
-                        position: 'fixed',
-                        top: 0,
-                        left: 0,
-                        width: '100vw',
-                        height: '100vh',
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        zIndex: 9999,
-                    }}
-                >
-                    <div
-                        className={styles.reportModal}
-                        style={{
-                            backgroundColor: 'white',
-                            padding: '20px',
-                            borderRadius: '8px',
-                            width: '400px',
-                            maxHeight: '90vh',
-                            overflowY: 'auto',
-                        }}
-                    >
+                <div className={styles.modalOverlay} style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999 }}>
+                    <div className={styles.reportModal} style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', width: '400px', maxHeight: '90vh', overflowY: 'auto' }}>
                         <h3>작성 글 신고하기</h3>
-                        <label>신고대상 ID</label>
-                        <div
-                            style={{
-                                padding: '8px',
-                                border: '1px solid #ccc',
-                                borderRadius: '4px',
-                                marginBottom: '10px',
-                                userSelect: 'text',
-                            }}
-                        >
-                            {reportTarget.id}
-                        </div>
-
                         <label>신고대상 내용</label>
-                        <div
-                            style={{
-                                backgroundColor: '#eee',
-                                padding: '10px',
-                                borderRadius: '4px',
-                                marginBottom: '10px',
-                                whiteSpace: 'pre-wrap',
-                                maxHeight: '100px',
-                                overflowY: 'auto',
-                            }}
-                        >
+                        <div style={{ backgroundColor: '#eee', padding: '10px', borderRadius: '4px', marginBottom: '10px', whiteSpace: 'pre-wrap', maxHeight: '100px', overflowY: 'auto' }}>
                             {reportTarget.content}
                         </div>
-
                         <label>신고 사유 (복수 선택 가능)</label>
-                        <div
-                            style={{
-                                maxHeight: '120px',
-                                overflowY: 'auto',
-                                marginBottom: '10px',
-                                paddingLeft: '10px',
-                            }}
-                        >
-                            {[
-                                '관련 없는 이미지',
-                                '관련 없는 내용',
-                                '욕설/비방',
-                                '광고/홍보글',
-                                '개인정보유출',
-                                '게시글 도배',
-                                '음란/선정성',
-                                '기타',
-                            ].map((reason) => (
-                                <label
-                                    key={reason}
-                                    style={{
-                                        display: 'block',
-                                        marginBottom: '5px',
-                                        cursor: 'pointer',
-                                    }}
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={reportReasons.includes(reason)}
-                                        onChange={() => toggleReason(reason)}
-                                        style={{ marginRight: '6px' }}
-                                    />
+                        <div style={{ maxHeight: '120px', overflowY: 'auto', marginBottom: '10px', border: '1px solid #ccc', padding: '10px', borderRadius: '4px' }}>
+                            {['관련 없는 내용', '욕설/비방', '광고/홍보글', '개인정보유출', '음란/선정성', '기타'].map((reason) => (
+                                <label key={reason} style={{ display: 'block', marginBottom: '5px', cursor: 'pointer' }}>
+                                    <input type="checkbox" checked={reportReasons.includes(reason)} onChange={() => toggleReason(reason)} style={{ marginRight: '6px' }} />
                                     {reason}
                                 </label>
                             ))}
                         </div>
-
-                        <label>상세 내용 (최대 1000자)</label>
-                        <textarea
-                            maxLength={1000}
-                            rows={4}
-                            value={reportDetail}
-                            onChange={(e) =>
-                                setReportDetail(e.target.value)
-                            }
-                            style={{
-                                width: '100%',
-                                resize: 'none',
-                                marginBottom: '10px',
-                                padding: '8px',
-                                borderRadius: '4px',
-                                border: '1px solid #ccc',
-                                boxSizing: 'border-box',
-                                fontSize: '14px',
-                            }}
-                        />
-
-                        <small
-                            style={{
-                                display: 'block',
-                                color: '#666',
-                                fontSize: '12px',
-                                marginBottom: '15px',
-                            }}
-                        >
-                            신고해주신 내용은 관리자 검토 후 내부정책에 의거
-                            조치가 진행됩니다.
-                        </small>
-
-                        <div
-                            style={{
-                                display: 'flex',
-                                justifyContent: 'flex-end',
-                                gap: '10px',
-                            }}
-                        >
-                            <button
-                                onClick={closeReportModal}
-                                style={{
-                                    padding: '6px 12px',
-                                    backgroundColor: '#eee',
-                                    borderRadius: '4px',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={submitReport}
-                                style={{
-                                    padding: '6px 12px',
-                                    backgroundColor: '#ff4d4f',
-                                    color: 'white',
-                                    borderRadius: '4px',
-                                    border: 'none',
-                                    cursor: 'pointer',
-                                }}
-                            >
-                                신고
-                            </button>
+                        <label>상세 내용 (선택)</label>
+                        <textarea maxLength={1000} rows={4} value={reportDetail} onChange={(e) => setReportDetail(e.target.value)} style={{ width: '100%', resize: 'vertical', marginBottom: '10px', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }} />
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
+                            <button onClick={closeReportModal} style={{ padding: '8px 16px', backgroundColor: '#eee', borderRadius: '4px', border: 'none', cursor: 'pointer' }}>취소</button>
+                            <button onClick={submitReport} style={{ padding: '8px 16px', backgroundColor: '#ff4d4f', color: 'white', borderRadius: '4px', border: 'none', cursor: 'pointer' }}>신고</button>
                         </div>
                     </div>
                 </div>
