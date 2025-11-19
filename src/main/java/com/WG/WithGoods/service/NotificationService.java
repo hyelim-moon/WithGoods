@@ -58,13 +58,16 @@ public class NotificationService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다: " + memberId));
         
-        return notificationRepository.countUnreadNotificationsByMember(member);
+        return notificationRepository.countByMemberAndIsRead(member, false);
     }
 
     // 특정 알림을 읽음 처리
     @Transactional
     public void markAsRead(Integer notificationId) {
-        notificationRepository.markAsReadById(notificationId);
+        Notification notification = notificationRepository.findById(notificationId)
+                .orElseThrow(() -> new IllegalArgumentException("알림을 찾을 수 없습니다: " + notificationId));
+        notification.markAsRead();
+        notificationRepository.save(notification);
     }
 
     // 회원의 모든 알림을 읽음 처리
@@ -73,7 +76,11 @@ public class NotificationService {
         Member member = memberRepository.findById(memberId)
                 .orElseThrow(() -> new IllegalArgumentException("회원을 찾을 수 없습니다: " + memberId));
         
-        notificationRepository.markAllAsReadByMember(member);
+        List<Notification> unreadNotifications = notificationRepository.findByMemberAndIsRead(member, false);
+        for (Notification notification : unreadNotifications) {
+            notification.markAsRead();
+        }
+        notificationRepository.saveAll(unreadNotifications);
     }
 
     // 알림 삭제
@@ -81,4 +88,4 @@ public class NotificationService {
     public void deleteNotification(Integer notificationId) {
         notificationRepository.deleteById(notificationId);
     }
-} 
+}
