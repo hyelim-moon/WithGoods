@@ -218,8 +218,8 @@ public class ReviewService {
     }
 
     // 상품별 리뷰 조회
-    public List<Review> getReviewsByProduct(Long productId) {
-        return reviewRepository.findByOrderDetail_Product_ProductIdOrderByCreatedAtDesc(productId);
+    public List<Review> getReviewsByProduct(Integer productId) {
+        return reviewRepository.findByProductProductIdOrderByCreatedAtDesc(productId);
     }
 
     // 상품 옵션 파싱
