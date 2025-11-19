@@ -70,18 +70,6 @@
     gap: 2rem;
 }
 
-/*상품 이미지*/
-.productContainer {
-    max-width: 300px;
-    width: 100%;
-    margin: 0 auto;
-    transition: transform 0.2s ease;
-}
-
-.productContainer:hover {
-    transform: translateY(-5px);
-}
-
 .productCard {
     display: flex;
     flex-direction: column;
@@ -90,13 +78,7 @@
     background: white;
     border-radius: 12px;
     padding: 1rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.productCard:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .productContent {
@@ -154,6 +136,31 @@
     color: #333;
     line-height: 1;
     margin-top: 0.1rem;
+}
+
+/* 가격 정보와 찜 아이콘을 담는 컨테이너 */
+.priceAndWish {
+    display: flex;
+    justify-content: space-between; /* 가격과 아이콘을 양 끝으로 정렬 */
+    align-items: center; /* 수직 중앙 정렬 */
+    margin-top: 0.1rem;
+}
+
+/* 찜 아이콘 기본 스타일 */
+.wishIcon {
+    font-size: 1.2rem;
+    color: #ccc; /* 기본 회색 */
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+/* 찜 상태일 때 아이콘 스타일 */
+.wishIcon.wished {
+    color: #ff4757; /* 찜했을 때 빨간색 */
+}
+
+.wishIcon:hover {
+    color: #ff4757; /* 호버 시 빨간색 */
 }
 
 .productOverlay {

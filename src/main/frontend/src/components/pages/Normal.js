@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from '../../assets/styles/pages/Anniversary.module.css'; // 스타일은 기념일 페이지와 동일하게 사용
+import { FaHeart } from 'react-icons/fa'; // FaHeart 아이콘 임포트
 
 const API_BASE_URL = 'http://localhost:8080';
 
@@ -23,8 +24,13 @@ function Normal() {
                     withCredentials: true
                 });
                 const productsData = Array.isArray(response.data) ? response.data : [];
-                productsData.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-                setProducts(productsData);
+                // 각 상품에 찜 상태 (isWished) 초기화
+                const productsWithWishStatus = productsData.map(product => ({
+                    ...product,
+                    isWished: false, // 실제 백엔드에서 찜 상태를 가져오도록 수정 필요
+                }));
+                productsWithWishStatus.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                setProducts(productsWithWishStatus);
                 setError(null);
             } catch (err) {
                 setError('일반 상품을 불러오는데 실패했습니다.');
@@ -101,6 +107,20 @@ function Normal() {
         navigate(`/product/${productId}`);
     };
 
+    // 찜 상태 토글
+    const handleWishToggle = (e, productId) => {
+        e.stopPropagation(); // 카드 클릭 이벤트가 발생하지 않도록 전파 중단
+        setProducts(prevProducts =>
+            prevProducts.map(product =>
+                product.productId === productId
+                    ? { ...product, isWished: !product.isWished }
+                    : product
+            )
+        );
+        // TODO: 백엔드에 찜 상태 업데이트 요청 보내기
+        console.log(`Product ${productId} wish status toggled.`);
+    };
+
     if (isLoading) {
         return <div className={styles.loading}>일반 상품을 불러오는 중...</div>;
     }
@@ -148,15 +168,15 @@ function Normal() {
             </div>
             <div className={styles.productList}>
                 {getSortedGoods().map((product) => (
-                    <div 
-                        key={product.productId} 
+                    <div
+                        key={product.productId}
                         className={styles.productCard}
                         onClick={() => handleProductClick(product.productId)}
                     >
                         <div className={styles.productContent}>
-                            <img 
-                                src={getImageUrl(product.imageUrl)} 
-                                alt={product.name} 
+                            <img
+                                src={getImageUrl(product.imageUrl)}
+                                alt={product.name}
                                 className={styles.productImage}
                             />
                         </div>
@@ -166,7 +186,14 @@ function Normal() {
                                 <span className={styles.ratingNumber}>({(product.rating || 0).toFixed(1)})</span>
                             </div>
                             <h3 className={styles.productName}>{product.name}</h3>
-                            <p className={styles.productPrice}>{product.price?.toLocaleString()}원</p>
+                            {/* 가격 정보와 찜 아이콘을 담을 새로운 컨테이너 */}
+                            <div className={styles.priceAndWish}>
+                                <p className={styles.productPrice}>{product.price?.toLocaleString()}원</p>
+                                <FaHeart
+                                    className={`${styles.wishIcon} ${product.isWished ? styles.wished : ''}`}
+                                    onClick={(e) => handleWishToggle(e, product.productId)}
+                                />
+                            </div>
                         </div>
                     </div>
                 ))}

@@ -31,7 +31,7 @@ function ProductDetail() {
     const [qnaList, setQnaList] = useState([]);
     const [pwInputs, setPwInputs] = useState({});
     const [unlocked, setUnlocked] = useState({});
-    const [expandedSecret, setExpandedSecret] = useState(null);
+    const [expandedQna, setExpandedQna] = useState(null); // 확장된 Q&A 상태 추가
 
     // Q&A 불러오기
     useEffect(() => {
@@ -61,7 +61,8 @@ function ProductDetail() {
                 .then((r) => r.data);
 
             if (ok) {
-                navigate(`/inquiry/${qId}`);
+                setUnlocked((prev) => ({ ...prev, [qId]: true }));
+                setExpandedQna(qId); // 비밀번호 확인 후 답변 확장
             } else {
                 alert('비밀번호가 틀렸습니다.');
             }
@@ -191,8 +192,8 @@ function ProductDetail() {
         }));
     };
 
-    const handleSecretToggle = (qId) => {
-        setExpandedSecret((prev) => (prev === qId ? null : qId));
+    const handleQnaToggle = (qId) => {
+        setExpandedQna((prev) => (prev === qId ? null : qId));
     };
 
     // 옵션 그룹화
@@ -711,9 +712,17 @@ function ProductDetail() {
                                                 </span>
                                             </div>
                                         </div>
-                                        <span className={styles.reviewDate}>
-                                            {formatDate(review.createdAt)}
-                                        </span>
+                                        <div className={styles.reviewActions}>
+                                            <span className={styles.reviewDate}>
+                                                {formatDate(review.createdAt)}
+                                            </span>
+                                            <span
+                                                className={styles.reportLabel}
+                                                onClick={() => openReportModal(review)}
+                                            >
+                                                신고
+                                            </span>
+                                        </div>
                                     </div>
                                     <div className={styles.reviewContent}>
                                         <p>{review.content}</p>
@@ -755,16 +764,19 @@ function ProductDetail() {
                 <div className={styles.reviewsSection}>
                     <div className={styles.qnaHeader}>
                         <h3>Q&A ({qnaList.length})</h3>
-                        {!authLoading && user && (
-                            <button
-                                className={styles.inquiryBtn}
-                                onClick={() =>
-                                    navigate(`/inquiry/write/${id}`)
+                        <button
+                            className={styles.inquiryBtn}
+                            onClick={() => {
+                                if (!user) {
+                                    alert('로그인이 필요한 서비스입니다.');
+                                    navigate('/login');
+                                } else {
+                                    navigate(`/inquiry/write/${id}`);
                                 }
-                            >
-                                문의하기
-                            </button>
-                        )}
+                            }}
+                        >
+                            문의하기
+                        </button>
                     </div>
 
                     {qnaList.length === 0 && <p>등록된 문의가 없습니다.</p>}
@@ -774,19 +786,13 @@ function ProductDetail() {
                             <li
                                 key={q.id}
                                 className={`${styles.qnaItem} ${
-                                    expandedSecret === q.id ? styles.open : ''
+                                    expandedQna === q.id ? styles.open : ''
                                 }`}
                             >
                                 <div
                                     className={styles.qnaTitleRow}
                                     style={{ cursor: 'pointer' }}
-                                    onClick={() => {
-                                        if (!q.secret) {
-                                            navigate(`/inquiry/${q.id}`);
-                                        } else {
-                                            handleSecretToggle(q.id);
-                                        }
-                                    }}
+                                    onClick={() => handleQnaToggle(q.id)}
                                 >
                                     {q.secret && (
                                         <FaLock className={styles.lockIcon} />
@@ -800,38 +806,17 @@ function ProductDetail() {
                                     </span>
                                 </div>
 
-                                {/* 본문 혹은 비밀번호 입력 */}
-                                {q.secret &&
-                                expandedSecret === q.id &&
-                                !unlocked[q.id] ? (
-                                    <div className={styles.secretPrompt}>
-                                        <p>
-                                            이 글은 비밀글입니다. 비밀번호를
-                                            입력해주세요.
-                                        </p>
-                                        <input
-                                            type="password"
-                                            value={pwInputs[q.id] || ''}
-                                            onChange={(e) =>
-                                                setPwInputs((p) => ({
-                                                    ...p,
-                                                    [q.id]: e.target.value,
-                                                }))
-                                            }
-                                            className={styles.pwInput}
-                                        />
-                                        <button
-                                            onClick={() => checkPassword(q.id)}
-                                            className={styles.pwCheckBtn}
-                                        >
-                                            확인
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className={styles.qnaContent}>
-                                        <p>
-                                            <strong>Q:</strong> {q.content}
-                                        </p>
+                                {/* 답변 영역 */}
+                                {expandedQna === q.id && (
+                                    <div className={styles.qnaContentWrapper}>
+                                        <div className={styles.qnaContent}>
+                                            <p><strong>Q:</strong> {q.content}</p>
+                                        </div>
+                                        {q.answer && (
+                                            <div className={styles.qnaAnswer}>
+                                                <p><strong>A:</strong> {q.answer}</p>
+                                            </div>
+                                        )}
                                     </div>
                                 )}
                             </li>

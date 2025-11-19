@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import styles from '../../assets/styles/pages/Limited_Edition.module.css';
+import { FaHeart } from 'react-icons/fa'; // FaHeart 아이콘 임포트
 
 const API_BASE_URL = 'http://localhost:8080';
 
@@ -33,10 +34,15 @@ function Limited_Edition() {
                 });
                 // API 응답 데이터 구조 확인 및 처리
                 const productsData = Array.isArray(response.data) ? response.data : [];
+                // 각 상품에 찜 상태 (isWished) 초기화
+                const productsWithWishStatus = productsData.map(product => ({
+                    ...product,
+                    isWished: false, // 실제 백엔드에서 찜 상태를 가져오도록 수정 필요
+                }));
                 // 평점순으로 기본 정렬
-                productsData.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-                console.log('Fetched limited products:', productsData); // 디버깅용 로그
-                setProducts(productsData);
+                productsWithWishStatus.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+                console.log('Fetched limited products:', productsWithWishStatus); // 디버깅용 로그
+                setProducts(productsWithWishStatus);
                 setError(null);
             } catch (err) {
                 setError('한정판 상품을 불러오는데 실패했습니다.');
@@ -149,6 +155,20 @@ function Limited_Edition() {
         console.log('Navigating to product:', productId); // 디버깅용 로그
     };
 
+    // 찜 상태 토글
+    const handleWishToggle = (e, productId) => {
+        e.stopPropagation(); // 카드 클릭 이벤트가 발생하지 않도록 전파 중단
+        setProducts(prevProducts =>
+            prevProducts.map(product =>
+                product.productId === productId
+                    ? { ...product, isWished: !product.isWished }
+                    : product
+            )
+        );
+        // TODO: 백엔드에 찜 상태 업데이트 요청 보내기
+        console.log(`Product ${productId} wish status toggled.`);
+    };
+
     if (isLoading) {
         return <div className={styles.loading}>한정판 상품을 불러오는 중...</div>;
     }
@@ -214,7 +234,7 @@ function Limited_Edition() {
                     {/* <span className={styles.sortOption}>
                         누적판매순
                     </span> */}
-                    <span 
+                    <span
                         className={`${styles.sortOption} ${sortOrder === 'reviewCount' ? styles.active : ''}`}
                         onClick={() => setSortOrder('reviewCount')}
                     >
@@ -232,15 +252,15 @@ function Limited_Edition() {
             {/* 상품 리스트 영역 */}
             <div className={styles.productList}>
                 {getSortedGoods().map((product) => (
-                    <div 
-                        key={product.productId} 
+                    <div
+                        key={product.productId}
                         className={styles.productCard}
                         onClick={() => handleProductClick(product.productId)}
                     >
                         <div className={styles.productContent}>
-                            <img 
-                                src={getImageUrl(product.imageUrl)} 
-                                alt={product.name} 
+                            <img
+                                src={getImageUrl(product.imageUrl)}
+                                alt={product.name}
                                 className={styles.productImage}
                             />
                             <div className={styles.productOverlay}>
@@ -262,9 +282,16 @@ function Limited_Edition() {
                                 </span>
                             </div>
                             <h3 className={styles.productName}>{product.name}</h3>
-                            <p className={styles.productPrice}>
-                                {product.price?.toLocaleString()}원
-                            </p>
+                            {/* 가격 정보와 찜 아이콘을 담을 새로운 컨테이너 */}
+                            <div className={styles.priceAndWish}>
+                                <p className={styles.productPrice}>
+                                    {product.price?.toLocaleString()}원
+                                </p>
+                                <FaHeart
+                                    className={`${styles.wishIcon} ${product.isWished ? styles.wished : ''}`}
+                                    onClick={(e) => handleWishToggle(e, product.productId)}
+                                />
+                            </div>
                         </div>
                     </div>
                 ))}
