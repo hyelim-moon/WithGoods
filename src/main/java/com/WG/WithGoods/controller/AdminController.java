@@ -63,7 +63,13 @@ public class AdminController {
 
     @DeleteMapping("/admin/members/{id}")
     public ResponseEntity<Void> deleteMember(@PathVariable Integer id) {
-        memberService.deleteMember(id);
+        memberService.withdrawMember(id); // 논리적 삭제(탈퇴 처리) 호출
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/admin/members/{id}/permanent")
+    public ResponseEntity<Void> deleteMemberPermanent(@PathVariable Integer id) {
+        memberService.deleteMember(id); // 물리적 삭제 호출
         return ResponseEntity.noContent().build();
     }
 

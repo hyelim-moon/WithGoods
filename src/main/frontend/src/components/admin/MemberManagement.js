@@ -895,7 +895,7 @@ function MemberManagement() {
     const [showCouponModal, setShowCouponModal] = useState(false);
     const [availableCoupons, setAvailableCoupons] = useState([]);
     const [selectedCouponToDistribute, setSelectedCouponToDistribute] = useState('');
-    
+
     // 개별 회원 쿠폰 지급 관련 상태 (사이드바용)
     const [showIndividualCouponModal, setShowIndividualCouponModal] = useState(false);
     const [selectedCouponForIndividual, setSelectedCouponForIndividual] = useState('');
@@ -1286,7 +1286,7 @@ function MemberManagement() {
             setMemberMemos([]);
         }
     };
-    
+
     // 메모 모달 열기
     const handleOpenMemoModal = async (member) => {
         if (member) {
@@ -1650,106 +1650,106 @@ function MemberManagement() {
                             <div className={memberStyles.sidePanelItem}>
                                 <strong>가입일:</strong> <span>{sidePanelMember.joinDate ? new Date(sidePanelMember.joinDate).toLocaleDateString() : '-'}</span>
                             </div>
-                        <div className={memberStyles.sidePanelItem}>
-                            <strong>생년월일:</strong> <span>{sidePanelMember.birthDate ? new Date(sidePanelMember.birthDate).toLocaleDateString() : '-'}</span>
-                        </div>
-                        <div className={memberStyles.sidePanelItem}>
-                    <strong>주소:</strong> <span>{sidePanelMember.address}</span>
-                </div>
-                <div className={memberStyles.sidePanelItem}>
-                    <strong>총 주문 횟수:</strong> <span>{sidePanelMember.totalOrders}회</span>
-                </div>
-                <div className={memberStyles.sidePanelItem}>
-                    <strong>총 결제 금액:</strong> <span>{sidePanelMember.totalSpent.toLocaleString()}원</span>
-                </div>
-                <div className={`${memberStyles.sidePanelItem} ${memberStyles.couponItem}`}>
-                    <strong>보유 쿠폰:</strong>
-                    {sidePanelMember.coupons && sidePanelMember.coupons.length > 0 ? (
-                        <ul className={memberStyles.couponList}>
-                            {sidePanelMember.coupons.map(coupon => (
-                                <li key={coupon.memberCouponId}>
-                                    <div>
-                                        <strong>{coupon.couponName}</strong>
-                                        <br />
-                                        <small>
-                                            발급일: {new Date(coupon.issuedAt).toLocaleDateString()} |
-                                            만료일: {new Date(coupon.expiresAt).toLocaleDateString()} |
-                                            상태: {coupon.isUsed ? '사용됨' : '사용가능'}
-                                        </small>
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
+                            <div className={memberStyles.sidePanelItem}>
+                                <strong>생년월일:</strong> <span>{sidePanelMember.birthDate ? new Date(sidePanelMember.birthDate).toLocaleDateString() : '-'}</span>
+                            </div>
+                            <div className={memberStyles.sidePanelItem}>
+                                <strong>주소:</strong> <span>{sidePanelMember.address}</span>
+                            </div>
+                            <div className={memberStyles.sidePanelItem}>
+                                <strong>총 주문 횟수:</strong> <span>{sidePanelMember.totalOrders}회</span>
+                            </div>
+                            <div className={memberStyles.sidePanelItem}>
+                                <strong>총 결제 금액:</strong> <span>{sidePanelMember.totalSpent.toLocaleString()}원</span>
+                            </div>
+                            <div className={`${memberStyles.sidePanelItem} ${memberStyles.couponItem}`}>
+                                <strong>보유 쿠폰:</strong>
+                                {sidePanelMember.coupons && sidePanelMember.coupons.length > 0 ? (
+                                    <ul className={memberStyles.couponList}>
+                                        {sidePanelMember.coupons.map(coupon => (
+                                            <li key={coupon.memberCouponId}>
+                                                <div>
+                                                    <strong>{coupon.couponName}</strong>
+                                                    <br />
+                                                    <small>
+                                                        발급일: {new Date(coupon.issuedAt).toLocaleDateString()} |
+                                                        만료일: {new Date(coupon.expiresAt).toLocaleDateString()} |
+                                                        상태: {coupon.isUsed ? '사용됨' : '사용가능'}
+                                                    </small>
+                                                </div>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                ) : (
+                                    <span>보유한 쿠폰이 없습니다.</span>
+                                )}
+                            </div>
+                            <div className={memberStyles.sidePanelActions}>
+                                <button className={memberStyles.editMemberBtn} onClick={() => handleEditMemberClick(sidePanelMember)}>회원 수정</button>
+                                <button className={memberStyles.deleteMemberBtn} onClick={handleDeleteMember}>회원 탈퇴</button>
+                                <button
+                                    className={memberStyles.viewCartBtn}
+                                    onClick={() => handleOpenMemoModal(sidePanelMember)}
+                                    style={{ backgroundColor: '#6f42c1', color: 'white' }}
+                                    onMouseOver={(e) => e.target.style.backgroundColor = '#5a32a3'}
+                                    onMouseOut={(e) => e.target.style.backgroundColor = '#6f42c1'}
+                                >
+                                    메모
+                                </button>
+                                <button
+                                    className={memberStyles.viewCartBtn}
+                                    onClick={() => handleViewWishlist(sidePanelMember)}
+                                >
+                                    찜한 상품
+                                </button>
+                                <button
+                                    className={memberStyles.viewCartBtn}
+                                    onClick={() => handleViewCart(sidePanelMember)}
+                                >
+                                    장바구니
+                                </button>
+                                <button
+                                    className={memberStyles.viewCartBtn}
+                                    onClick={() => handleViewReviews(sidePanelMember)}
+                                >
+                                    작성한 리뷰
+                                </button>
+                                <button
+                                    className={memberStyles.viewCartBtn}
+                                    onClick={() => handleViewEstimates(sidePanelMember)}
+                                >
+                                    작성한 견적
+                                </button>
+                                <button
+                                    className={memberStyles.viewCartBtn}
+                                    onClick={() => handleViewOrderHistory(sidePanelMember)}
+                                >
+                                    주문 내역 보기
+                                </button>
+                                <button
+                                    className={memberStyles.viewCartBtn}
+                                    onClick={() => handleViewInquiries(sidePanelMember)}
+                                >
+                                    문의 내역 보기
+                                </button>
+                                <button
+                                    className={memberStyles.distributeCouponBtn}
+                                    onClick={() => {
+                                        if (availableCoupons.length > 0) {
+                                            setSelectedCouponForIndividual(availableCoupons[0].id);
+                                        }
+                                        setShowIndividualCouponModal(true);
+                                    }}
+                                >
+                                    <FiGift /> 쿠폰 지급
+                                </button>
+                            </div>
+                        </>
                     ) : (
-                        <span>보유한 쿠폰이 없습니다.</span>
+                        <p>선택된 회원 정보가 없습니다.</p>
                     )}
                 </div>
-                <div className={memberStyles.sidePanelActions}>
-                    <button className={memberStyles.editMemberBtn} onClick={() => handleEditMemberClick(sidePanelMember)}>회원 수정</button>
-                    <button className={memberStyles.deleteMemberBtn} onClick={handleDeleteMember}>회원 탈퇴</button>
-                    <button
-                        className={memberStyles.viewCartBtn}
-                        onClick={() => handleOpenMemoModal(sidePanelMember)}
-                        style={{ backgroundColor: '#6f42c1', color: 'white' }}
-                        onMouseOver={(e) => e.target.style.backgroundColor = '#5a32a3'}
-                        onMouseOut={(e) => e.target.style.backgroundColor = '#6f42c1'}
-                    >
-                        메모
-                    </button>                    
-                    <button
-                        className={memberStyles.viewCartBtn}
-                        onClick={() => handleViewWishlist(sidePanelMember)}
-                    >
-                        찜한 상품
-                    </button>
-                    <button
-                        className={memberStyles.viewCartBtn}
-                        onClick={() => handleViewCart(sidePanelMember)}
-                    >
-                        장바구니
-                    </button>
-                    <button
-                        className={memberStyles.viewCartBtn}
-                        onClick={() => handleViewReviews(sidePanelMember)}
-                    >
-                        작성한 리뷰
-                    </button>
-                    <button
-                        className={memberStyles.viewCartBtn}
-                        onClick={() => handleViewEstimates(sidePanelMember)}
-                    >
-                        작성한 견적
-                    </button>
-                    <button
-                        className={memberStyles.viewCartBtn}
-                        onClick={() => handleViewOrderHistory(sidePanelMember)}
-                    >
-                        주문 내역 보기
-                    </button>
-                    <button
-                        className={memberStyles.viewCartBtn}
-                        onClick={() => handleViewInquiries(sidePanelMember)}
-                    >
-                        문의 내역 보기
-                    </button>
-                    <button
-                        className={memberStyles.distributeCouponBtn}
-                        onClick={() => {
-                            if (availableCoupons.length > 0) {
-                                setSelectedCouponForIndividual(availableCoupons[0].id);
-                            }
-                            setShowIndividualCouponModal(true);
-                        }}
-                    >
-                        <FiGift /> 쿠폰 지급
-                    </button>
-                </div>
-            </>
-            ) : (
-            <p>선택된 회원 정보가 없습니다.</p>
-            )}
-        </div>
-</div>
+            </div>
 
             {/* 모든 모달 컴포넌트 렌더링 */}
             <CouponDistributionModal

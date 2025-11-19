@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,7 +44,7 @@ public class Member {
     private LocalDate birthDate;
 
     private String address;
-    
+
     @Lob
     @Column(name = "admin_memo", columnDefinition = "TEXT")
     private String adminMemo; // 관리자 메모
@@ -54,13 +53,42 @@ public class Member {
     @Column(nullable = false)
     private Role role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     @Builder.Default
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    private MemberStatus status = MemberStatus.ACTIVE; // 회원 상태
+
+    @Builder.Default
+    @OneToMany(mappedBy = "member")
     private List<OrderInfo> orderInfos = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "member")
     private List<MemberCoupon> memberCoupons = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "member")
+    private List<Notification> notifications = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "member")
+    private List<MemberMemo> memberMemos = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "writer")
+    private List<Inquiry> inquiries = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "member")
+    private List<Cart> carts = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "member")
+    private List<Review> reviews = new ArrayList<>();
+
+    @Builder.Default
+    @OneToMany(mappedBy = "member")
+    private List<Wishlist> wishlists = new ArrayList<>();
 
     @Temporal(TemporalType.TIMESTAMP)
     private java.util.Date createdAt;
@@ -71,6 +99,9 @@ public class Member {
     @PrePersist
     protected void onCreate() {
         createdAt = new java.util.Date();
+        if (status == null) {
+            status = MemberStatus.ACTIVE;
+        }
     }
 
     @PreUpdate
@@ -78,7 +109,26 @@ public class Member {
         updatedAt = new java.util.Date();
     }
 
+    public void withdraw() {
+        String uniqueSuffix = "_" + this.memberId;
+        this.password = "WITHDRAWN_PASSWORD"; // Null이 아닌 값으로 설정
+        this.nickname = "탈퇴한회원" + uniqueSuffix;
+        this.name = "탈퇴한회원";
+        this.email = "withdrawn" + uniqueSuffix + "@withdrawn.com";
+        this.username = "withdrawn" + uniqueSuffix;
+        this.phoneNumber = null;
+        this.gender = null;
+        this.birthDate = null;
+        this.address = null;
+        this.status = MemberStatus.WITHDRAWN;
+    }
+
     public enum Role {
         USER, ADMIN
+    }
+
+    public enum MemberStatus {
+        ACTIVE, // 활성
+        WITHDRAWN // 탈퇴
     }
 }

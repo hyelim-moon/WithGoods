@@ -1,35 +1,46 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import styles from '../../assets/styles/inquiry/EstimateList.module.css';
 
-const dummyEstimates = [
-  {
-    id: 1,
-    title: '곰돌이 티셔츠 주문 문의',
-    customerName: '홍길동',
-    contact: '010-1234-5678',
-    product: '브라운 곰돌이 티셔츠',
-    quantity: 10,
-    designFile: '/designs/design1.pdf',
-    request: '색상은 갈색으로, 사이즈 다양하게 부탁드립니다.',
-  },
-  {
-    id: 2,
-    title: '파란 바지 견적 문의',
-    customerName: '김철수',
-    contact: '010-9876-5432',
-    product: '파란 바지',
-    quantity: 5,
-    designFile: null,
-    request: '빠른 납기 가능 여부 확인 부탁드립니다.',
-  },
-  // 더미 데이터 필요하면 추가 가능
-];
+const API_BASE_URL = 'http://localhost:8080';
 
 function EstimateList() {
   const navigate = useNavigate();
+  const [estimates, setEstimates] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  if (dummyEstimates.length === 0) {
+  useEffect(() => {
+    const fetchEstimates = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/estimate/my`, {
+          withCredentials: true,
+        });
+        setEstimates(response.data);
+      } catch (error) {
+        console.error('견적 문의 목록을 가져오는데 실패했습니다:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEstimates();
+  }, []);
+
+  const handleCardClick = (id) => {
+    navigate(`/inquiry/${id}`);
+  };
+
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <h1 className={styles.title}>📋 견적 문의 리스트</h1>
+        <div className={styles.loadingMessage}>로딩 중...</div>
+      </div>
+    );
+  }
+
+  if (estimates.length === 0) {
     return (
       <div className={styles.container}>
         <h1 className={styles.title}>📋 견적 문의 리스트</h1>
@@ -42,14 +53,14 @@ function EstimateList() {
     <div className={styles.container}>
       <h1 className={styles.title}>📋 견적 문의 리스트</h1>
       <div className={styles.list}>
-        {dummyEstimates.map((estimate) => (
+        {estimates.map((estimate) => (
           <div
             key={estimate.id}
             className={styles.card}
             role="button"
             tabIndex={0}
-            onClick={() => navigate(`/estimate/${estimate.id}`)}
-            onKeyDown={(e) => e.key === 'Enter' && navigate(`/estimate/${estimate.id}`)}
+            onClick={() => handleCardClick(estimate.id)}
+            onKeyDown={(e) => e.key === 'Enter' && handleCardClick(estimate.id)}
           >
             <div className={styles.row}>
               <div className={styles.label}>제목:</div>
@@ -74,9 +85,9 @@ function EstimateList() {
             <div className={styles.row}>
               <div className={styles.label}>디자인 파일:</div>
               <div className={styles.value}>
-                {estimate.designFile ? (
+                {estimate.designFileUrl ? (
                   <a
-                    href={estimate.designFile}
+                    href={estimate.designFileUrl}
                     target="_blank"
                     rel="noopener noreferrer"
                     className={styles.fileLink}
@@ -91,7 +102,7 @@ function EstimateList() {
             </div>
             <div className={styles.row}>
               <div className={styles.label}>요청사항:</div>
-              <div className={styles.value}>{estimate.request}</div>
+              <div className={styles.value}>{estimate.message}</div>
             </div>
           </div>
         ))}
