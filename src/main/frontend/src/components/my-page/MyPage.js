@@ -39,10 +39,21 @@ function MyPage() {
     const displayedWishlist = wishList.slice(0, 5);
     const showMoreWish = wishList.length > 5;
 
-    const handleLogout = () => {
-        setUser(null);
-        localStorage.clear();
-        window.location.href = '/';
+    const handleLogout = async () => {
+        try {
+            await axios.post(`${API_BASE_URL}/api/logout`, {}, {
+                withCredentials: true
+            });
+            setUser(null);
+            localStorage.clear();
+            navigate('/');
+        } catch (error) {
+            console.error('로그아웃 실패:', error);
+            // 만약 서버와 통신 없이 강제 로그아웃을 원한다면 아래 로직을 유지
+            setUser(null);
+            localStorage.clear();
+            navigate('/');
+        }
     };
 
     return (
