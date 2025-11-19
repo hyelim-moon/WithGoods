@@ -1,282 +1,173 @@
-:root {
-  --main-color: #000;
-  --input-bg: #f5f5f5;
-  --input-border: #ccc;
-  --border-radius: 12px;
-  --font-color: var(--main-color);
-  --button-bg: var(--main-color);
-  --button-hover-bg: #333;
-}
-
 .registerForm {
-  width: 100%;
-  max-width: 100%;
-  margin: 0 auto;
-  padding: 0 30px 40px 30px;
-  border-radius: 20px;
-  color: var(--font-color);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  box-sizing: border-box;
-  overflow-x: hidden;
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 30px;
+    border: 1px solid #e0e0e0;
+    border-radius: 12px;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .title {
-  font-size: 50px;
-  color: var(--main-color);
-  margin: 12px 0 25px 0;
-  align-self: flex-start;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 28px;
+    font-weight: 600;
+    color: #000;
 }
 
 .label {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 16px;
-  width: 100%;
-  max-width: 100%;
+    display: block;
+    margin-bottom: 10px;
+    font-size: 16px;
+    font-weight: 500;
+    color: #333;
 }
 
-.input,
-.select,
-.textarea {
-  margin-top: 8px;
-  padding: 10px 14px;
-  border: 2px solid var(--input-border);
-  border-radius: var(--border-radius);
-  font-size: 15px;
-  background-color: var(--input-bg);
-  box-sizing: border-box;
-  width: 100%;
-  transition: border-color 0.3s ease, background-color 0.3s ease;
-  color: var(--main-color);
+.input, .select, .textarea {
+    width: 100%;
+    padding: 12px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border-color 0.3s;
 }
 
-.input:focus,
-.select:focus,
-.textarea:focus {
-  outline: none;
-  border-color: var(--main-color);
-  background-color: #fff;
+.input:focus, .select:focus, .textarea:focus {
+    border-color: #000;
+    outline: none;
 }
 
 .textarea {
-  resize: vertical;
-  min-height: 120px;
+    resize: vertical;
+    min-height: 120px;
 }
 
-.checkboxLabel {
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 16px;
-  width: 100%;
-}
-
-.checkbox {
-  width: 18px;
-  height: 18px;
-  accent-color: var(--main-color);
-  cursor: pointer;
-}
-
-/* ✅ 파일 인풋: 다른 인풋과 동일한 느낌 + hover 통일 */
 .fileInput {
-  margin-top: 8px;
-  padding: 10px 14px;
-  border: 2px solid var(--input-border);
-  border-radius: var(--border-radius);
-  font-size: 15px;
-  background-color: var(--input-bg);
-  box-sizing: border-box;
-  width: 100%;
-  color: var(--main-color);
-  cursor: pointer;
-  transition: border-color 0.3s ease, background-color 0.3s ease;
+    margin-top: 10px;
 }
 
-/* 파일 인풋 전체 박스 hover 시 다른 input이랑 느낌 맞추기 */
-.fileInput:hover {
-  border-color: var(--main-color);
-  background-color: #fff;
-}
-
-/* WebKit 계열(Chrome, Edge 등) 버튼 스타일 */
-.fileInput::-webkit-file-upload-button {
-  padding: 8px 14px;
-  margin-right: 12px;
-  border: none;
-  border-radius: 999px;
-  background-color: var(--button-bg);
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-/* WebKit 버튼 hover – 다른 버튼이랑 동일 */
-.fileInput::-webkit-file-upload-button:hover {
-  background-color: var(--button-hover-bg);
-}
-
-/* 표준 셀렉터(Firefox 등) – 있어도 문제 없음 */
-.fileInput::file-selector-button {
-  padding: 8px 14px;
-  margin-right: 12px;
-  border: none;
-  border-radius: 999px;
-  background-color: var(--button-bg);
-  color: #fff;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-}
-
-.fileInput::file-selector-button:hover {
-  background-color: var(--button-hover-bg);
-}
-
-/* 이미지 미리보기 */
 .imagePreview {
-  margin-top: 10px;
-  position: relative;
-  max-width: 180px;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    margin-top: 10px;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
 .imagePreview img {
-  width: 100%;
-  height: auto;
-  display: block;
-  border-radius: 12px;
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    border: 1px solid #eee;
 }
 
-/* 미리보기 안의 삭제 버튼 위치/기본 스타일 */
-.imagePreview button {
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  background: #f5f5f5;
-  border: none;
-  border-radius: 6px;
-  padding: 4px 8px;
-  font-size: 12px;
-  color: var(--main-color);
-  cursor: pointer;
-  transition: background-color 0.3s ease;
+.checkboxLabel {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 20px;
 }
 
-.imagePreview button:hover {
-  background-color: #e0e0e0;
+.checkbox {
+    width: 20px;
+    height: 20px;
+    accent-color: #000;
 }
 
-/* 옵션 행 */
-.optionRow {
-  display: flex;
-  gap: 14px;
-  width: 100%;
-  box-sizing: border-box;
-  overflow: hidden;
+.salePeriodInputs {
+    display: flex;
+    gap: 20px;
+    margin-top: 10px;
 }
 
-.optionRow input {
-  flex: 1 1 0;
-  min-width: 0;
-  border-radius: var(--border-radius);
-  border: 2px solid var(--input-border);
-  padding: 12px 16px;
-  font-size: 15px;
-  color: var(--main-color);
-  background-color: var(--input-bg);
-  transition: border-color 0.3s ease, background-color 0.3s ease;
-  box-sizing: border-box;
-}
-
-.optionRow input:focus {
-  border-color: var(--main-color);
-  background-color: #fff;
-}
-
-/* 삭제 버튼 공통 */
-.removeButton {
-  background-color: #e0e0e0;
-  border: none;
-  border-radius: var(--border-radius);
-  padding: 6px 12px;
-  font-size: 13px;
-  cursor: pointer;
-  color: #333;
-  transition: background-color 0.3s ease, color 0.3s ease;
-  flex-shrink: 0;
-}
-
-.removeButton:hover {
-  background-color: #ccc;
-  color: #000;
-}
-
-/* 옵션 그룹 박스 */
 .optionGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  border: 3px dashed var(--main-color);
-  background-color: #f9f9f9;
-  padding: 24px 28px;
-  border-radius: 20px;
-  margin-bottom: 32px;
-  width: 100%;
-  box-sizing: border-box;
-  overflow-x: auto;
+    border: 1px solid #e0e0e0;
+    padding: 20px;
+    margin-top: 20px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
 }
 
-/* 버튼들 */
-.addButton,
-.submitButton {
-  background-color: var(--button-bg);
-  color: #fff;
-  border: none;
-  border-radius: 25px;
-  padding: 12px 20px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: background-color 0.3s ease;
-  user-select: none;
-  align-self: flex-start;
-  margin-top: 8px;
+.optionGroupHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    gap: 15px; /* 간격 추가 */
+}
+
+.optionTypeSelector {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.optionTypeSelector label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.optionRow {
+    display: flex;
+    gap: 15px; /* 간격 증가 */
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.optionRow .input {
+    margin-top: 0;
+}
+
+.addButton, .removeButton {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
 }
 
 .addButton {
-  max-width: 140px;
+    background-color: #000;
+    color: white;
+    margin-top: 10px;
 }
 
 .addButton:hover {
-  background-color: var(--button-hover-bg);
+    background-color: #333;
 }
 
-/* 판매 기간 input 래퍼 */
-.salePeriodInputs {
-  display: flex;
-  gap: 20px;
-  width: 100%;
-  max-width: 500px; /* 원하는 최대 너비로 조절 */
+.removeButton {
+    background-color: #dc3545; /* 빨간색으로 변경 */
+    color: white;
+    border: none;
+    flex-shrink: 0;
 }
 
-/* salePeriod 내부 라벨 */
-.salePeriodInputs .label {
-  flex: 1;
-  max-width: 240px; /* 개별 input 크기 제한 */
+.removeButton:hover {
+    background-color: #c82333; /* 더 어두운 빨간색 */
 }
 
-/* 제출 버튼 전체 너비 */
 .submitButton {
-  width: 100%;
-  margin-top: 36px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    padding: 15px;
+    margin-top: 30px;
+    background-color: #000;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s;
 }
 
 .submitButton:hover {
-  background-color: var(--button-hover-bg);
+    background-color: #333;
 }
