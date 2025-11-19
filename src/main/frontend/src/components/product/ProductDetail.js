@@ -21,8 +21,14 @@ function ProductDetail() {
     const [isFavorited, setIsFavorited] = useState(false);
 
     // 옵션 및 선택된 상품 관련 상태
-    const [selectedOptions, setSelectedOptions] = useState({});
+    const [selectedOptions, setSelectedOptions] = useState({}); // { optionName: { value: "...", price: ..., type: "..." } }
     const [selectedItems, setSelectedItems] = useState([]);
+
+    // 입력형/첨부형 옵션 값 저장
+    const [textInputValues, setTextInputValues] = useState({}); // { optionName: "입력값" }
+    const [imageUploadFiles, setImageUploadFiles] = useState({}); // { optionName: File }
+    const [imageUploadPreviews, setImageUploadPreviews] = useState({}); // { optionName: "data:image/..." }
+
 
     // 탭 콘텐츠 관련 상태
     const [reviews, setReviews] = useState([]);
@@ -85,8 +91,17 @@ function ProductDetail() {
         const groups = {};
         if (product?.options?.length > 0) {
             product.options.forEach((option) => {
-                if (!groups[option.optionName]) groups[option.optionName] = [];
-                groups[option.optionName].push({ value: option.optionValue, price: option.price });
+                if (!groups[option.optionName]) {
+                    groups[option.optionName] = {
+                        type: option.type, // 옵션 타입 추가
+                        values: []
+                    };
+                }
+                if (option.type === 'SELECT') { // SELECT 타입은 optionValue를 가짐
+                    groups[option.optionName].values.push({ value: option.optionValue, price: option.price });
+                } else { // TEXT_INPUT, IMAGE_UPLOAD 타입은 옵션명 자체를 값으로 가짐
+                    groups[option.optionName].values.push({ value: option.optionName, price: option.price });
+                }
             });
         }
         return groups;
@@ -94,30 +109,72 @@ function ProductDetail() {
 
     // 모든 옵션이 선택되었는지 확인하고, 선택되었다면 selectedItems에 추가
     useEffect(() => {
-        const optionGroups = Object.keys(groupedOptions);
-        if (optionGroups.length === 0) return;
+        const optionGroupNames = Object.keys(groupedOptions);
+        if (optionGroupNames.length === 0) return;
 
-        const allOptionsSelected = optionGroups.every(group => selectedOptions[group]);
+        // 모든 옵션이 드롭다운에서 선택되었는지 확인
+        const allOptionsSelectedInDropdown = optionGroupNames.every(groupName => selectedOptions[groupName] && selectedOptions[groupName].value);
 
-        if (allOptionsSelected) {
-            const optionIdentifier = optionGroups.map(group => `${group}:${selectedOptions[group].value}`).sort().join('-');
-            const itemExists = selectedItems.some(item => item.id === optionIdentifier);
+        // 선택된 입력형/첨부형 옵션이 모두 값이 있는지 확인
+        const allInputOptionsFilled = optionGroupNames.every(groupName => {
+            const group = groupedOptions[groupName];
+            if (selectedOptions[groupName]?.value === groupName) { // 드롭다운에서 옵션명을 선택한 경우
+                if (group.type === 'TEXT_INPUT') {
+                    return textInputValues[groupName] && textInputValues[groupName].trim() !== '';
+                }
+                if (group.type === 'IMAGE_UPLOAD') {
+                    return imageUploadFiles[groupName];
+                }
+            }
+            return true; // 옵션명을 선택하지 않았거나 SELECT 타입인 경우
+        });
 
-            if (!itemExists) {
-                const optionPrice = Object.values(selectedOptions).reduce((sum, option) => sum + (option.price || 0), 0);
+
+        if (allOptionsSelectedInDropdown && allInputOptionsFilled) {
+            const currentSelectedOptionValues = {};
+            let optionPriceSum = 0;
+
+            optionGroupNames.forEach(groupName => {
+                const group = groupedOptions[groupName];
+                const selected = selectedOptions[groupName];
+
+                if (selected.type === 'SELECT') {
+                    currentSelectedOptionValues[groupName] = selected.value;
+                    optionPriceSum += selected.price || 0;
+                } else if (selected.value === groupName) { // 입력형/첨부형 옵션이 선택된 경우
+                    if (group.type === 'TEXT_INPUT') {
+                        currentSelectedOptionValues[groupName] = textInputValues[groupName];
+                        optionPriceSum += selected.price || 0; // 옵션명 항목의 가격
+                    } else if (group.type === 'IMAGE_UPLOAD') {
+                        currentSelectedOptionValues[groupName] = imageUploadFiles[groupName].name; // 파일명 저장
+                        optionPriceSum += selected.price || 0; // 옵션명 항목의 가격
+                    }
+                }
+            });
+
+            const optionIdentifier = JSON.stringify(currentSelectedOptionValues); // 모든 옵션 값을 포함하는 고유 ID
+            const itemExists = selectedItems.some(item => JSON.stringify(item.options) === optionIdentifier);
+
+            if (!itemExists && Object.keys(currentSelectedOptionValues).length > 0) {
                 const newItem = {
                     id: optionIdentifier,
-                    options: Object.fromEntries(Object.entries(selectedOptions).map(([group, opt]) => [group, opt.value])),
-                    optionDetails: selectedOptions,
+                    options: currentSelectedOptionValues, // 모든 옵션 값
+                    optionDetails: selectedOptions, // SELECT 타입 옵션의 상세 정보
                     quantity: 1,
-                    price: (product.price || 0) + optionPrice,
-                    name: Object.values(selectedOptions).map(o => o.value).join(' / ')
+                    price: (product.price || 0) + optionPriceSum,
+                    name: Object.values(currentSelectedOptionValues).join(' / '),
+                    imageFiles: { ...imageUploadFiles } // 첨부 파일 객체 저장
                 };
                 setSelectedItems(prev => [...prev, newItem]);
             }
-            setSelectedOptions({}); // 다음 선택을 위해 초기화
+            
+            // 다음 선택을 위해 초기화
+            setSelectedOptions({});
+            setTextInputValues({});
+            setImageUploadFiles({});
+            setImageUploadPreviews({});
         }
-    }, [selectedOptions, groupedOptions, product, selectedItems]);
+    }, [selectedOptions, textInputValues, imageUploadFiles, groupedOptions, product, selectedItems]);
 
     // 총 가격 계산
     const totalPrice = useMemo(() => {
@@ -126,16 +183,43 @@ function ProductDetail() {
 
     // 핸들러 함수들
     const handleDropdownSelect = (groupName, selectedValue) => {
+        // 선택 해제 시 (예: "-- 옵션명 선택 --" 옵션)
         if (!selectedValue) {
-            // 선택 해제 시 (예: "-- 선택 --" 옵션)
             const newSelected = { ...selectedOptions };
             delete newSelected[groupName];
             setSelectedOptions(newSelected);
+            
+            // 입력형/첨부형 옵션의 경우 값도 초기화
+            if (groupedOptions[groupName].type === 'TEXT_INPUT') {
+                setTextInputValues(prev => { const newValues = { ...prev }; delete newValues[groupName]; return newValues; });
+            } else if (groupedOptions[groupName].type === 'IMAGE_UPLOAD') {
+                setImageUploadFiles(prev => { const newFiles = { ...prev }; delete newFiles[groupName]; return newFiles; });
+                setImageUploadPreviews(prev => { const newPreviews = { ...prev }; delete newPreviews[groupName]; return newPreviews; });
+            }
             return;
         }
-        const selectedOption = groupedOptions[groupName].find(opt => opt.value === selectedValue);
+
+        const selectedOption = groupedOptions[groupName].values.find(opt => opt.value === selectedValue);
         if (selectedOption) {
-            setSelectedOptions(prev => ({ ...prev, [groupName]: selectedOption }));
+            setSelectedOptions(prev => ({ ...prev, [groupName]: { ...selectedOption, type: groupedOptions[groupName].type } }));
+        }
+    };
+
+    const handleTextInputChange = (groupName, value) => {
+        setTextInputValues(prev => ({ ...prev, [groupName]: value }));
+    };
+
+    const handleImageUploadChange = (groupName, file) => {
+        if (file) {
+            setImageUploadFiles(prev => ({ ...prev, [groupName]: file }));
+            setImageUploadPreviews(prev => ({ ...prev, [groupName]: URL.createObjectURL(file) }));
+        } else {
+            const newFiles = { ...imageUploadFiles };
+            delete newFiles[groupName];
+            setImageUploadFiles(newFiles);
+            const newPreviews = { ...imageUploadPreviews };
+            delete newPreviews[groupName];
+            setImageUploadPreviews(newPreviews);
         }
     };
 
@@ -165,12 +249,30 @@ function ProductDetail() {
             const cartItems = selectedItems.map(item => ({
                 productId: product.productId,
                 quantity: item.quantity,
-                options: item.options,
-                option: JSON.stringify(item.options)
+                options: item.options, // 모든 옵션 값 (텍스트, 파일명 포함)
+                imageFiles: item.imageFiles // 첨부 파일 객체
             }));
-            await Promise.all(cartItems.map(cartItem =>
-                axios.post('http://localhost:8080/api/cart', cartItem, { withCredentials: true })
-            ));
+
+            // FormData를 사용하여 파일과 JSON 데이터를 함께 전송
+            await Promise.all(cartItems.map(async (cartItem) => {
+                const formData = new FormData();
+                formData.append('productId', cartItem.productId);
+                formData.append('quantity', cartItem.quantity);
+                formData.append('options', JSON.stringify(cartItem.options));
+
+                // 첨부 파일이 있다면 FormData에 추가
+                for (const optionName in cartItem.imageFiles) {
+                    if (cartItem.imageFiles.hasOwnProperty(optionName)) {
+                        formData.append(`file_${optionName}`, cartItem.imageFiles[optionName]);
+                    }
+                }
+                await axios.post('http://localhost:8080/api/cart', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    },
+                    withCredentials: true
+                });
+            }));
             alert('장바구니에 추가되었습니다.');
             setSelectedItems([]);
         } catch (error) {
@@ -195,8 +297,9 @@ function ProductDetail() {
             price: item.price,
             imageUrl: product.imageUrl || product.mainImage,
             quantity: item.quantity,
-            selectedOptions: item.options,
+            selectedOptions: item.options, // 모든 옵션 값 (텍스트, 파일명 포함)
             totalPrice: item.price * item.quantity,
+            imageFiles: item.imageFiles // 첨부 파일 객체
         }));
         const summary = {
             totalPrice: totalPrice,
@@ -204,7 +307,12 @@ function ProductDetail() {
             shippingFee: totalPrice >= 50000 ? 0 : 3000,
             finalAmount: totalPrice + (totalPrice >= 50000 ? 0 : 3000),
         };
-        navigate('/checkout', { state: { products: orderItems, summary, isDirectPurchase: true } });
+        // 구매 페이지로 이동 시 FormData를 직접 전달할 수 없으므로,
+        // 파일은 별도로 처리하거나, 구매 확정 단계에서 다시 업로드해야 합니다.
+        // 여기서는 파일 객체는 제외하고 나머지 정보만 전달합니다.
+        const itemsToPass = orderItems.map(({ imageFiles, ...rest }) => rest);
+
+        navigate('/checkout', { state: { products: itemsToPass, summary, isDirectPurchase: true } });
     };
 
     const toggleFavorite = async () => {
@@ -290,20 +398,56 @@ function ProductDetail() {
 
                     {Object.keys(groupedOptions).length > 0 && (
                         <div className={styles.optionSection}>
-                            {Object.entries(groupedOptions).map(([groupName, options]) => (
+                            {Object.entries(groupedOptions).map(([groupName, groupData]) => (
                                 <div key={groupName} className={styles.optionGroup}>
+                                    <label className={styles.optionLabel}>{groupName}</label>
                                     <select
                                         className={styles.optionSelect}
                                         value={selectedOptions[groupName]?.value || ''}
                                         onChange={(e) => handleDropdownSelect(groupName, e.target.value)}
                                     >
                                         <option value="">-- {groupName} 선택 --</option>
-                                        {options.map(option => (
+                                        {groupData.values.map(option => (
                                             <option key={option.value} value={option.value}>
                                                 {option.value}{option.price > 0 ? ` (+${option.price.toLocaleString()}원)` : ''}
                                             </option>
                                         ))}
                                     </select>
+
+                                    {/* 드롭다운에서 옵션명을 선택했을 때만 입력 필드 표시 */}
+                                    {selectedOptions[groupName]?.value === groupName && (
+                                        <>
+                                            {groupData.type === 'TEXT_INPUT' && (
+                                                <input
+                                                    type="text"
+                                                    className={styles.optionTextInput}
+                                                    placeholder={`${groupName} 입력`}
+                                                    value={textInputValues[groupName] || ''}
+                                                    onChange={(e) => handleTextInputChange(groupName, e.target.value)}
+                                                />
+                                            )}
+                                            {groupData.type === 'IMAGE_UPLOAD' && (
+                                                <div className={styles.optionImageUpload}>
+                                                    <input
+                                                        type="file"
+                                                        accept="image/*"
+                                                        onChange={(e) => handleImageUploadChange(groupName, e.target.files[0])}
+                                                        className={styles.hiddenFileInput}
+                                                        id={`image-upload-${groupName}`}
+                                                    />
+                                                    <label htmlFor={`image-upload-${groupName}`} className={styles.fileSelectButton}>
+                                                        {imageUploadFiles[groupName] ? imageUploadFiles[groupName].name : `${groupName} 파일 선택`}
+                                                    </label>
+                                                    {imageUploadPreviews[groupName] && (
+                                                        <div className={styles.imagePreviewWrapper}>
+                                                            <img src={imageUploadPreviews[groupName]} alt="미리보기" className={styles.uploadedImagePreview} />
+                                                            <button type="button" className={styles.removeImageUploadButton} onClick={() => handleImageUploadChange(groupName, null)}>×</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
                                 </div>
                             ))}
                         </div>
