@@ -79,8 +79,8 @@ label > span {
   color: #555;
 }
 
-input,
-select {
+.CheckOut input,
+.CheckOut select {
   padding: 0.7rem;
   font-size: 1rem;
   border: 1.5px solid #ddd;

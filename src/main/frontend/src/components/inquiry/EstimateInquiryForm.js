@@ -15,7 +15,7 @@ const EstimateInquiryForm = () => {
         designFile: null,
         message: '',
         password: '',
-        secret: '비밀글', // 화면에 보이지는 않지만, 항상 이 값으로 고정
+        secret: '비밀글', // 화면에는 안 보이지만 항상 비밀글 고정
     });
 
     const navigate = useNavigate();
@@ -34,7 +34,6 @@ const EstimateInquiryForm = () => {
         navigate('/inquiry');
     };
 
-    // handleSubmit 예시 (EstimateInquiryForm.js)
     const handleSubmit = async e => {
         e.preventDefault();
 
@@ -78,13 +77,20 @@ const EstimateInquiryForm = () => {
             <hr className={styles.line} />
 
             <form onSubmit={handleSubmit}>
-                {/* 제목 */}
-                <CommonInput
-                    label="제목"
-                    name="title"
-                    value={form.title}
-                    onChange={handleChange}
-                />
+                {/* ✅ 제목 — 다른 인풋 박스(폼 공통 스타일)와 동일 스타일 적용 */}
+                <div className={styles.row}>
+                    <label htmlFor="title" className={styles.label}>
+                        제목
+                    </label>
+                    <input
+                        id="title"
+                        name="title"
+                        type="text"
+                        className={styles.input}
+                        value={form.title}
+                        onChange={handleChange}
+                    />
+                </div>
 
                 {/* 고객 이름 / 연락처 */}
                 <div className={styles.rowDouble}>
@@ -162,7 +168,7 @@ const EstimateInquiryForm = () => {
                     onChange={handleChange}
                 />
 
-                {/*** 비밀글 설정 UI는 아예 삭제 ***/}
+                {/* 비밀글 hidden */}
                 <input type="hidden" name="secret" value="비밀글" />
 
                 {/* 버튼 */}

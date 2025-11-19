@@ -3,7 +3,7 @@
     margin: 2rem auto;
     padding: 2rem 3rem;
     font-family: 'Noto Sans KR', sans-serif;
-    border: 1px solid #944c21;
+    border: 1px solid #000000;
     border-radius: 12px;
     background-color: #fff;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
@@ -19,7 +19,7 @@
 
 .line {
     border: none;
-    border-top: 2px solid #944c21;
+    border-top: 2px solid #000000;
     margin: 0.5rem 0;
 }
 
@@ -43,9 +43,8 @@
     margin-bottom: 1.3rem;
 }
 
-input,
-textarea,
-select {
+/* ✅ 공통 인풋 스타일 (제목 / 상품 select / 파일 input 등) */
+.input {
     padding: 0.9rem 1rem;
     border: 1px solid #ccc;
     border-radius: 8px;
@@ -54,23 +53,12 @@ select {
     box-sizing: border-box;
 }
 
-.EstimateInquiryForm input[type="file"] {
-    padding: 0.6rem 1rem;
-    font-size: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background-color: #fafafa;
-    font-family: inherit;
-}
-
-.EstimateInquiryForm input:focus,
-textarea:focus,
-select:focus,
-.EstimateInquiryForm input[type="file"]:focus {
+.input:focus {
     outline: none;
-    border: 2px solid #944c21;
+    border: 2px solid #000000;
 }
 
+/* label 공통 스타일 */
 .estimatecontainer label {
     font-size: 1.1rem;
     font-weight: 700;
@@ -102,5 +90,5 @@ select:focus,
 .submitButton:hover,
 .backButton:hover {
     color: #fff;
-    background-color: #944c21;
+    background-color: #000000;
 }

@@ -6,6 +6,17 @@ import { FiBell, FiRefreshCw, FiGift, FiX } from "react-icons/fi";
 import Sidebar from "./Sidebar";
 import axios from "../../utils/axios";
 
+// 이름 비교용 공통 헬퍼 (대시보드랑 동일하게 맞추기)
+const buildMemberKey = (name) => {
+    if (!name) return "";
+    return name
+        .toString()
+        .trim()
+        .replace(/님$/g, "")   // 끝에 붙은 "님" 제거
+        .replace(/\s+/g, "")   // 모든 공백 제거
+        .toLowerCase();
+};
+
 // Helper function to check if it's a member's birthday today
 const isBirthdayToday = (member) => {
     if (!member.birthDate) return false;
@@ -1393,6 +1404,25 @@ const CouponDistributionModal = ({
 function MemberManagement() {
     const navigate = useNavigate();
     const location = useLocation();
+    const state = location.state || {};
+    // 여러 케이스 대응: focusMemberId, memberId, id 중에서 하나 가져오기
+    const focusMemberId =
+        state.focusMemberId ??
+        state.memberId ??
+        state.id ??
+        null;
+
+    // 여러 케이스 대응: focusMemberName, memberName, name 중에서 하나 가져오기
+    const focusMemberName =
+        state.focusMemberName ??
+        state.memberName ??
+        state.name ??
+        null;
+
+    // fromDashboard 플래그가 없더라도
+    // id나 이름이 넘어오면 "대시보드에서 특정 회원 포커싱해서 온 것"으로 간주
+    const isFromDashboard =
+        state.fromDashboard ?? !!(focusMemberId || focusMemberName);
 
     // 회원 관리 상태
     const [allMembers, setAllMembers] = useState([]);
@@ -1413,7 +1443,6 @@ function MemberManagement() {
 
     // AdminDashboard에서 포커스 회원을 넘겨줬는지 한 번만 처리하기 위한 플래그
     const [focusHandled, setFocusHandled] = useState(false);
-
     // 쿠폰 지급 관련 상태
     const [showCouponModal, setShowCouponModal] = useState(false);
     const [availableCoupons, setAvailableCoupons] = useState([]);
@@ -1527,56 +1556,63 @@ function MemberManagement() {
         setCurrentPage(1); // 필터 또는 검색어 변경 시 현재 페이지를 1로 초기화
     }, [searchTerm, searchCondition, allMembers, currentFilter]);
 
-    // ✅ AdminDashboard에서 넘어온 focusMemberId / focusMemberName을 이용해서
-    //    해당 회원 페이지로 이동 + 사이드패널 자동 열기
+
+    // ✅ AdminDashboard에서 넘어온 focus 정보로
+    //    회원 목록에서 해당 회원을 찾아서 그 페이지로 이동 + 사이드패널 자동 오픈
     useEffect(() => {
-        if (focusHandled) return;
-        if (!location.state) return;
-        const { focusMemberId, focusMemberName } = location.state;
-        if (!focusMemberId && !focusMemberName) return;
-        if (!allMembers || allMembers.length === 0) return;
+        if (focusHandled) return;                           // 한 번만 처리
+        if (!isFromDashboard) return;                       // 대시보드에서 온 게 아니면 패스
+        if (!focusMemberId && !focusMemberName) return;     // 포커스 정보 없으면 패스
+        if (!allMembers || allMembers.length === 0) return; // 회원 목록 아직 안 불러왔으면 패스
 
         let targetIndex = -1;
 
+        // 1) id 기준으로 먼저 찾기 (문자/숫자 타입 차이 없도록 String 비교)
         if (focusMemberId) {
             targetIndex = allMembers.findIndex(
-                (m) => m.id === focusMemberId
+                (m) => String(m.id) === String(focusMemberId)
             );
         }
 
+        // 2) id로 못 찾으면 이름/닉네임 기준으로 느슨하게 찾기
         if (targetIndex === -1 && focusMemberName) {
-            const lowered = String(focusMemberName).toLowerCase();
+            const targetKey = buildMemberKey(focusMemberName);
             targetIndex = allMembers.findIndex((m) => {
-                const byName =
-                    m.name && m.name.toLowerCase() === lowered;
-                const byNickname =
-                    m.nickname && m.nickname.toLowerCase() === lowered;
-                return byName || byNickname;
+                const nameKey = buildMemberKey(m.name);
+                const nickKey = buildMemberKey(m.nickname);
+                return nameKey === targetKey || nickKey === targetKey;
             });
         }
 
+        // 못 찾으면 한 번만 시도하고 종료
         if (targetIndex === -1) {
-            // 못 찾으면 한 번만 시도하고 끝
             setFocusHandled(true);
             return;
         }
 
         const targetMember = allMembers[targetIndex];
 
-        // 목록 필터/검색 초기화해서 전체 목록 기준으로 위치 맞추기
+        // 필터/검색 초기화
         setCurrentFilter("all");
         setSearchTerm("");
         setSearchCondition("name");
 
-        // 해당 회원이 포함된 페이지로 이동
+        // 해당 회원이 포함된 페이지 계산해서 이동
         const page = Math.floor(targetIndex / itemsPerPage) + 1;
         setCurrentPage(page);
 
-        // 사이드 패널 열기 (쿠폰/통계까지 포함한 상세 조회)
+        // 사이드 패널 열기 (쿠폰/통계까지 포함해서 상세 조회)
         handleViewDetails(targetMember);
 
         setFocusHandled(true);
-    }, [location.state, allMembers, itemsPerPage, focusHandled]);
+    }, [
+        isFromDashboard,
+        focusMemberId,
+        focusMemberName,
+        allMembers,
+        itemsPerPage,
+        focusHandled,
+    ]);
 
     const fetchMembers = async () => {
         setLoading(true);

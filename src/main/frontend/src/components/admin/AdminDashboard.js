@@ -26,6 +26,17 @@ import {
 import Sidebar from "./Sidebar";
 import axios from "../../utils/axios";
 
+/* ⭐ 이름을 키로 쓸 때 공백/대소문자/“님” 같은 표현 제거 */
+const buildMemberKey = (name) => {
+    if (!name) return "";
+    return name
+        .toString()
+        .trim()
+        .replace(/님$/g, "") // 끝에 오는 "님" 제거
+        .replace(/\s+/g, "") // 모든 공백 제거
+        .toLowerCase();
+};
+
 /* ----- 문자열에서 "회원 이름 + 나머지 텍스트" 분리 (여러 패턴 지원) ----- */
 /**
  * 예시 패턴:
@@ -86,7 +97,7 @@ const normalizeActivities = (arr) => {
                 date: null,
                 memberId: null,
                 memberName,
-                orderTitle: null, // 문자열만 있으면 상품명 추출 불가
+                orderTitle: null,
             };
         }
 
@@ -106,7 +117,6 @@ const normalizeActivities = (arr) => {
                 parsedName ||
                 null;
 
-            // 🔥 백엔드에서 보내주는 상품명 필드들 중 하나를 orderTitle 로 사용
             const orderTitle =
                 item.orderTitle ||
                 item.productName ||
@@ -124,7 +134,6 @@ const normalizeActivities = (arr) => {
             };
         }
 
-        // 그 외 타입
         return {
             type: "OTHER",
             text: String(item),
@@ -137,13 +146,29 @@ const normalizeActivities = (arr) => {
 };
 
 /* ----- 회원 메모 데이터 정규화 ----- */
-const normalizeMemberNotes = (arr) => {
+/**
+ * ⭐ recentActivities 에서 만들어진 nameToIdMap 을 같이 받아서
+ *    memberId 가 없는 메모에도 memberId 를 채워준다.
+ */
+const normalizeMemberNotes = (arr, nameToIdMap) => {
+    const map = nameToIdMap || new Map();
+
     if (!Array.isArray(arr)) return [];
     return arr.map((item) => {
         if (typeof item === "string") {
             const { memberName, text } = splitNameAndText(item);
+
+            let memberId = null;
+            // 이름만 있고 id 가 없으면 recentActivities 기반으로 매핑
+            if (memberName) {
+                const key = buildMemberKey(memberName); // ⭐ 키 정규화
+                if (key && map.has(key)) {
+                    memberId = map.get(key);
+                }
+            }
+
             return {
-                memberId: null,
+                memberId,
                 memberName,
                 text,
             };
@@ -159,13 +184,21 @@ const normalizeMemberNotes = (arr) => {
             const base = rawText || JSON.stringify(item);
             const { memberName: parsedName, text } = splitNameAndText(base);
 
-            const memberId = item.memberId ?? item.member?.id ?? null;
+            let memberId = item.memberId ?? item.member?.id ?? null;
             const memberName =
                 item.memberName ||
                 item.member?.name ||
                 item.name ||
                 parsedName ||
                 null;
+
+            // ⭐ 객체에도 memberId 없으면 이름으로 보완
+            if (!memberId && memberName) {
+                const key = buildMemberKey(memberName);
+                if (key && map.has(key)) {
+                    memberId = map.get(key);
+                }
+            }
 
             return {
                 memberId,
@@ -235,28 +268,43 @@ const getActivityDisplayText = (activity) => {
     return text;
 };
 
-/* ✅ 이름 + 내용 전체 문자열 생성
-   - ORDER 이고 orderTitle 이 있으면: "문혜림이 병아리 인형 주문을 완료했습니다."
-   - 아니면 기존 텍스트 그대로 사용  */
+/* ✅ 최근 활동: 이름 + 내용 전체 문자열 생성 */
 const buildActivityFullText = (activity) => {
     if (!activity) return "";
     let base = "";
 
     if (activity.type === "ORDER" && activity.orderTitle) {
-        // 상품 이름 기준으로 문장 재구성
         base = `${activity.orderTitle} 주문을 완료했습니다.`;
     } else {
         base = getActivityDisplayText(activity) || "";
     }
 
-    const cleaned = base.replace(/^\s+/, ""); // 문장 앞쪽 공백 제거
+    const cleaned = base.replace(/^\s+/, "");
 
     if (activity.memberName) {
-        // 예: memberName="문혜림", cleaned="병아리 인형 주문을 완료했습니다."
-        // → "문혜림병아리 인형 주문을 완료했습니다." (이전에 붙여놓은 "이 "는 텍스트 쪽에 포함)
-        return `${activity.memberName}${cleaned}`;
+        return `${activity.memberName}님${cleaned}`;
     }
     return cleaned;
+};
+
+/* ✅ 회원 메모: "회원이름님 - 메모 내용" 형식으로 표시 (+ 작성자 표시는 제거) */
+const buildMemberNoteFullText = (note) => {
+    if (!note) return "";
+    const namePart = note.memberName ? `${note.memberName}님` : "";
+    let textPart = note.text || "";
+
+    textPart = textPart.replace(/\(작성자[^)]*\)/gi, "");
+    textPart = textPart.replace(/[-–—]?\s*작성자[^:)\-]*[:\-]\s*[^)\s]+/gi, "");
+    textPart = textPart.trim();
+
+    if (namePart && textPart) {
+        if (!textPart.startsWith("-")) {
+            textPart = `- ${textPart}`;
+        }
+        return `${namePart} ${textPart}`;
+    }
+    if (namePart) return namePart;
+    return textPart;
 };
 
 function StatCard({ title, value, icon, onClick }) {
@@ -466,8 +514,8 @@ function SmallCard({ title, value, icon }) {
     );
 }
 
-/* 최근 활동 카드 (대시보드 하단 작은 카드) */
-function RecentActivity({ activities, onViewAll }) {
+/* 최근 활동 카드 */
+function RecentActivity({ activities, onViewAll, onMemberClick }) {
     const recent = (activities || []).slice(0, 3);
     return (
         <div className={styles.activityCard}>
@@ -481,8 +529,18 @@ function RecentActivity({ activities, onViewAll }) {
                 {recent.length > 0 ? (
                     recent.map((a, i) => (
                         <li key={i}>
-                            {/* 🔧 이름과 문장을 공백 없이 붙여서 표시 + 주문일 때는 상품명 기준 */}
-                            <span className={styles.activityText}>
+                            <span
+                                className={styles.activityText}
+                                onClick={() =>
+                                    onMemberClick &&
+                                    (a.memberId || a.memberName) &&
+                                    onMemberClick(
+                                        a.memberId || null,
+                                        a.memberName || null
+                                    )
+                                }
+                                role="button"
+                            >
                                 {buildActivityFullText(a)}
                             </span>
                             {a.date && (
@@ -500,7 +558,7 @@ function RecentActivity({ activities, onViewAll }) {
     );
 }
 
-/* 회원 메모 카드 (대시보드 하단 작은 카드) */
+/* 회원 메모 카드 */
 function MemberNotes({ notes, onViewAll, onMemberClick }) {
     const recent = (notes || []).slice(0, 3);
     return (
@@ -515,23 +573,20 @@ function MemberNotes({ notes, onViewAll, onMemberClick }) {
                 {recent.length > 0 ? (
                     recent.map((note, i) => (
                         <li key={i}>
-                            {note.memberName && (
-                                <button
-                                    type="button"
-                                    className={styles.memberLink}
-                                    onClick={() =>
-                                        onMemberClick &&
-                                        (note.memberId || note.memberName) &&
-                                        onMemberClick(
-                                            note.memberId || null,
-                                            note.memberName || null
-                                        )
-                                    }
-                                >
-                                    {note.memberName}
-                                </button>
-                            )}
-                            <span>{note.text}</span>
+                            <span
+                                className={styles.activityText}
+                                onClick={() =>
+                                    onMemberClick &&
+                                    (note.memberId || note.memberName) &&
+                                    onMemberClick(
+                                        note.memberId || null,
+                                        note.memberName || null
+                                    )
+                                }
+                                role="button"
+                            >
+                                {buildMemberNoteFullText(note)}
+                            </span>
                         </li>
                     ))
                 ) : (
@@ -565,11 +620,12 @@ function AdminDashboard() {
 
     /* 모달 필터 상태 */
     const [activityQuery, setActivityQuery] = useState("");
-    const [activityCat, setActivityCat] = useState("ALL"); // ALL | SIGNUP | QUOTE | INQUIRY | ORDER
-    const [memberNoteQuery, setMemberNoteQuery] = useState(""); // 회원 메모 검색어
+    const [activityCat, setActivityCat] = useState("ALL");
+    const [memberNoteQuery, setMemberNoteQuery] = useState("");
 
     useEffect(() => {
         fetchDashboardData();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const fetchDashboardData = async () => {
@@ -581,9 +637,32 @@ function AdminDashboard() {
                     .get("/api/admin/dashboard/member-notes")
                     .catch(() => ({ data: [] })),
             ]);
+
+            // 1) 활동 정규화
+            const normalizedActivities = normalizeActivities(
+                activitiesRes.data
+            );
+
+            // 2) 활동 데이터로 이름→id 매핑 생성 (정규화된 키 기준) ⭐
+            const nameToIdMap = new Map();
+            normalizedActivities.forEach((a) => {
+                if (a.memberId && a.memberName) {
+                    const key = buildMemberKey(a.memberName);
+                    if (key && !nameToIdMap.has(key)) {
+                        nameToIdMap.set(key, a.memberId);
+                    }
+                }
+            });
+
+            // 3) 회원 메모 정규화 시 매핑 사용해서 memberId 보완
+            const normalizedNotes = normalizeMemberNotes(
+                notesRes.data || [],
+                nameToIdMap
+            );
+
             setDashboardData(statsRes.data);
-            setRecentActivities(normalizeActivities(activitiesRes.data));
-            setMemberNotes(normalizeMemberNotes(notesRes.data || []));
+            setRecentActivities(normalizedActivities);
+            setMemberNotes(normalizedNotes);
         } catch (e) {
             console.error("대시보드 데이터 로드 실패:", e);
         } finally {
@@ -604,12 +683,7 @@ function AdminDashboard() {
         const matchCat = activityCat === "ALL" ? true : a.type === activityCat;
         const q = activityQuery.trim().toLowerCase();
 
-        // 검색은 텍스트 + 이름 + (있다면) 상품명까지 포함
-        const target = [
-            a.text || "",
-            a.memberName || "",
-            a.orderTitle || "",
-        ]
+        const target = [a.text || "", a.memberName || "", a.orderTitle || ""]
             .join(" ")
             .toLowerCase();
 
@@ -617,7 +691,7 @@ function AdminDashboard() {
         return matchCat && matchText;
     });
 
-    /* 회원 메모 검색 결과 (이름/메모 내용 텍스트 필터) */
+    /* 회원 메모 검색 결과 */
     const filteredMemberNotes = useMemo(() => {
         if (!memberNotes) return [];
         const q = memberNoteQuery.trim().toLowerCase();
@@ -643,6 +717,7 @@ function AdminDashboard() {
             state: {
                 focusMemberId: memberId || null,
                 focusMemberName: memberName || null,
+                fromDashboard: true,
             },
         });
     };
@@ -682,7 +757,7 @@ function AdminDashboard() {
                     </div>
                 </header>
 
-                {/* Top stats — 5개 한 줄 */}
+                {/* Top stats */}
                 <section className={styles.statsGrid}>
                     <StatCard
                         title="이번 달 매출"
@@ -721,11 +796,12 @@ function AdminDashboard() {
                     <PieChartCard data={dashboardData.productStats} />
                 </section>
 
-                {/* Bottom — 왼쪽: 최근 활동 / 오른쪽: 회원 메모 */}
+                {/* Bottom */}
                 <section className={styles.bottomGrid}>
                     <RecentActivity
                         activities={recentActivities}
                         onViewAll={() => setShowAllActivities(true)}
+                        onMemberClick={handleNavigateToMemberManagement}
                     />
                     <MemberNotes
                         notes={memberNotes}
@@ -740,7 +816,6 @@ function AdminDashboard() {
                         <div className={styles.modalContent}>
                             <h3>전체 활동내역</h3>
 
-                            {/* 필터 바 (Sticky) */}
                             <div className={styles.modalFilterBar}>
                                 <div className={styles.categoryChips}>
                                     <button
@@ -830,7 +905,6 @@ function AdminDashboard() {
                                 />
                             </div>
 
-                            {/* 결과 리스트 */}
                             <div className={styles.allActivitiesList}>
                                 {filteredActivities.length > 0 ? (
                                     <ul>
@@ -916,7 +990,6 @@ function AdminDashboard() {
                         <div className={styles.modalContent}>
                             <h3>회원 메모</h3>
 
-                            {/* 상단 검색 바 */}
                             <div className={styles.modalFilterBar}>
                                 <div className={styles.searchWrap}>
                                     <FiSearch className={styles.searchIcon} />
@@ -951,32 +1024,23 @@ function AdminDashboard() {
                                                             styles.activityContent
                                                         }
                                                     >
-                                                        {note.memberName && (
-                                                            <button
-                                                                type="button"
-                                                                className={
-                                                                    styles.memberLink
-                                                                }
-                                                                onClick={() =>
-                                                                    handleNavigateToMemberManagement(
-                                                                        note.memberId ||
-                                                                        null,
-                                                                        note.memberName ||
-                                                                        null
-                                                                    )
-                                                                }
-                                                            >
-                                                                {
-                                                                    note.memberName
-                                                                }
-                                                            </button>
-                                                        )}
                                                         <span
                                                             className={
                                                                 styles.activityText
                                                             }
+                                                            onClick={() =>
+                                                                handleNavigateToMemberManagement(
+                                                                    note.memberId ||
+                                                                    null,
+                                                                    note.memberName ||
+                                                                    null
+                                                                )
+                                                            }
+                                                            role="button"
                                                         >
-                                                            {note.text}
+                                                            {buildMemberNoteFullText(
+                                                                note
+                                                            )}
                                                         </span>
                                                     </div>
                                                 </li>
