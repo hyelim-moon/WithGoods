@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -91,6 +92,15 @@ public class InquiryService {
     public List<InquiryResponseDto> findByUser(String username) {
         return inquiryRepository.findByWriterUsernameOrderByCreatedAtDesc(username)
                 .stream().map(this::toDto).toList();
+    }
+
+    /** 사용자 자신의 견적 문의 */
+    public List<InquiryResponseDto> findEstimatesByUser(String username) {
+        return inquiryRepository.findByWriterUsernameOrderByCreatedAtDesc(username)
+                .stream()
+                .filter(inquiry -> inquiry.getType() == InquiryType.ESTIMATE)
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     /** 관리자 전체 조회 */

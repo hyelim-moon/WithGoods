@@ -3,17 +3,10 @@ package com.WG.WithGoods.service;
 import com.WG.WithGoods.dto.MemberDTO;
 import com.WG.WithGoods.dto.SignupRequest;
 import com.WG.WithGoods.entity.Member;
+import com.WG.WithGoods.entity.Member.MemberStatus;
 import com.WG.WithGoods.entity.MemberMemo;
 import com.WG.WithGoods.entity.InquiryType;
-import com.WG.WithGoods.repository.MemberRepository;
-import com.WG.WithGoods.repository.MemberMemoRepository;
-import com.WG.WithGoods.repository.OrderRepository;
-import com.WG.WithGoods.repository.OrderDetailRepository;
-import com.WG.WithGoods.repository.ProductRepository;
-import com.WG.WithGoods.repository.WishlistRepository;
-import com.WG.WithGoods.repository.CartRepository;
-import com.WG.WithGoods.repository.ReviewRepository;
-import com.WG.WithGoods.repository.InquiryRepository;
+import com.WG.WithGoods.repository.*;
 import com.WG.WithGoods.entity.OrderStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -44,6 +37,7 @@ public class MemberService {
     private final CartRepository cartRepository;
     private final ReviewRepository reviewRepository;
     private final InquiryRepository inquiryRepository;
+    private final NotificationRepository notificationRepository;
     private final PasswordEncoder passwordEncoder;
     private final VisitorService visitorService;
 
@@ -67,14 +61,23 @@ public class MemberService {
         member.setGender(request.getGender());
         member.setAddress(request.getAddress());
         member.setRole(Member.Role.USER);
+        member.setStatus(MemberStatus.ACTIVE);
 
         memberRepository.save(member);
     }
 
     public boolean login(String username, String password) {
-        return memberRepository.findByUsername(username)
-                .map(m -> passwordEncoder.matches(password, m.getPassword()))
-                .orElse(false);
+        Optional<Member> memberOpt = memberRepository.findByUsername(username);
+        if (memberOpt.isEmpty()) {
+            return false;
+        }
+
+        Member member = memberOpt.get();
+        if (member.getStatus() == MemberStatus.WITHDRAWN) {
+            return false; // 탈퇴한 회원은 로그인 불가
+        }
+
+        return passwordEncoder.matches(password, member.getPassword());
     }
 
     public Optional<Member> findByUsername(String username) {
@@ -143,11 +146,28 @@ public class MemberService {
     }
 
     @Transactional
+    public void withdrawMember(Integer id) {
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+        member.withdraw();
+        memberRepository.save(member);
+    }
+
+    @Transactional
     public void deleteMember(Integer id) {
-        if (!memberRepository.existsById(id)) {
-            throw new IllegalArgumentException("Member not found");
-        }
-        memberRepository.deleteById(id);
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+
+        // 연관 데이터 수동 삭제
+        wishlistRepository.deleteAllByMember(member);
+        cartRepository.deleteAllByMember(member);
+        reviewRepository.deleteAllByMember(member);
+        inquiryRepository.deleteAllByWriter(member);
+        memberMemoRepository.deleteAllByMember(member);
+        notificationRepository.deleteAllByMember(member);
+        // OrderInfo, MemberCoupon은 Member 엔티티의 CascadeType.ALL에 의해 자동 삭제됨
+
+        memberRepository.delete(member);
     }
 
     // 회원 주문 통계 조회

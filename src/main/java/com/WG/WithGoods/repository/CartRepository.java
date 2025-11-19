@@ -9,5 +9,6 @@ import java.util.List;
 
 public interface CartRepository extends JpaRepository<Cart, Integer> {
     List<Cart> findByMember(Member member);
+    void deleteAllByMember(Member member);
     Cart findByMemberAndProductAndProductOption(Member member, Product product, String productOption);
 }

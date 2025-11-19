@@ -1417,8 +1417,7 @@ function MemberManagement() {
     // 쿠폰 지급 관련 상태
     const [showCouponModal, setShowCouponModal] = useState(false);
     const [availableCoupons, setAvailableCoupons] = useState([]);
-    const [selectedCouponToDistribute, setSelectedCouponToDistribute] =
-        useState("");
+    const [selectedCouponToDistribute, setSelectedCouponToDistribute] = useState('');
 
     // 개별 회원 쿠폰 지급 관련 상태 (사이드바용)
     const [showIndividualCouponModal, setShowIndividualCouponModal] =
@@ -1925,6 +1924,7 @@ function MemberManagement() {
         }
     };
 
+    // 메모 모달 열기
     const handleOpenMemoModal = async (member) => {
         if (member) {
             setSidePanelMember(member);

@@ -10,6 +10,8 @@ function MyPage() {
     const { user, setUser } = useAuth();
     const [wishList, setWishList] = useState([]);
     const navigate = useNavigate();
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [deleteConfirmText, setDeleteConfirmText] = useState('');
 
     useEffect(() => {
         const fetchWishlist = async () => {
@@ -35,14 +37,42 @@ function MyPage() {
         fetchWishlist();
     }, []);
 
-    // 5개까지만 보여주기
     const displayedWishlist = wishList.slice(0, 5);
     const showMoreWish = wishList.length > 5;
 
-    const handleLogout = () => {
-        setUser(null);
-        localStorage.clear();
-        window.location.href = '/';
+    const handleLogout = async () => {
+        try {
+            await axios.post(`${API_BASE_URL}/api/logout`, {}, {
+                withCredentials: true
+            });
+            setUser(null);
+            localStorage.clear();
+            navigate('/');
+        } catch (error) {
+            console.error('로그아웃 실패:', error);
+            // 만약 서버와 통신 없이 강제 로그아웃을 원한다면 아래 로직을 유지
+            setUser(null);
+            localStorage.clear();
+            navigate('/');
+        }
+    };
+
+    const handleDeleteAccount = async () => {
+        if (deleteConfirmText !== '회원탈퇴') {
+            alert('정확히 "회원탈퇴"를 입력해주세요.');
+            return;
+        }
+
+        try {
+            await axios.delete(`${API_BASE_URL}/my-profile`, {
+                withCredentials: true,
+            });
+            alert('회원 탈퇴가 완료되었습니다.');
+            handleLogout();
+        } catch (error) {
+            console.error('회원 탈퇴 실패:', error);
+            alert('회원 탈퇴 중 오류가 발생했습니다.');
+        }
     };
 
     return (
@@ -58,6 +88,11 @@ function MyPage() {
                     <li><Link to="/estimatelist">견적 문의</Link></li>
                     <li><Link to="/wishlist">찜한 상품</Link></li>
                     {user && user.role === 'ADMIN' && <li><Link to="/productlist">등록된 상품</Link></li>}
+                    <li>
+                        <button onClick={() => setShowDeleteModal(true)} className={styles.deleteAccountButton}>
+                            회원탈퇴
+                        </button>
+                    </li>
                 </ul>
             </aside>
 
@@ -72,7 +107,6 @@ function MyPage() {
                     </button>
                 </div>
 
-                {/* MY WISH 섹션 */}
                 <div className={styles.section}>
                     <div className={styles.sectionHeader}>
                         <h2 className={styles.sectionTitle}>MY WISH</h2>
@@ -104,6 +138,39 @@ function MyPage() {
                     )}
                 </div>
             </main>
+
+            {showDeleteModal && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modal}>
+                        <h2>회원 탈퇴</h2>
+                        <p>
+                            회원 탈퇴를 진행하시려면
+                            <br />
+                            아래에 "회원탈퇴"를 입력해주세요.
+                        </p>
+                        <p>탈퇴 시 모든 정보는 복구할 수 없습니다.</p>
+                        <input
+                            type="text"
+                            value={deleteConfirmText}
+                            onChange={(e) => setDeleteConfirmText(e.target.value)}
+                            placeholder="회원탈퇴"
+                            className={styles.modalInput}
+                        />
+                        <div className={styles.modalActions}>
+                            <button onClick={() => setShowDeleteModal(false)} className={styles.modalButton}>
+                                취소
+                            </button>
+                            <button
+                                onClick={handleDeleteAccount}
+                                disabled={deleteConfirmText !== '회원탈퇴'}
+                                className={`${styles.modalButton} ${styles.deleteButton}`}
+                            >
+                                최종 탈퇴
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
