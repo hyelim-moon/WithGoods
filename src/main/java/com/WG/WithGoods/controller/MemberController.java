@@ -201,4 +201,23 @@ public class MemberController {
             return ResponseEntity.badRequest().body(errorResponse);
         }
     }
+
+    // ✅ 회원 탈퇴 (논리적 삭제)
+    @DeleteMapping("/my-profile")
+    public ResponseEntity<?> deleteMyProfile(HttpSession session) {
+        Integer memberId = (Integer) session.getAttribute("memberId");
+        if (memberId == null) {
+            return ResponseEntity.status(401).body(Map.of("message", "로그인이 필요합니다."));
+        }
+
+        try {
+            memberService.withdrawMember(memberId);
+            session.invalidate();
+            SecurityContextHolder.clearContext();
+            return ResponseEntity.ok(Map.of("message", "회원 탈퇴가 완료되었습니다."));
+        } catch (Exception e) {
+            log.error("회원 탈퇴 실패: {}", e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        }
+    }
 }
