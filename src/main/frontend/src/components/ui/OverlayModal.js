@@ -45,8 +45,10 @@ function OverlayModal({ isOpen, onClose, children }) {
                 >
                     <FiX />
                 </button>
-
-                <div className={styles.body}>{children}</div>
+                {/* 스크롤 가능한 콘텐츠를 감싸는 div 추가 */}
+                <div className={styles.modalContentWrapper}>
+                    {children}
+                </div>
             </div>
         </div>
     );

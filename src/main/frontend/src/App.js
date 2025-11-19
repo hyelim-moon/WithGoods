@@ -137,7 +137,6 @@ function AppContent() {
 
                 <Route path="/product/register" element={<GeneralProductForm />} />
                 <Route path="/product/:id" element={<ProductDetail />} />
-                <Route path="/product/edit/:id" element={<GeneralProductForm />} />
                 <Route path="/product/:id/stats" element={<ProductStats />} />
 
                 <Route path="/edit-profile" element={<EditProfile />} />

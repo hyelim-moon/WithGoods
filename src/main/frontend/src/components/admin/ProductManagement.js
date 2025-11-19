@@ -159,8 +159,11 @@ function ProductManagement() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    // ✅ 상품 등록 모달 open 상태
+    // ✅ 상품 등록/수정 모달 상태
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [editingProduct, setEditingProduct] = useState(null);
+
 
     // 필터/검색
     const [filter, setFilter] = useState("ALL");
@@ -824,6 +827,11 @@ function ProductManagement() {
         fetchOrders(selectedProduct.id, selectedProduct);
     }, [activeDetailTab, selectedProduct?.id, selectedProduct, fetchOrders]);
 
+    const handleEditClick = (product) => {
+        setEditingProduct(product);
+        setIsEditModalOpen(true);
+    };
+
     /** 상세 패널 */
     const renderDetailPanel = () => {
         if (!selectedProduct) return null;
@@ -1124,9 +1132,7 @@ function ProductManagement() {
                                 <div className={productStyles.detailActions}>
                                     <button
                                         className={productStyles.secondaryBtn}
-                                        onClick={() =>
-                                            navigate(`/product/edit/${p.id}`)
-                                        }
+                                        onClick={() => handleEditClick(p)}
                                     >
                                         <FiEdit /> 수정
                                     </button>
@@ -1742,7 +1748,7 @@ function ProductManagement() {
                                             </tbody>
                                         </table>
                                     )}
-                                </div>
+                                 </div>
                             )}
                         </section>
                     </div>
@@ -2024,6 +2030,13 @@ function ProductManagement() {
             >
                 {/* 기존 일반 상품 등록 페이지 그대로 재사용 */}
                 <GeneralProductForm />
+            </OverlayModal>
+            {/* ✅ 일반 상품 수정 모달 */}
+            <OverlayModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+            >
+                <GeneralProductForm productId={editingProduct?.id} />
             </OverlayModal>
         </div>
     );

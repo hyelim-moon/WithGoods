@@ -1,15 +1,18 @@
 .registerForm {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 30px;
-    border: 1px solid #e0e0e0;
-    border-radius: 12px;
-    background-color: #fff;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    border: none;
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: none;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 0; /* OverlayModal의 modalContentWrapper에서 패딩을 담당 */
 }
 
 .title {
     text-align: center;
+    margin-top: 0;
     margin-bottom: 30px;
     font-size: 28px;
     font-weight: 600;
@@ -45,14 +48,93 @@
     min-height: 120px;
 }
 
-.fileInput {
+/* 파일 입력 필드 숨기기 */
+.hiddenFileInput {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}
+
+/* 파일 선택 버튼 스타일 */
+.fileSelectButton {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #000; /* 검은색 배경으로 변경 */
+    color: white;
+    border-radius: 6px; /* addButton과 유사하게 */
+    cursor: pointer;
+    margin-top: 5px;
+    transition: background-color 0.3s ease;
+    flex-shrink: 0; /* 공간이 부족해도 줄어들지 않도록 */
+}
+
+.fileSelectButton:hover {
+    background-color: #333; /* 호버 시 색상 변경 */
+}
+
+/* 파일 입력 컨트롤 (버튼과 숨겨진 input을 감싸는 div) */
+.fileInputControl {
+    display: flex; /* 버튼과 파일명을 한 줄에 */
+    align-items: center; /* 세로 중앙 정렬 */
+    gap: 10px; /* 버튼과 파일명 사이 간격 */
+    margin-bottom: 20px; /* 레이블과 다음 요소 사이 간격 */
+    flex-wrap: wrap; /* 공간 부족 시 줄바꿈 */
+}
+
+.fileNameDisplay {
+    font-size: 14px;
+    color: #555;
+    white-space: nowrap; /* 파일명이 길어도 줄바꿈되지 않도록 */
+    overflow: hidden; /* 넘치는 부분 숨김 */
+    text-overflow: ellipsis; /* 넘치는 부분 ...으로 표시 */
+    max-width: calc(100% - 120px); /* 버튼 너비 고려하여 최대 너비 설정 */
+}
+
+.fileNameList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
     margin-top: 10px;
+    width: 100%; /* 부모 너비에 맞춤 */
+}
+
+.fileNameItem {
+    display: flex;
+    align-items: center;
+    background-color: #e9ecef;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 13px;
+    color: #495057;
+    gap: 5px;
+}
+
+.removeFileButton {
+    background: none;
+    border: none;
+    color: #dc3545;
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+    margin-left: 5px;
 }
 
 .imagePreview {
     margin-top: 10px;
     margin-bottom: 20px;
-    text-align: center;
+    text-align: left; /* 대표 이미지를 왼쪽으로 정렬 */
+    /* display: inline-block; 제거 */
+}
+
+.mainImageWrapper { /* 대표 이미지와 X 버튼을 감싸는 래퍼 */
+    position: relative;
+    display: inline-block; /* 이미지 크기에 맞춰 컨테이너 형성 */
 }
 
 .imagePreview img {
@@ -61,6 +143,47 @@
     border-radius: 8px;
     border: 1px solid #eee;
 }
+
+/* 이미지 미리보기 위에 X 버튼 공통 스타일 */
+.imageRemoveButton {
+    position: absolute;
+    top: 5px; /* 이미지 모서리 안쪽으로 5px */
+    right: 5px; /* 이미지 모서리 안쪽으로 5px */
+    /* transform: translate(50%, -50%); 제거 */
+    background-color: rgba(0, 0, 0, 0.7); /* 배경색 추가 */
+    color: white;
+    border-radius: 50%; /* 원형 버튼 */
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 14px;
+    padding: 0;
+    line-height: 1;
+    z-index: 1; /* 이미지 위에 오도록 */
+    cursor: pointer;
+    border: none;
+    transition: background-color 0.2s ease; /* 호버 효과를 위한 트랜지션 추가 */
+}
+
+.imageRemoveButton:hover {
+    background-color: #dc3545; /* 호버 시 빨간색으로 변경 */
+}
+
+/* 추가 이미지 미리보기 래퍼 */
+.subImagePreviewWrapper {
+    position: relative;
+    display: inline-block; /* 이미지 옆에 X 버튼이 오도록 */
+}
+
+.subImagePreviewWrapper img {
+    width: 56px;
+    height: 56px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
 
 .checkboxLabel {
     display: flex;

@@ -1,12 +1,15 @@
 import { useParams, useNavigate } from "react-router-dom";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react"; // useRef import
 import axios from "axios";
 import styles from "../../assets/styles/product/GeneralProductForm.module.css";
 
-function GeneralProductForm() {
-    const { id } = useParams();
+// productId prop을 추가합니다.
+function GeneralProductForm({ productId: propProductId }) {
+    const { id: paramId } = useParams();
     const navigate = useNavigate();
-    const isEditMode = Boolean(id);
+    // propProductId가 있으면 그것을 사용하고, 없으면 paramId를 사용합니다.
+    const productId = propProductId || paramId;
+    const isEditMode = Boolean(productId);
 
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -35,12 +38,23 @@ function GeneralProductForm() {
     const [newSubImageFiles, setNewSubImageFiles] = useState([]);
     const [newSubImagePreviews, setNewSubImagePreviews] = useState([]);
 
+    // 파일명 표시를 위한 상태 추가
+    const [mainImageFileName, setMainImageFileName] = useState("");
+    const [subImageFileNames, setSubImageFileNames] = useState([]); // 모든 추가 이미지 파일명 (기존 + 새로 추가)
+    const [removedExistingSubImageUrls, setRemovedExistingSubImageUrls] = useState([]); // 삭제된 기존 추가 이미지 URL 목록
+
+    // useRef를 사용하여 input 요소에 접근
+    const mainFileInputRef = useRef(null);
+    const subFileInputRef = useRef(null);
+
+
     const toAbsolute = (url) => url && !/^https?:\/\//i.test(url) ? `http://localhost:8080${url}` : url;
 
     useEffect(() => {
         if (!isEditMode) return;
         setLoading(true);
-        axios.get(`http://localhost:8080/products/${id}`, { withCredentials: true })
+        // productId를 사용하여 상품 정보를 불러옵니다.
+        axios.get(`http://localhost:8080/products/${productId}`, { withCredentials: true })
             .then((response) => {
                 const data = response.data;
                 let singleOptions = [{ optionName: "기본", optionValue: "", price: 0 }];
@@ -97,36 +111,77 @@ function GeneralProductForm() {
                     options: comboOptions,
                 });
 
-                if (data.imageUrl) setImagePreview(toAbsolute(data.imageUrl));
+                if (data.imageUrl) {
+                    setImagePreview(toAbsolute(data.imageUrl));
+                    // 기존 이미지 파일명 설정 (URL에서 추출)
+                    const fileName = data.imageUrl.substring(data.imageUrl.lastIndexOf('/') + 1);
+                    setMainImageFileName(fileName);
+                }
                 if (Array.isArray(data.additionalImages)) {
                     setExistingSubImageUrls(data.additionalImages.map(toAbsolute));
+                    // 기존 추가 이미지 파일명 설정 (새로 추가된 파일명과 합쳐서 관리)
+                    // 기존 파일명은 subImageFileNames의 시작 부분에 추가
+                    setSubImageFileNames(prev => [...data.additionalImages.map(url => url.substring(url.lastIndexOf('/') + 1)), ...prev]);
                 }
             })
             .catch(err => console.error(err))
             .finally(() => setLoading(false));
-    }, [id, isEditMode]);
+    }, [productId, isEditMode]); // 의존성 배열에 productId 추가
 
     const handleMainImageChange = (e) => {
         const file = e.target.files?.[0];
         setImageFile(file || null);
         setIsImageRemoved(false);
-        if (file) setImagePreview(URL.createObjectURL(file));
+        if (file) {
+            setImagePreview(URL.createObjectURL(file));
+            setMainImageFileName(file.name); // 파일명 설정
+        } else {
+            setMainImageFileName("");
+        }
     };
     const handleRemoveImage = () => {
         setImageFile(null);
         setImagePreview("");
         setIsImageRemoved(true);
+        setMainImageFileName(""); // 파일명 초기화
     };
 
     const handleSubImagesChange = (e) => {
         const files = Array.from(e.target.files || []);
-        setNewSubImageFiles(files);
-        setNewSubImagePreviews(files.map(f => URL.createObjectURL(f)));
+        setNewSubImageFiles(prev => [...prev, ...files]); // 기존 파일에 추가
+        setNewSubImagePreviews(prev => [...prev, ...files.map(f => URL.createObjectURL(f))]); // 미리보기 추가
+        setSubImageFileNames(prev => [...prev, ...files.map(f => f.name)]); // 파일명 추가
     };
-    const removeNewSubImageAt = (idx) => {
-        setNewSubImageFiles(prev => prev.filter((_, i) => i !== idx));
-        setNewSubImagePreviews(prev => prev.filter((_, i) => i !== idx));
+
+    const removeNewSubImageAt = (index) => {
+        // newSubImageFiles와 newSubImagePreviews에서 해당 인덱스 제거
+        setNewSubImageFiles(prev => prev.filter((_, i) => i !== index));
+        setNewSubImagePreviews(prev => prev.filter((_, i) => i !== index));
+        
+        // subImageFileNames에서 해당 파일명 제거 (기존 이미지 파일명과 새로 추가된 파일명을 구분하여 처리)
+        // 이 로직은 기존 이미지 파일명과 새로 추가된 파일명이 subImageFileNames에 섞여 있을 때 복잡해질 수 있습니다.
+        // 여기서는 단순히 newSubImagePreviews의 인덱스에 해당하는 파일명을 제거합니다.
+        // 정확한 처리를 위해선 subImageFileNames도 기존/새로 추가된 파일명으로 분리 관리하는 것이 좋습니다.
+        // 현재는 newSubImagePreviews의 인덱스가 subImageFileNames의 '새로 추가된 파일' 부분의 인덱스와 일치한다고 가정합니다.
+        setSubImageFileNames(prev => {
+            const existingCount = existingSubImageUrls.length;
+            return prev.filter((_, i) => {
+                // 기존 이미지 파일명은 유지하고, 새로 추가된 이미지 파일명만 인덱스에 맞춰 제거
+                if (i < existingCount) return true; // 기존 이미지 파일명
+                return (i - existingCount) !== index; // 새로 추가된 이미지 파일명
+            });
+        });
     };
+
+    const removeExistingSubImageAt = (index) => {
+        const removedUrl = existingSubImageUrls[index];
+        setRemovedExistingSubImageUrls(prev => [...prev, removedUrl]); // 삭제된 URL 목록에 추가
+        setExistingSubImageUrls(prev => prev.filter((_, i) => i !== index)); // 기존 이미지 URL 목록에서 제거
+        
+        // subImageFileNames에서도 해당 파일명 제거 (기존 이미지 파일명 부분)
+        setSubImageFileNames(prev => prev.filter((_, i) => i !== index));
+    };
+
 
     const handleChange = (e) => {
         const { name, value, type, checked } = e.target;
@@ -228,7 +283,8 @@ function GeneralProductForm() {
             startDate: formData.hasSalePeriod ? formData.saleStartDate : null,
             endDate: formData.hasSalePeriod ? formData.saleEndDate : null,
             options: optionsPayload,
-            removeImage: isImageRemoved,
+            removeImage: isImageRemoved, // 대표 이미지 삭제 여부
+            removedSubImageUrls: removedExistingSubImageUrls, // 삭제된 기존 추가 이미지 URL 목록
         };
 
         const submission = new FormData();
@@ -237,11 +293,16 @@ function GeneralProductForm() {
         newSubImageFiles.forEach(file => submission.append("subImages", file));
 
         try {
-            const url = isEditMode ? `http://localhost:8080/products/${id}` : "http://localhost:8080/products";
+            const url = isEditMode ? `http://localhost:8080/products/${productId}` : "http://localhost:8080/products";
             const method = isEditMode ? "PUT" : "POST";
             await axios({ method, url, data: submission, withCredentials: true });
             alert(isEditMode ? "상품 수정 완료" : "상품 등록 완료");
-            navigate(isEditMode ? `/admin/products?open=${id}&tab=analytics` : "/admin/products", { replace: true });
+            // 수정 완료 후 상세 패널로 돌아가도록 변경
+            if (isEditMode) {
+                navigate(`/admin/products?open=${productId}&tab=analytics`, { replace: true });
+            } else {
+                navigate("/admin/products", { replace: true });
+            }
         } catch (err) {
             alert(`오류: ${err.response?.data?.message || "작업에 실패했습니다."}`);
         }
@@ -253,21 +314,61 @@ function GeneralProductForm() {
         <form className={styles.registerForm} onSubmit={handleSubmit}>
             <h2 className={styles.title}>{isEditMode ? "상품 수정" : "상품 등록"}</h2>
             
-            <label className={styles.label}>대표 이미지<input type="file" name="image" onChange={handleMainImageChange} accept="image/*" className={styles.fileInput} /></label>
-            {imagePreview && <div className={styles.imagePreview}><img src={imagePreview} alt="미리보기" /><button type="button" onClick={handleRemoveImage} className={styles.removeButton}>이미지 삭제</button></div>}
-            
-            <label className={styles.label}>추가 이미지(여러 장 가능)<input type="file" name="subImages" accept="image/*" multiple onChange={handleSubImagesChange} className={styles.fileInput} /></label>
-            {isEditMode && existingSubImageUrls.length > 0 && (
-                <div style={{ marginBottom: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {existingSubImageUrls.map((src, i) => <img key={`exist-${i}`} src={src} alt={`exist-${i}`} style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 8 }} />)}
+            <label htmlFor="mainImageInput" className={styles.label}>대표 이미지</label>
+            <div className={styles.fileInputControl}>
+                <input type="file" id="mainImageInput" name="image" onChange={handleMainImageChange} accept="image/*" className={styles.hiddenFileInput} ref={mainFileInputRef} />
+                <span className={styles.fileSelectButton} onClick={() => mainFileInputRef.current.click()}>파일 선택</span>
+                {mainImageFileName && <span className={styles.fileNameDisplay}>{mainImageFileName}</span>}
+            </div>
+            {imagePreview && (
+                <div className={styles.imagePreview}>
+                    <div className={styles.mainImageWrapper}> {/* 새로운 래퍼 추가 */}
+                        <img src={imagePreview} alt="대표 이미지 미리보기" />
+                        <button type="button" onClick={handleRemoveImage} className={styles.imageRemoveButton}>×</button>
+                    </div>
                 </div>
             )}
+            
+            <label htmlFor="subImagesInput" className={styles.label}>추가 이미지(여러 장 가능)</label>
+            <div className={styles.fileInputControl}>
+                <input type="file" id="subImagesInput" name="subImages" accept="image/*" multiple onChange={handleSubImagesChange} className={styles.hiddenFileInput} ref={subFileInputRef} />
+                <span className={styles.fileSelectButton} onClick={() => subFileInputRef.current.click()}>파일 선택</span>
+                {subImageFileNames.length > 0 && (
+                    <div className={styles.fileNameList}>
+                        {subImageFileNames.map((name, index) => (
+                            <span key={index} className={styles.fileNameItem}>
+                                {name}
+                                <button type="button" onClick={() => {
+                                    // 기존 이미지와 새로 추가된 이미지를 구분하여 삭제
+                                    if (index < existingSubImageUrls.length) {
+                                        removeExistingSubImageAt(index);
+                                    } else {
+                                        removeNewSubImageAt(index - existingSubImageUrls.length);
+                                    }
+                                }} className={styles.removeFileButton}>×</button>
+                            </span>
+                        ))}
+                    </div>
+                )}
+            </div>
+            {/* 기존 이미지 미리보기 */}
+            {isEditMode && existingSubImageUrls.length > 0 && (
+                <div style={{ marginBottom: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    {existingSubImageUrls.map((src, i) => (
+                        <div key={`exist-${i}`} className={styles.subImagePreviewWrapper}>
+                            <img src={src} alt={`기존 추가 이미지 ${i}`} style={{ width: 56, height: 56, objectFit: 'cover', borderRadius: 8 }} />
+                            <button type="button" onClick={() => removeExistingSubImageAt(i)} className={styles.imageRemoveButton}>×</button>
+                        </div>
+                    ))}
+                </div>
+            )}
+            {/* 새로 추가된 이미지 미리보기 */}
             {newSubImagePreviews.length > 0 && (
                 <div style={{ marginBottom: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                     {newSubImagePreviews.map((src, i) => (
-                        <div key={`new-${i}`} style={{ position: "relative" }}>
-                            <img src={src} alt={`new-${i}`} style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 8 }} />
-                            <button type="button" onClick={() => removeNewSubImageAt(i)} className={styles.removeButton} style={{ position: "absolute", top: -6, right: -6, padding: "2px 6px", fontSize: 11 }}>×</button>
+                        <div key={`new-${i}`} className={styles.subImagePreviewWrapper}>
+                            <img src={src} alt={`새 추가 이미지 ${i}`} style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 8 }} />
+                            <button type="button" onClick={() => removeNewSubImageAt(i)} className={styles.imageRemoveButton}>×</button>
                         </div>
                     ))}
                 </div>

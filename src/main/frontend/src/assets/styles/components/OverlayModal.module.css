@@ -13,33 +13,36 @@
 
 .modal {
     position: relative;
-    width: min(1200px, 100%);
+    width: min(900px, 100%);
     max-height: 100%;
     background-color: #ffffff;
     border-radius: 16px;
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
-    overflow: hidden;
+    overflow: hidden; /* border-radius 유지를 위해 hidden */
     display: flex;
     flex-direction: column;
+    /* padding은 modalContentWrapper로 이동 */
+}
+
+.modalContentWrapper {
+    flex-grow: 1; /* 남은 공간을 채우도록 */
+    overflow-y: auto; /* 스크롤 담당 */
+    padding: 24px 28px 32px; /* 내부 콘텐츠 패딩 */
 }
 
 /* X 버튼 */
 .closeButton {
     position: absolute;
     top: 14px;
-    right: 18px;
+    right: 18px; /* 스크롤바 공간을 고려하여 위치 조정 */
     border: none;
     background: transparent;
     font-size: 24px;
     cursor: pointer;
-}
-
-.body {
-    padding: 24px 28px 32px;
-    overflow-y: auto;
+    z-index: 10; /* 닫기 버튼이 항상 위에 있도록 (스크롤 콘텐츠 위) */
 }
 
 /* 등록 폼이 꽉 차게 보이도록 */
-.body form {
+.modalContentWrapper > form { /* children이 form일 경우에만 적용 */
     width: 100%;
 }
