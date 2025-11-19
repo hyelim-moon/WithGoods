@@ -23,7 +23,7 @@
 
 .textarea:focus {
     outline: none;
-    border: 2px solid #944c21;
+    border: 2px solid #000000;
 }
 
 .charCount {

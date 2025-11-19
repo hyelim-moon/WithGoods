@@ -93,9 +93,9 @@ body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI
 .smallValue { margin-top: 18px; font-size: 40px; font-weight: 800; }
 
 .activityList { margin: 6px 0 0; padding-left: 23px; color: #374151; }
-.activityList li { 
-    margin: 8px 0; 
-    font-size: 20px; 
+.activityList li {
+    margin: 8px 0;
+    font-size: 20px;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -311,3 +311,22 @@ body { margin: 0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI
     font-size: 0.9em;
 }
 .cleanupBtn:hover { background-color: #c82333; }
+
+/* 🔗 대시보드/모달에서 사용하는 "회원 이름" 링크 버튼 */
+.memberLink {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0 0 2px 0;
+    color: #2563eb;
+    font-weight: 700;
+    cursor: pointer;
+    font-size: 0.95em;
+    text-align: left;
+}
+.memberLink:hover {
+    text-decoration: underline;
+}
+.memberLink:focus {
+    outline: none;
+}
