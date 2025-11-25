@@ -11,6 +11,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -99,4 +100,11 @@ public class AdminOrderController {
         orderService.updateShippingInfo(orderId, shippingInfo);
         return ResponseEntity.ok(Map.of("message", "배송지 정보가 업데이트되었습니다."));
     }
-} 
+
+    // 특정 상품에 대한 주문 목록 조회
+    @GetMapping("/product/{productId}")
+    public ResponseEntity<List<OrderResponseDto>> getOrdersByProductId(@PathVariable Long productId) {
+        List<OrderResponseDto> orders = orderService.getOrdersByProductId(productId);
+        return ResponseEntity.ok(orders);
+    }
+}

@@ -42,8 +42,8 @@ import Sidebar from "./Sidebar";
 import StockHistoryTab from "./StockHistoryTab";
 
 /** ====== DEMO 설정 ====== */
-const REVIEW_DEMO_MODE = true; // 데모 리뷰 강제 활성화
-const ORDER_DEMO_MODE = true; // 데모 주문 내역 강제 활성화
+const REVIEW_DEMO_MODE = false; // 데모 리뷰 강제 활성화
+const ORDER_DEMO_MODE = false; // 데모 주문 내역 강제 활성화
 const API_BASE_URL = "http://localhost:8080";
 const LOW_STOCK_THRESHOLD = 10;
 
@@ -628,18 +628,11 @@ function ProductManagement() {
     );
 
     /** ===== 주문 내역 불러오기(+캐시/더미) ===== */
-    const generateDummyOrders = (productObj) => {
-        const name = productObj?.name || "상품";
-        const unitPrice = Number(productObj?.price || 25000);
-        return DEFAULT_DUMMY_ORDERS(name, unitPrice);
-    };
-
     const fetchOrders = useCallback(
-        async (productId, productObj) => {
+        async (productId) => {
             if (!productId) return;
             const pid = String(productId);
 
-            // 캐시 있으면 즉시 사용
             if (Array.isArray(ordersCacheRef.current[pid])) {
                 setOrders(ordersCacheRef.current[pid]);
                 setOrdersLoading(false);
@@ -647,52 +640,30 @@ function ProductManagement() {
                 return;
             }
 
-            // 중복 요청 방지
             if (orderInFlightRef.current === pid) return;
             orderInFlightRef.current = pid;
-
-            // 데모 모드면 바로 더미 사용
-            if (ORDER_DEMO_MODE) {
-                const data = generateDummyOrders(productObj || {});
-                ordersCacheRef.current[pid] = data;
-                setOrders(data);
-                setOrdersLoading(false);
-                setOrdersError(null);
-                orderInFlightRef.current = null;
-                return;
-            }
 
             let aborted = false;
             try {
                 setOrdersLoading(true);
                 setOrdersError(null);
 
-                // 실제 API (원하면 이 URL만 백엔드에 맞게 수정)
                 const res = await axios.get(
-                    `${API_BASE_URL}/api/orders/product/${Number(productId)}`,
+                    `${API_BASE_URL}/api/admin/orders/product/${Number(productId)}`,
                     { withCredentials: true }
                 );
 
-                let data = Array.isArray(res.data) ? res.data : [];
-
-                // 비어있으면 더미로 채움
-                if (data.length === 0) {
-                    data = generateDummyOrders(productObj || {});
-                }
+                const data = Array.isArray(res.data) ? res.data : [];
 
                 if (!aborted) {
                     ordersCacheRef.current[pid] = data;
                     setOrders(data);
                 }
             } catch (e) {
-                console.error("주문 내역 로딩 실패(데모로 대체):", e);
-                const data = generateDummyOrders(productObj || {});
+                console.error("주문 내역 로딩 실패:", e);
                 if (!aborted) {
-                    ordersCacheRef.current[pid] = data;
-                    setOrders(data);
-                    setOrdersError(
-                        "주문 내역을 불러오지 못했습니다. (데모 데이터 표시 중)"
-                    );
+                    setOrders([]); // 에러 발생 시 빈 배열로 설정
+                    setOrdersError("주문 내역을 불러오지 못했습니다.");
                 }
             } finally {
                 if (!aborted) setOrdersLoading(false);
@@ -1667,21 +1638,8 @@ function ProductManagement() {
                                             </thead>
                                             <tbody>
                                             {orders.map((o) => {
-                                                const key =
-                                                    o.orderNo ||
-                                                    o.orderCode ||
-                                                    o.id ||
-                                                    o.orderId;
-                                                const qty =
-                                                    o.quantity ??
-                                                    o.totalQuantity ??
-                                                    o.qty ??
-                                                    0;
-                                                const amount =
-                                                    o.amount ??
-                                                    o.totalAmount ??
-                                                    o.totalPrice ??
-                                                    0;
+                                                const key = o.orderId;
+                                                const totalQuantity = o.orderItems.reduce((sum, item) => sum + item.quantity, 0);
                                                 const {
                                                     text: statusText,
                                                     className: statusClass,
@@ -1694,32 +1652,24 @@ function ProductManagement() {
                                                                 productStyles.orderNoCell
                                                             }
                                                         >
-                                                            {o.orderNo ||
-                                                                o.orderCode ||
-                                                                key}
+                                                            {o.orderId}
                                                         </td>
                                                         <td
                                                             className={
                                                                 productStyles.orderNameCell
                                                             }
                                                         >
-                                                            {o.customerName ||
-                                                                o.ordererName ||
-                                                                o.memberName ||
-                                                                "-"}
+                                                            {o.ordererInfo.name || "-"}
                                                         </td>
                                                         <td>
-                                                            {fmtDate(
-                                                                o.orderDate ||
-                                                                o.createdAt
-                                                            )}
+                                                            {fmtDate(o.orderDate)}
                                                         </td>
                                                         <td
                                                             className={
                                                                 productStyles.orderQtyCell
                                                             }
                                                         >
-                                                            {qty}개
+                                                            {totalQuantity}개
                                                         </td>
                                                         <td
                                                             className={
@@ -1728,7 +1678,7 @@ function ProductManagement() {
                                                         >
                                                             ₩
                                                             {Number(
-                                                                amount
+                                                                o.orderSummary.finalAmount
                                                             ).toLocaleString()}
                                                         </td>
                                                         <td

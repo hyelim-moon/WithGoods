@@ -13,6 +13,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -204,4 +207,12 @@ public class OrderService {
         
         orderRepository.save(order);
     }
-} 
+
+    // 특정 상품 ID에 대한 주문 목록 조회
+    public List<OrderResponseDto> getOrdersByProductId(Long productId) {
+        List<Order> orders = orderRepository.findAllByOrderDetails_Product_ProductId(productId);
+        return orders.stream()
+                .map(OrderResponseDto::from)
+                .collect(Collectors.toList());
+    }
+}

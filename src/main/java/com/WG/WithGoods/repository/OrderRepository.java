@@ -41,4 +41,7 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     
     // 최근 주문 50개 조회
     List<Order> findTop50ByOrderByOrderDateDesc();
+
+    // 특정 상품 ID에 대한 주문 목록 조회
+    List<Order> findAllByOrderDetails_Product_ProductId(Long productId);
 } 
