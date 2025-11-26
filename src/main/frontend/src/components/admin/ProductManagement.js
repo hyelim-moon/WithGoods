@@ -1986,7 +1986,10 @@ function ProductManagement() {
                 isOpen={isEditModalOpen}
                 onClose={() => setIsEditModalOpen(false)}
             >
-                <GeneralProductForm productId={editingProduct?.id} />
+                <GeneralProductForm
+                    productId={editingProduct?.id}
+                    onUpdateComplete={() => setIsEditModalOpen(false)}
+                />
             </OverlayModal>
         </div>
     );

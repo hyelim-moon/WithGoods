@@ -3,8 +3,8 @@ import React, { useState, useEffect, useRef } from "react"; // useRef import
 import axios from "axios";
 import styles from "../../assets/styles/product/GeneralProductForm.module.css";
 
-// productId prop을 추가합니다.
-function GeneralProductForm({ productId: propProductId }) {
+// productId prop과 onUpdateComplete 콜백 함수를 추가합니다.
+function GeneralProductForm({ productId: propProductId, onUpdateComplete }) {
     const { id: paramId } = useParams();
     const navigate = useNavigate();
     // propProductId가 있으면 그것을 사용하고, 없으면 paramId를 사용합니다.
@@ -297,8 +297,11 @@ function GeneralProductForm({ productId: propProductId }) {
             const method = isEditMode ? "PUT" : "POST";
             await axios({ method, url, data: submission, withCredentials: true });
             alert(isEditMode ? "상품 수정 완료" : "상품 등록 완료");
-            // 수정 완료 후 상세 패널로 돌아가도록 변경
+            
             if (isEditMode) {
+                if (onUpdateComplete) {
+                    onUpdateComplete();
+                }
                 navigate(`/admin/products?open=${productId}&tab=analytics`, { replace: true });
             } else {
                 navigate("/admin/products", { replace: true });
@@ -374,8 +377,8 @@ function GeneralProductForm({ productId: propProductId }) {
                 </div>
             )}
 
-            <label className={styles.label}>상품 유형<select name="productType" value={formData.productType} onChange={handleChange} className={styles.select} required><option value="normal">일반</option><option value="custom">커스텀</option></select></label>
-            <label className={styles.label}>카테고리<select name="category" value={formData.category} onChange={handleChange} className={styles.select} required><option value="">선택</option><option value="인형">인형</option><option value="문구">문구</option></select></label>
+            <label className={styles.label}>상품 유형<select name="productType" value={formData.productType} onChange={handleChange} className={styles.select} required><option value="normal">일반</option><option value="limited">한정판</option><option value="anniversary">기념일</option><option value="custom">커스텀</option></select></label>
+            <label className={styles.label}>카테고리<select name="category" value={formData.category} onChange={handleChange} className={styles.select} required><option value="">선택</option><option value="인형">인형</option><option value="문구">문구</option><option value="패션">패션</option><option value="키링">키링</option><option value="가전">가전</option></select></label>
             <label className={styles.label}>상품명<input type="text" name="name" value={formData.name} onChange={handleChange} className={styles.input} required /></label>
             <label className={styles.label}>가격<input type="number" name="price" value={formData.price} onChange={handleChange} className={styles.input} min="0" required /></label>
             <label className={styles.label}>재고<input type="number" name="stock" value={formData.stock} onChange={handleChange} className={styles.input} min="0" required /></label>
