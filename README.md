@@ -1,6 +1,5 @@
 # WithGoods  
-사용자 맞춤 굿즈 주문·관리 플랫폼  
-(Spring Boot + React)
+사용자 맞춤 굿즈 주문·관리 플랫폼  (Spring Boot + React)
 
 ---
 
