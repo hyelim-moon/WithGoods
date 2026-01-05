@@ -48,6 +48,8 @@ WithGoods는 사용자가 원하는 옵션을 선택해 **나만의 굿즈를 �
 - React
 - Axios
 
+---
+
 ## API Documentation
 로컬 실행 후 Swagger UI를 통해 API 명세를 확인할 수 있습니다.
 
